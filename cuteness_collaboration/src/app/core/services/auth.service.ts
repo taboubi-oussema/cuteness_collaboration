@@ -139,7 +139,8 @@ export class AuthService {
   private setCookie(name: string, value: string, maxAgeDays?: number): void {
     if (!isPlatformBrowser(this._platformId)) return;
     const maxAge = maxAgeDays ? `;Max-Age=${maxAgeDays * 86400}` : '';
-    document.cookie = `${name}=${encodeURIComponent(value)};path=/;SameSite=Strict${maxAge}`;
+    const secure = location.protocol === 'https:' ? ';Secure' : '';
+    document.cookie = `${name}=${encodeURIComponent(value)};path=/;SameSite=Strict${secure}${maxAge}`;
   }
 
   private getCookie(name: string): string | null {
@@ -149,7 +150,8 @@ export class AuthService {
 
   private deleteCookie(name: string): void {
     if (!isPlatformBrowser(this._platformId)) return;
-    document.cookie = `${name}=;path=/;SameSite=Strict;expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+    const secure = location.protocol === 'https:' ? ';Secure' : '';
+    document.cookie = `${name}=;path=/;SameSite=Strict${secure};expires=Thu, 01 Jan 1970 00:00:00 GMT`;
   }
 
   private mapToUser(res: LoginResponse): User {

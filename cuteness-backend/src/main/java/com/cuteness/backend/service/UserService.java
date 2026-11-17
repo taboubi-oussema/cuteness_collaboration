@@ -56,8 +56,16 @@ public class UserService {
 
    
     public void deleteUser(int id) {
-        if (!userRepository.existsById(id))
-            throw new RuntimeException("Utilisateur introuvable");
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+        if (user.getRole() == Role.ADMIN) {
+            long adminCount = userRepository.findAll().stream()
+                    .filter(u -> u.getRole() == Role.ADMIN)
+                    .count();
+            if (adminCount <= 1) {
+                throw new RuntimeException("Impossible de supprimer le seul administrateur du système");
+            }
+        }
         userRepository.deleteById(id);
     }
 
@@ -93,6 +101,9 @@ public class UserService {
             if (req.getParrainId() == 0) {
                 user.setParrain(null);
             } else {
+                if (req.getParrainId() == id) {
+                    throw new RuntimeException("Un utilisateur ne peut pas être son propre parrain");
+                }
                 User parrain = userRepository.findById(req.getParrainId())
                         .orElseThrow(() -> new RuntimeException("Parrain introuvable"));
                 user.setParrain(parrain);

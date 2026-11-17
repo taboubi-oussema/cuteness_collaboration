@@ -40,21 +40,21 @@ public class DashboardController {
         return ResponseEntity.ok(dashboardService.getComptableDashboard());
     }
 
-    // Network tree - uses full tree for accountant/admin, personal tree for partners
+    // Network tree - uses full tree for accountant/admin/superviseur, personal tree for partners
     @GetMapping("/reseau")
     public ResponseEntity<Map<String, Object>> getReseau(
             Authentication authentication) {
-        // Check if user is PARTENAIRE or COMPTABLE/ADMIN
-        boolean isPartenaire = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_PARTENAIRE"));
+        boolean canSeeFullTree = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")
+                        || a.getAuthority().equals("ROLE_COMPTABLE")
+                        || a.getAuthority().equals("ROLE_SUPERVISEUR"));
         
-        if (isPartenaire) {
-            return ResponseEntity.ok(
-                    dashboardService.getNetworkTree(authentication.getName()));
-        } else {
-            // For accountant/admin, return full network tree
+        if (canSeeFullTree) {
             return ResponseEntity.ok(
                     dashboardService.getFullNetworkTree());
+        } else {
+            return ResponseEntity.ok(
+                    dashboardService.getNetworkTree(authentication.getName()));
         }
     }
 
@@ -76,7 +76,10 @@ public class DashboardController {
     @PostMapping("/virement/confirmer")
     @PreAuthorize("hasAnyRole('COMPTABLE', 'ADMIN')")
     public ResponseEntity<Map<String, Object>> confirmerVirement(
-            @RequestBody ConfirmerVirementRequest request) {
+            @jakarta.validation.Valid @RequestBody ConfirmerVirementRequest request) {
+        if (request.getMontant() <= 0) {
+            throw new IllegalArgumentException("Le montant du virement doit être strictement positif");
+        }
         return ResponseEntity.ok(
                 dashboardService.confirmerVirement(
                         request.getPartenaireId(),

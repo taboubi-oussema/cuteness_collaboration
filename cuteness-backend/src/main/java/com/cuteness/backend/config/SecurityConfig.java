@@ -50,6 +50,7 @@ public class SecurityConfig {
     );
 
     private final JwtUtil jwtUtil;
+    private final com.cuteness.backend.repository.UserRepository userRepository;
 
     @Value("${cors.allowed-origins:}")
     private String configuredOrigins;
@@ -63,6 +64,13 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             // Stateless API: the JWT travels in the Authorization header (no cookies), so CSRF does not apply.
             .csrf(csrf -> csrf.disable())
+            .headers(headers -> headers
+                .frameOptions(frame -> frame.deny())
+                .contentTypeOptions(content -> {})
+                .httpStrictTransportSecurity(hsts -> hsts
+                    .includeSubDomains(true)
+                    .maxAgeInSeconds(31536000))
+            )
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .exceptionHandling(ex -> ex
@@ -98,7 +106,7 @@ public class SecurityConfig {
                 // Everything else requires a valid JWT. Role checks are done with @PreAuthorize.
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(new JwtFilter(jwtUtil, userRepository), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

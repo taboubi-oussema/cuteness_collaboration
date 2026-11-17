@@ -3,6 +3,7 @@ package com.cuteness.backend.controller;
 import com.cuteness.backend.dto.*;
 import com.cuteness.backend.enums.StatutCommande;
 import com.cuteness.backend.service.CommandeService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,7 +23,7 @@ public class CommandeController {
     @PostMapping
     @PreAuthorize("hasAnyRole('PARTENAIRE', 'ADMIN', 'SUPERVISEUR')")
     public ResponseEntity<CommandeResponse> passerCommande(
-            @RequestBody CommandeRequest request,
+            @Valid @RequestBody CommandeRequest request,
             Authentication authentication) {
         boolean isSuperviseur = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_SUPERVISEUR"));

@@ -462,6 +462,9 @@ public class DashboardService {
         @Transactional
         public Map<String, Object> confirmerVirement(int partenaireId, double montant, String infoBancaire,
                         String typePayment, String semaine) {
+                if (montant <= 0) {
+                        throw new IllegalArgumentException("Le montant du virement doit être strictement positif");
+                }
                 // Récupère le partenaire
                 User partenaire = userRepository.findById(partenaireId)
                                 .orElseThrow(() -> new RuntimeException("Partenaire introuvable"));

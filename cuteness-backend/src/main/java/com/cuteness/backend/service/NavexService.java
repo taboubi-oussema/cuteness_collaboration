@@ -1,6 +1,7 @@
 package com.cuteness.backend.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -14,11 +15,14 @@ import java.util.Set;
 @Slf4j
 public class NavexService {
 
-    private static final String POST_URL =
-            "https://app.navex.tn/api/cutenesstn-21UU803NBAOM6LY9AAD9Q35A7RM2WQMF/v1/post.php";
+    @Value("${navex.post-url:https://app.navex.tn/api/cutenesstn-21UU803NBAOM6LY9AAD9Q35A7RM2WQMF/v1/post.php}")
+    private String postUrl;
 
-    private static final String GET_URL =
-            "https://app.navex.tn/api/cutenesstn-etat-21UU803NBAOM6LY9AAD9Q35A7RM2WQMF/v1/get.php";
+    @Value("${navex.get-url:https://app.navex.tn/api/cutenesstn-etat-21UU803NBAOM6LY9AAD9Q35A7RM2WQMF/v1/get.php}")
+    private String getUrl;
+
+    @Value("${navex.tracking-url:https://app.navex.tn/expediteur/suivi.php?code=}")
+    private String trackingUrlBase;
 
     private static final Set<String> LIVRE_STATUTS = Set.of("Livrés", "Livrés payés");
     private static final Set<String> RETOUR_STATUTS = Set.of(
@@ -65,7 +69,7 @@ public class NavexService {
             HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
 
             @SuppressWarnings("rawtypes")
-            ResponseEntity<Map> response = restTemplate.postForEntity(POST_URL, request, Map.class);
+            ResponseEntity<Map> response = restTemplate.postForEntity(postUrl, request, Map.class);
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 Map<?, ?> resp = response.getBody();
@@ -107,7 +111,7 @@ public class NavexService {
             HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
 
             @SuppressWarnings("rawtypes")
-            ResponseEntity<Map> response = restTemplate.postForEntity(GET_URL, request, Map.class);
+            ResponseEntity<Map> response = restTemplate.postForEntity(getUrl, request, Map.class);
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 Map<?, ?> resp = response.getBody();
@@ -137,6 +141,6 @@ public class NavexService {
     }
 
     public String trackingUrl(String navexRef) {
-        return "https://app.navex.tn/expediteur/suivi.php?code=" + navexRef;
+        return trackingUrlBase + navexRef;
     }
 }

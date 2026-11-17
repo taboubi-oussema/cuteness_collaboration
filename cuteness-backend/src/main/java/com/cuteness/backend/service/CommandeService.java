@@ -68,11 +68,21 @@ public class CommandeService {
         // Taux stocké sur la commande ; déduction uniquement si IMMEDIATE
         commande.setTauxReduction(tauxReduction);
 
+        if (request.getLignes() == null || request.getLignes().isEmpty()) {
+            throw new IllegalArgumentException("La commande doit contenir au moins un article");
+        }
+
         double montantOriginal = 0;
         double montantProduits = 0; // réduction applicable uniquement sur les produits
         List<LigneCommande> lignes = new java.util.ArrayList<>();
 
         for (LigneCommandeRequest ligneReq : request.getLignes()) {
+            if (ligneReq == null || ligneReq.getQuantite() <= 0) {
+                throw new IllegalArgumentException("La quantité de chaque article doit être strictement positive");
+            }
+            if (ligneReq.getQuantite() > 1000) {
+                throw new IllegalArgumentException("La quantité maximale par article est de 1000");
+            }
             LigneCommande ligne = new LigneCommande();
             double prixUnitaire = 0;
 

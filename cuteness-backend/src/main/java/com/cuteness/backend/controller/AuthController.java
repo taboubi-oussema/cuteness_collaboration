@@ -30,7 +30,7 @@ public class AuthController {
     // ── LOGIN ──────────────────────────────────────────────
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(
-            @RequestBody LoginRequest request, HttpServletRequest http) {
+            @Valid @RequestBody LoginRequest request, HttpServletRequest http) {
         String ip = clientIp.resolve(http);
         // Slows down password guessing: per IP overall, and per IP + account
         rateLimiter.check("login-ip:" + ip, 30, Duration.ofMinutes(15));
@@ -41,7 +41,7 @@ public class AuthController {
     // ── REGISTER ───────────────────────────────────────────
     @PostMapping("/register")
     public ResponseEntity<Map<String, String>> register(
-            @RequestBody RegisterRequest request, HttpServletRequest http) {
+            @Valid @RequestBody RegisterRequest request, HttpServletRequest http) {
         rateLimiter.check("register-ip:" + clientIp.resolve(http), 10, Duration.ofHours(1));
         return ResponseEntity.ok(
             Map.of("message", authService.register(request))
@@ -74,7 +74,7 @@ public class AuthController {
     // ── RESET PASSWORD — Étape 1 : demande email ───────────
     @PostMapping("/reset-password")
     public ResponseEntity<Map<String, String>> resetPassword(
-            @RequestBody ResetPasswordRequest request, HttpServletRequest http) {
+            @Valid @RequestBody ResetPasswordRequest request, HttpServletRequest http) {
         rateLimiter.check("reset-email:" + norm(request.getEmail()), 3, Duration.ofHours(1));
         rateLimiter.check("reset-ip:" + clientIp.resolve(http), 10, Duration.ofHours(1));
         return ResponseEntity.ok(
@@ -85,7 +85,7 @@ public class AuthController {
     // ── RESET PASSWORD — Étape 2 : nouveau mot de passe ────
     @PostMapping("/change-password")
     public ResponseEntity<Map<String, String>> changePassword(
-            @RequestBody ChangePasswordRequest request, HttpServletRequest http) {
+            @Valid @RequestBody ChangePasswordRequest request, HttpServletRequest http) {
         rateLimiter.check("change-ip:" + clientIp.resolve(http), 10, Duration.ofHours(1));
         return ResponseEntity.ok(
             Map.of("message", authService.changePassword(request))

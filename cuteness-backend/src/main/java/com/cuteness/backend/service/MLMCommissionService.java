@@ -43,17 +43,22 @@ public class MLMCommissionService {
     // ── Core distribution (3 levels) ───────────────────────
     private void distribuer(User acheteur, double montantBase, String sourceRef) {
         User n1 = acheteur.getParrain();
-        if (n1 != null && n1.getPack() != null) {
+        if (n1 != null && n1.getPack() != null && n1.getId() != acheteur.getId()) {
             crediter(n1, montantBase, n1.getPack().getTauxCommissionDirect() / 100.0,
                     1, sourceRef, acheteur.getNom());
 
             User n2 = n1.getParrain();
-            if (n2 != null && n2.getPack() != null) {
+            if (n2 != null && n2.getPack() != null
+                    && n2.getId() != acheteur.getId()
+                    && n2.getId() != n1.getId()) {
                 crediter(n2, montantBase, n2.getPack().getTauxCommissionNiveau2() / 100.0,
                         2, sourceRef, acheteur.getNom());
 
                 User n3 = n2.getParrain();
-                if (n3 != null && n3.getPack() != null) {
+                if (n3 != null && n3.getPack() != null
+                        && n3.getId() != acheteur.getId()
+                        && n3.getId() != n1.getId()
+                        && n3.getId() != n2.getId()) {
                     crediter(n3, montantBase, n3.getPack().getTauxCommissionNiveau3() / 100.0,
                             3, sourceRef, acheteur.getNom());
                 }

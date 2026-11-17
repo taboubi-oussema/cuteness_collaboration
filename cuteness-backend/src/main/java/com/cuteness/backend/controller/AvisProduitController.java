@@ -27,7 +27,7 @@ public class AvisProduitController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<AvisProduitResponse> addAvis(
             @PathVariable int id,
-            @RequestBody AvisProduitRequest req,
+            @jakarta.validation.Valid @RequestBody AvisProduitRequest req,
             Principal principal) {
         return ResponseEntity.ok(avisService.addAvis(id, req, principal.getName()));
     }

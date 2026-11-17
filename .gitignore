@@ -42,7 +42,9 @@ Thumbs.db
 **/application-local.yaml
 **/application-local.properties
 *.sql
-uploads/signalements/
+uploads/
+**/uploads/**
+!**/uploads/.gitkeep
 
 # IDE build output
 cuteness-backend/bin/
