@@ -1,4 +1,8 @@
 spring:
+  config:
+    # Optional local .env file (KEY=value lines). Never commit it — see .env.example
+    import: optional:file:.env[.properties],optional:file:./cuteness-backend/.env[.properties]
+
   servlet:
     multipart:
       max-file-size: 10MB
@@ -6,9 +10,9 @@ spring:
       enabled: true
 
   datasource:
-    url: jdbc:mysql://localhost:3306/cuteness_db
-    username: root
-    password: ''
+    url: ${DB_URL:jdbc:mysql://localhost:3306/cuteness_db}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 10
@@ -20,19 +24,19 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      # "update" is convenient in development; use "validate" in production.
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    show-sql: ${SHOW_SQL:false}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
 
-
   mail:
     host: smtp.gmail.com
     port: 587
-    username: amalcuteness2002@gmail.com
-    password: xojo eojo syjy fkua   # ← Générer un App Password dans Google Account
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -44,13 +48,31 @@ server:
   port: 8081
 
 jwt:
-  secret: cuteness_secret_key_must_be_at_least_32_chars_long
-  expiration: 86400000
+  # Required. At least 32 characters, random. Generate with: openssl rand -base64 48
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION_MS:86400000}
 
 navex:
-  token-etat: "cutenesstn-etat-21UU803NBAOM6LY9AAD9Q35A7RM2WQMF"
+  token-etat: ${NAVEX_TOKEN_ETAT}
   base-url: "https://app.navex.tn/api"
   tracking-url: "https://app.navex.tn/expediteur/suivi.php?code="
 
 gemini:
-  api-key: "AIzaSyAbwcpsELPrcSxgWxSt8eu_KBLSK14kraI"
+  api-key: ${GEMINI_API_KEY}
+
+app:
+  # Base URL of the Angular app (used in password-reset emails)
+  frontend-url: ${FRONTEND_URL:http://localhost:4200}
+  # Set to true ONLY when the API runs behind your own reverse proxy (nginx, etc.)
+  # so that X-Forwarded-For is trusted for rate limiting.
+  trust-proxy-headers: ${TRUST_PROXY_HEADERS:false}
+  admin:
+    email: ${ADMIN_EMAIL:admin@cuteness.tn}
+    # Used once to create the first admin when none exists (min 12 chars). No default on purpose.
+    password: ${ADMIN_INITIAL_PASSWORD:}
+
+cors:
+  # Comma-separated list of allowed web origins, e.g. https://www.example.com
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:}
+  # Allow http://localhost:4200 etc. Set to false in production.
+  dev-origins: ${CORS_DEV_ORIGINS:true}

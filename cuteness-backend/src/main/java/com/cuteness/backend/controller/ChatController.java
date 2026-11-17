@@ -2,6 +2,7 @@ package com.cuteness.backend.controller;
 
 import com.cuteness.backend.dto.ChatRequest;
 import com.cuteness.backend.dto.ChatResponse;
+import com.cuteness.backend.security.ClientIpResolver;
 import com.cuteness.backend.service.ChatService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -17,10 +18,11 @@ import java.util.Map;
 public class ChatController {
 
     private final ChatService chatService;
+    private final ClientIpResolver clientIp;
 
     @PostMapping
     public ResponseEntity<?> chat(@Valid @RequestBody ChatRequest request, HttpServletRequest httpRequest) {
-        String ip = getClientIp(httpRequest);
+        String ip = clientIp.resolve(httpRequest);
 
         if (!chatService.checkAndRecord(ip)) {
             return ResponseEntity.status(429).body(
@@ -30,13 +32,5 @@ public class ChatController {
 
         String reply = chatService.chat(request.getMessage(), request.getContext());
         return ResponseEntity.ok(new ChatResponse(reply));
-    }
-
-    private String getClientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
-        }
-        return request.getRemoteAddr();
     }
 }

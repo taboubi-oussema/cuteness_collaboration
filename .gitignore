@@ -34,3 +34,15 @@ yarn-error.log*
 !.vscode/launch.json
 .DS_Store
 Thumbs.db
+
+# Secrets & local data — never commit
+.env
+.env.*
+!.env.example
+**/application-local.yaml
+**/application-local.properties
+*.sql
+uploads/signalements/
+
+# IDE build output
+cuteness-backend/bin/

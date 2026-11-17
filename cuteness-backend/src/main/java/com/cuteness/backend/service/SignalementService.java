@@ -135,13 +135,9 @@ public class SignalementService {
     }
 
     private String saveFile(MultipartFile file) throws IOException {
-        Path uploadPath = Paths.get(UPLOAD_DIR);
-        if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
-        String ext = "";
-        String orig = StringUtils.cleanPath(file.getOriginalFilename() != null ? file.getOriginalFilename() : "file");
-        if (orig.contains(".")) ext = orig.substring(orig.lastIndexOf("."));
-        String filename = System.currentTimeMillis() + ext;
-        Files.copy(file.getInputStream(), uploadPath.resolve(filename), StandardCopyOption.REPLACE_EXISTING);
+        // Images and PDF only; random file name, extension + file signature checked
+        String filename = com.cuteness.backend.security.SafeFileStorage.store(
+                file, Paths.get(UPLOAD_DIR), com.cuteness.backend.security.SafeFileStorage.IMAGE_AND_PDF_EXTENSIONS);
         return "/uploads/signalements/" + filename;
     }
 
