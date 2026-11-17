@@ -1,0 +1,444 @@
+<div class="section-content">
+
+  <!-- ── SUCCESS BANNER ── -->
+  @if (successMsg) {
+    <div class="success-banner">
+      <i class="fas fa-check-circle"></i> {{ successMsg }}
+    </div>
+  }
+
+  <!-- ── ERROR BANNER ── -->
+  @if (errorMsg) {
+    <div class="error-banner">
+      <span><i class="fas fa-exclamation-triangle"></i> {{ errorMsg }}</span>
+      <button style="background:none;border:none;cursor:pointer;font-size:16px;color:inherit;" (click)="errorMsg=''">✕</button>
+    </div>
+  }
+
+  <!-- ── TAB SWITCHER ── -->
+  <div class="filter-tabs">
+    <button [class.active]="activeTab === 'categories'" (click)="activeTab = 'categories'">
+      📁 Catégories
+      <span class="ft-count">{{ categories.length }}</span>
+    </button>
+    <button [class.active]="activeTab === 'produits'" (click)="activeTab = 'produits'">
+      🛍️ Articles
+      <span class="ft-count">{{ produits.length }}</span>
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       CATEGORIES TAB
+  ═══════════════════════════════════════════════ -->
+  @if (activeTab === 'categories') {
+
+    <!-- Header -->
+    <div class="hs-header" style="background:var(--white); border-radius:var(--radius); border:1px solid var(--border); padding:14px 18px;">
+      <div class="hs-title">📁 Catégories</div>
+      <button class="btn-valider" (click)="openAddCat()">+ Ajouter une catégorie</button>
+    </div>
+
+    <!-- Loading -->
+    @if (isLoadingCat) {
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <span class="loading-text">Chargement...</span>
+      </div>
+    }
+
+    <!-- Add/Edit Form -->
+    @if (showFormCat) {
+      <div class="home-section">
+        <div class="hs-header">
+          <div class="hs-title">{{ editModeCat ? '✏️ Modifier la catégorie' : '➕ Nouvelle catégorie' }}</div>
+          <button class="btn-refuser" (click)="showFormCat = false">✕ Fermer</button>
+        </div>
+
+        <div class="signalement-form" style="border:none; border-radius:0;">
+          <div style="display:grid; grid-template-columns:1fr 2fr; gap:16px;">
+            <div class="sf-field">
+              <label>Nom</label>
+              <input class="sf-input" type="text" [(ngModel)]="formCat.nom" placeholder="ex: Soins visage" />
+            </div>
+            <div class="sf-field">
+              <label>Description</label>
+              <input class="sf-input" type="text" [(ngModel)]="formCat.description" placeholder="Description de la catégorie" />
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:140px 1fr; gap:16px; align-items:start;">
+            <div class="sf-field">
+              <label>Couleur</label>
+              <input class="sf-input" type="color" [(ngModel)]="formCat.couleur"
+                     style="padding:4px 6px; height:42px; cursor:pointer;" />
+            </div>
+            <div class="sf-field">
+              <label>Icône</label>
+              <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+                @for (ic of iconesSuggerees; track ic.classe) {
+                  <button type="button"
+                          (click)="formCat.icone = ic.classe"
+                          [style.background]="formCat.icone === ic.classe ? (formCat.couleur || '#3AAFDA') : '#f5f5f5'"
+                          [style.color]="formCat.icone === ic.classe ? '#fff' : '#555'"
+                          [title]="ic.label"
+                          style="width:38px;height:38px;border-radius:10px;border:2px solid transparent;cursor:pointer;font-size:.95rem;transition:all .15s;display:flex;align-items:center;justify-content:center;">
+                    <i [class]="ic.classe"></i>
+                  </button>
+                }
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:12px;color:var(--text-3);">Ou saisir manuellement :</span>
+                <input class="sf-input" type="text" [(ngModel)]="formCat.icone"
+                       placeholder="ex: fas fa-star" style="flex:1;font-size:12px;" />
+                @if (formCat.icone) {
+                  <span style="width:36px;height:36px;border-radius:8px;background:color-mix(in srgb, var(--color, #3AAFDA) 12%,#fff);display:flex;align-items:center;justify-content:center;font-size:1.1rem;border:2px solid var(--border);"
+                        [style.color]="formCat.couleur || '#3AAFDA'">
+                    <i [class]="formCat.icone"></i>
+                  </span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Aperçu de la catégorie -->
+          <div style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg);border-radius:12px;border:1.5px solid var(--border);">
+            <div style="width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;"
+                 [style.background]="(formCat.couleur || '#3AAFDA') + '20'"
+                 [style.color]="formCat.couleur || '#3AAFDA'">
+              <i [class]="formCat.icone || 'fas fa-tag'"></i>
+            </div>
+            <div>
+              <div style="font-weight:700;color:var(--text-1);">{{ formCat.nom || 'Nom de la catégorie' }}</div>
+              <div style="font-size:12px;color:var(--text-3);">{{ formCat.description || 'Description' }}</div>
+            </div>
+            <span style="margin-left:auto;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;"
+                  [style.background]="(formCat.couleur || '#3AAFDA') + '18'"
+                  [style.color]="formCat.couleur || '#3AAFDA'">
+              Aperçu
+            </span>
+          </div>
+
+          <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button class="btn-refuser" (click)="showFormCat = false">Annuler</button>
+            <button class="btn-valider" (click)="saveCat()">
+              <i class="fas fa-save"></i> {{ editModeCat ? 'Sauvegarder' : 'Créer' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Categories Table -->
+    @if (!isLoadingCat) {
+      <div class="home-section">
+        <div class="data-table">
+          <div class="dt-head" style="grid-template-columns: 56px 2fr 3fr 1fr 1.5fr;">
+            <div>Icône</div>
+            <div>Nom</div>
+            <div>Description</div>
+            <div>Articles</div>
+            <div>Actions</div>
+          </div>
+
+          @for (cat of categories; track cat.id) {
+            <div class="dt-row" style="grid-template-columns: 56px 2fr 3fr 1fr 1.5fr;">
+              <div>
+                <div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;"
+                     [style.background]="(cat.couleur || '#3AAFDA') + '20'"
+                     [style.color]="cat.couleur || '#3AAFDA'">
+                  <i [class]="cat.icone || 'fas fa-tag'"></i>
+                </div>
+              </div>
+              <div style="font-weight:600; color:var(--text-1);">{{ cat.nom }}</div>
+              <div class="dt-desc">{{ cat.description }}</div>
+              <div>
+                <span class="niveau-badge">{{ countProduitsForCat(cat.id) }} article(s)</span>
+              </div>
+              <div class="dt-actions">
+                <button class="btn-valider" (click)="openEditCat(cat)">
+                  <i class="fas fa-edit"></i> Modifier
+                </button>
+                <button class="btn-refuser" (click)="deleteCat(cat.id)">
+                  <i class="fas fa-trash"></i> Supprimer
+                </button>
+              </div>
+            </div>
+          }
+
+          @if (categories.length === 0) {
+            <div class="dt-empty">
+              <i class="fas fa-folder-open"></i> Aucune catégorie disponible
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+  }
+
+  <!-- ═══════════════════════════════════════════════
+       PRODUITS TAB
+  ═══════════════════════════════════════════════ -->
+  @if (activeTab === 'produits') {
+
+    <!-- Header + Search + Add button -->
+    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      <div class="hs-title" style="flex:1; min-width:150px;">🛍️ Articles</div>
+      <div class="search-bar" style="flex:1; min-width:220px; max-width:340px;">
+        <i class="fas fa-search"></i>
+        <input class="search-input" type="text" [(ngModel)]="recherche" placeholder="Rechercher un article..." />
+      </div>
+      <button class="btn-valider" (click)="openAddProd()">+ Ajouter un article</button>
+    </div>
+
+    <!-- Loading -->
+    @if (isLoadingProd) {
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <span class="loading-text">Chargement...</span>
+      </div>
+    }
+
+    <!-- Add/Edit Form -->
+    @if (showFormProd) {
+      <div class="home-section">
+        <div class="hs-header">
+          <div class="hs-title">{{ editModeProd ? '✏️ Modifier l\'article' : '➕ Nouvel article' }}</div>
+          <button class="btn-refuser" (click)="showFormProd = false">✕ Fermer</button>
+        </div>
+
+        <div class="signalement-form" style="border:none; border-radius:0;">
+          <div style="display:grid; grid-template-columns:1fr 2fr; gap:16px;">
+            <div class="sf-field">
+              <label>Nom de l'article</label>
+              <input class="sf-input" type="text" [(ngModel)]="formProd.nom" placeholder="ex: Crème hydratante" />
+            </div>
+            <div class="sf-field">
+              <label>Description</label>
+              <input class="sf-input" type="text" [(ngModel)]="formProd.description" placeholder="Description courte" />
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr 2fr 2fr; gap:16px;">
+            <div class="sf-field">
+              <label>Prix (DT)</label>
+              <input class="sf-input" type="number" [(ngModel)]="formProd.prix" placeholder="0" min="0" />
+            </div>
+            <div class="sf-field">
+              <label>Stock</label>
+              <input class="sf-input" type="number" [(ngModel)]="formProd.stock" placeholder="0" min="0" />
+            </div>
+            <div class="sf-field">
+              <label>Catégorie</label>
+              <select class="sf-input" [(ngModel)]="formProd.categorieId">
+                <option [ngValue]="undefined">-- Choisir une catégorie --</option>
+                @for (cat of categories; track cat.id) {
+                  <option [ngValue]="cat.id">{{ cat.nom }}</option>
+                }
+              </select>
+            </div>
+            <div class="sf-field">
+              <label>Public cible</label>
+              <select class="sf-input" [(ngModel)]="formProd.cible">
+                <option value="">-- Choisir --</option>
+                <option value="femme">👩 Femme</option>
+                <option value="homme">👨 Homme</option>
+                <option value="enfant">👶 Enfant</option>
+                <option value="maison">🏠 Maison</option>
+                <option value="autre">✨ Autre</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Best seller + Promo -->
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="sf-field">
+              <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                <input type="checkbox" [(ngModel)]="formProd.bestSeller"
+                       style="width:18px; height:18px; accent-color:var(--gold); cursor:pointer;" />
+                <span>⭐ Best Seller</span>
+              </label>
+              <div style="font-size:11px; color:var(--text-3); margin-top:4px;">Affiché en tête de boutique avec badge spécial</div>
+            </div>
+            <div class="sf-field">
+              <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                <input type="checkbox" [(ngModel)]="formProd.enPromo"
+                       style="width:18px; height:18px; accent-color:var(--coral, #e74c3c); cursor:pointer;" />
+                <span>🔥 En Promotion</span>
+              </label>
+              <div style="font-size:11px; color:var(--text-3); margin-top:4px;">Affiche un badge promo et le prix barré</div>
+            </div>
+          </div>
+
+          @if (formProd.enPromo) {
+            <div class="sf-field">
+              <label>Prix promotionnel (DT)</label>
+              <input class="sf-input" type="number" [(ngModel)]="formProd.prixPromo"
+                     placeholder="ex: 29.9" min="0" style="max-width:200px;" />
+              @if (formProd.prix && formProd.prixPromo) {
+                <div style="margin-top:6px; font-size:12px; color:#e74c3c; font-weight:700;">
+                  Réduction : {{ ((formProd.prix - formProd.prixPromo) / formProd.prix * 100) | number:'1.0-0' }}%
+                  ({{ formProd.prix - formProd.prixPromo | number:'1.2-2' }} DT économisés)
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Image principale -->
+          <div class="sf-field">
+            <label>Photo principale</label>
+            <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+              @if (imagePreview) {
+                <div style="position:relative; display:inline-block;">
+                  <img [src]="imagePreview" alt="Aperçu"
+                       style="width:90px; height:90px; object-fit:cover; border-radius:10px; border:2px solid var(--border); box-shadow:0 2px 8px rgba(0,0,0,.08);" />
+                  <button type="button" (click)="removeImage()"
+                          style="position:absolute; top:-8px; right:-8px; background:#e74c3c; color:#fff; border:none; border-radius:50%; width:22px; height:22px; cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center;">✕</button>
+                </div>
+              }
+              <label style="cursor:pointer;">
+                <div style="border:2px dashed var(--border); border-radius:10px; padding:14px 24px; color:var(--text-3); font-size:13px; text-align:center;"
+                     [style.opacity]="uploadingImage ? '.5' : '1'">
+                  @if (uploadingImage) {
+                    <i class="fas fa-spinner fa-spin"></i> Upload en cours...
+                  } @else {
+                    <i class="fas fa-cloud-upload-alt"></i>&nbsp;
+                    {{ imagePreview ? 'Changer l\'image' : 'Choisir une image' }}
+                  }
+                </div>
+                <input type="file" accept="image/*" style="display:none;" (change)="onFileChange($event)" [disabled]="uploadingImage" />
+              </label>
+            </div>
+          </div>
+
+          <!-- Galerie de photos -->
+          <div class="sf-field">
+            <label>Galerie de photos</label>
+            @if (!editModeProd) {
+              <div style="font-size:12px; color:var(--text-3); margin-top:4px;">
+                <i class="fas fa-info-circle"></i> Créez l'article d'abord, puis ajoutez des photos supplémentaires via Modifier.
+              </div>
+            } @else {
+              <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
+                @for (img of formProdImages; track img) {
+                  <div style="position:relative; width:80px; height:80px;">
+                    <img [src]="getImageUrl(img)" alt="Photo"
+                         style="width:80px; height:80px; object-fit:cover; border-radius:8px; border:1px solid var(--border);" />
+                    <button type="button" (click)="deleteGalleryImage(img)"
+                            style="position:absolute; top:-7px; right:-7px; background:#e74c3c; color:#fff; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; font-size:10px; display:flex; align-items:center; justify-content:center;">✕</button>
+                  </div>
+                }
+                <label style="cursor:pointer;" [style.pointer-events]="uploadingGallery ? 'none' : 'auto'">
+                  <div style="width:80px; height:80px; border:2px dashed var(--border); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text-3); font-size:12px; transition:border-color .2s;"
+                       [style.opacity]="uploadingGallery ? '.5' : '1'">
+                    @if (uploadingGallery) {
+                      <i class="fas fa-spinner fa-spin"></i>
+                    } @else {
+                      <i class="fas fa-plus" style="font-size:16px; margin-bottom:4px;"></i>
+                      <span>Ajouter</span>
+                    }
+                  </div>
+                  <input type="file" accept="image/*" style="display:none;" (change)="onGalleryFileChange($event)" [disabled]="uploadingGallery" />
+                </label>
+              </div>
+            }
+          </div>
+
+          <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button class="btn-refuser" (click)="showFormProd = false">Annuler</button>
+            <button class="btn-valider" (click)="saveProd()" [disabled]="uploadingImage">
+              <i class="fas fa-save"></i> {{ editModeProd ? 'Sauvegarder' : 'Créer l\'article' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Produits Table -->
+    @if (!isLoadingProd) {
+      <div class="home-section">
+        <div class="data-table">
+          <div class="dt-head" style="grid-template-columns: 56px 2.5fr 1.5fr 1fr 1fr 1fr 1.5fr;">
+            <div>Image</div>
+            <div>Nom</div>
+            <div>Catégorie</div>
+            <div>Prix (DT)</div>
+            <div>Stock</div>
+            <div>Tags</div>
+            <div>Actions</div>
+          </div>
+
+          @for (p of produitsFiltres; track p.id) {
+            <div class="dt-row" style="grid-template-columns: 56px 2.5fr 1.5fr 1fr 1fr 1fr 1.5fr;">
+              <div>
+                @if (p.imageUrl) {
+                  <img [src]="getImageUrl(p.imageUrl)" alt="{{ p.nom }}"
+                       style="width:40px; height:40px; object-fit:cover; border-radius:8px; border:1px solid var(--border);" />
+                } @else {
+                  <div style="width:40px; height:40px; border-radius:8px; background:var(--bg); border:1px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--text-3); font-size:16px;">
+                    <i class="fas fa-image"></i>
+                  </div>
+                }
+              </div>
+              <div style="font-weight:600; color:var(--text-1);">{{ p.nom }}</div>
+              <div>
+                @if (p.categorie) {
+                  <span class="statut-badge"
+                        [style.background]="(p.categorie.couleur || '#3AAFDA') + '22'"
+                        [style.color]="p.categorie.couleur || '#3AAFDA'">
+                    {{ p.categorie.nom }}
+                  </span>
+                } @else {
+                  <span class="dt-desc">—</span>
+                }
+              </div>
+              <div>
+                <div class="dt-amount">{{ p.prix }} DT</div>
+                @if (p.enPromo && p.prixPromo) {
+                  <div style="font-size:11px; color:#e74c3c; font-weight:700;">Promo: {{ p.prixPromo }} DT</div>
+                }
+              </div>
+              <div>
+                @if (p.stock === 0) {
+                  <span class="statut-badge st-REFUSEE">Rupture</span>
+                } @else if (p.stock < 20) {
+                  <span class="statut-badge" style="background:rgba(245,158,11,.12);color:#d97706;border:1px solid rgba(245,158,11,.3);">⚠ {{ p.stock }} restants</span>
+                } @else {
+                  <span class="statut-badge st-VALIDEE">{{ p.stock }} en stock</span>
+                }
+              </div>
+              <div style="display:flex; flex-direction:column; gap:4px;">
+                @if (p.cible) {
+                  <span style="background:rgba(232,115,74,.12); color:#e8734a; border-radius:6px; padding:2px 7px; font-size:10px; font-weight:800; text-transform:uppercase;">{{ p.cible }}</span>
+                }
+                @if (p.bestSeller) {
+                  <span style="background:rgba(245,158,11,.15); color:#b45309; border-radius:6px; padding:2px 7px; font-size:10px; font-weight:800;">⭐ BEST SELLER</span>
+                }
+                @if (p.enPromo) {
+                  <span style="background:rgba(239,68,68,.12); color:#dc2626; border-radius:6px; padding:2px 7px; font-size:10px; font-weight:800;">🔥 PROMO</span>
+                }
+              </div>
+              <div class="dt-actions">
+                <button class="btn-valider" (click)="openEditProd(p)">
+                  <i class="fas fa-edit"></i> Modifier
+                </button>
+                <button class="btn-refuser" (click)="deleteProd(p.id)">
+                  <i class="fas fa-trash"></i> Supprimer
+                </button>
+              </div>
+            </div>
+          }
+
+          @if (produitsFiltres.length === 0) {
+            <div class="dt-empty">
+              <i class="fas fa-box-open"></i>
+              {{ recherche ? 'Aucun article ne correspond à votre recherche.' : 'Aucun article disponible.' }}
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+  }
+
+</div>

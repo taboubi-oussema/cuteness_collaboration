@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot - CutenessBackendApplication",
+            "request": "launch",
+            "mainClass": "com.cuteness.backend.CutenessBackendApplication",
+            "projectName": "cuteness-backend"
+        }
+    ]
+}
+

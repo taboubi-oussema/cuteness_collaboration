@@ -1,0 +1,183 @@
+/* ── Inscription cards ─────────────────────────── */
+.insc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px; margin-top: 16px;
+}
+.insc-card {
+  background: #fff; border-radius: 14px;
+  border: 1.5px solid #E8E4F8;
+  padding: 18px 20px;
+  box-shadow: 0 2px 8px rgba(124,58,237,0.07);
+  transition: box-shadow .2s, border-color .2s;
+}
+.insc-card:hover { box-shadow: 0 4px 16px rgba(124,58,237,0.13); border-color: #A78BFA; }
+.insc-card.taken { border-left: 4px solid #F59E0B; }
+.insc-card.mine  { border-left: 4px solid #7C3AED; }
+.insc-card.done  { border-left: 4px solid #4ECBA0; }
+.insc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.insc-name   { font-size: 15px; font-weight: 800; color: #1E2340; }
+.insc-email  { font-size: 12px; color: #8A92B2; margin-top: 2px; }
+.insc-badge  {
+  font-size: 10px; font-weight: 700; padding: 3px 9px;
+  border-radius: 20px; text-transform: uppercase; letter-spacing: .5px;
+}
+.ib-nouvelle  { background: #EEF2FF; color: #6366F1; }
+.ib-en-cours  { background: #FEF9C3; color: #B45309; }
+.ib-traitee   { background: #ECFDF5; color: #059669; }
+.insc-rows { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.insc-row  { display: flex; gap: 8px; font-size: 12px; }
+.ir-lbl    { color: #8A92B2; width: 80px; flex-shrink: 0; }
+.ir-val    { font-weight: 600; color: #1E2340; }
+.insc-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-prendre { background: #7C3AED; color: #fff; border: none; border-radius: 8px;
+  padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background .2s; }
+.btn-prendre:hover { background: #6D28D9; }
+.btn-traiter { background: #4ECBA0; color: #fff; border: none; border-radius: 8px;
+  padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background .2s; }
+.btn-traiter:hover { background: #059669; }
+.insc-taken-by { font-size: 11px; color: #B45309; font-style: italic; }
+
+.row-selected td { background: #F3F0FF !important; }
+
+.detail-row td {
+  background: #FAFAFA; padding: 0 !important;
+  border-bottom: 2px solid rgba(124,58,237,0.13);
+}
+.commande-detail {
+  display: flex; flex-wrap: wrap; gap: 16px; padding: 14px 20px;
+}
+.cd-section { display: flex; flex-direction: column; gap: 3px; min-width: 160px; }
+.cd-full { flex: 1 1 100%; }
+.cd-label {
+  font-size: 11px; font-weight: 700; color: #8A92B2;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.cd-val { font-size: 13px; font-weight: 600; color: #1E2340; }
+.cd-lignes { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+.cd-ligne {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; padding: 4px 8px;
+  background: #f5f3ff; border-radius: 6px;
+}
+.cd-ligne-nom  { flex: 1; font-weight: 600; color: #1E2340; }
+.cd-ligne-qty  { color: #8A92B2; font-weight: 500; }
+.cd-ligne-prix { font-weight: 800; color: #7C3AED; white-space: nowrap; }
+
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+}
+.modal-box {
+  background: #fff; border-radius: 14px;
+  padding: 28px 32px; max-width: 420px; width: 90%;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+}
+.modal-title { font-size: 17px; font-weight: 800; color: #1E2340; margin-bottom: 12px; }
+.modal-body  { font-size: 14px; color: #4B5275; line-height: 1.6; margin-bottom: 20px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.btn-danger {
+  background: #FFF0F0 !important; color: #d43c3c !important;
+  border-color: rgba(239,68,68,.25) !important;
+}
+
+/* ── Mobile responsive ──────────────────────────── */
+@media (max-width: 768px) {
+
+  /* Tab switcher header */
+  .section-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* Filter tabs: horizontal scroll, no wrap */
+  .filter-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+    gap: 6px;
+  }
+  .filter-tabs button { white-space: nowrap; flex-shrink: 0; }
+
+  /* Table → Card layout */
+  .tbl-wrap { overflow-x: visible; }
+  .tbl-wrap table { display: block; width: 100%; }
+  .tbl-wrap table thead { display: none; }
+  .tbl-wrap table tbody { display: block; }
+
+  .tbl-wrap table tbody tr:not(.detail-row) {
+    display: block;
+    background: #fff;
+    border-radius: 12px;
+    border: 1.5px solid #E8E4F8;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(124,58,237,0.07);
+  }
+  .tbl-wrap table tbody tr.row-selected:not(.detail-row) {
+    border-color: #7C3AED;
+    background: #F9F7FF;
+  }
+
+  .tbl-wrap table tbody td {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 5px 0;
+    border: none;
+    font-size: 13px;
+  }
+  .tbl-wrap table tbody td::before {
+    content: attr(data-label);
+    font-size: 11px;
+    font-weight: 700;
+    color: #8A92B2;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 76px;
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+
+  /* Actions cell: no label, full-width row with wrap */
+  .tbl-wrap table tbody td[data-label=""]::before { display: none; }
+  .tbl-wrap table tbody td[data-label=""] {
+    flex-wrap: wrap;
+    padding-top: 10px;
+    border-top: 1px solid #F0EEFF;
+    margin-top: 4px;
+    gap: 6px;
+  }
+
+  /* Expanded detail row */
+  .tbl-wrap table tbody tr.detail-row {
+    display: block;
+    margin-bottom: 12px;
+    border-radius: 0 0 12px 12px;
+    border: 1.5px solid #E8E4F8;
+    border-top: none;
+    box-shadow: none;
+    padding: 0;
+    margin-top: -12px;
+  }
+  .tbl-wrap table tbody tr.detail-row td {
+    display: block;
+    padding: 0;
+  }
+  .tbl-wrap table tbody tr.detail-row td::before { display: none; }
+
+  /* Inscription cards: single column */
+  .insc-grid { grid-template-columns: 1fr; }
+
+  /* Modal: bottom sheet */
+  .modal-overlay { align-items: flex-end; }
+  .modal-box {
+    border-radius: 16px 16px 0 0 !important;
+    max-height: 85vh;
+    overflow-y: auto;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 20px 16px !important;
+  }
+}

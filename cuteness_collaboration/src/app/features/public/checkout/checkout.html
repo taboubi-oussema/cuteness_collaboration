@@ -1,0 +1,188 @@
+<div class="ck-page">
+
+  <!-- ── NAVBAR ── -->
+  <nav class="ck-navbar">
+    <a routerLink="/" class="ck-brand">
+      <img src="cute_logo.png" alt="Cuteness" class="ck-logo" />
+    </a>
+    <span class="ck-title">Finaliser ma commande</span>
+    <a routerLink="/boutique" class="btn-ghost">
+      <i class="fas fa-arrow-left"></i> Boutique
+    </a>
+  </nav>
+
+  <div class="ck-layout">
+
+    <!-- ── LEFT: FORM ── -->
+    <div class="ck-form-col">
+
+      <!-- Coordonnées -->
+      <div class="ck-card ck-partner-info">
+        <div class="ck-card-title"><i class="fas fa-address-card"></i> Coordonnées</div>
+        <div class="ck-coord-grid">
+          <div class="ck-field-group">
+            <label class="ck-label"><i class="fas fa-user-circle"></i> Nom complet <span class="ck-required">*</span></label>
+            <input type="text" [(ngModel)]="nomPartenaire" class="ck-input ck-input-info" placeholder="Votre nom" />
+          </div>
+          <div class="ck-field-group">
+            <label class="ck-label"><i class="fas fa-phone"></i> Téléphone <span class="ck-required">*</span></label>
+            <input type="tel" [(ngModel)]="telephone" class="ck-input ck-input-info" placeholder="Ex: 2X XXX XXX" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Address -->
+      <div class="ck-card">
+        <div class="ck-card-title"><i class="fas fa-map-marker-alt"></i> Adresse de livraison</div>
+
+        <div class="ck-field-group">
+          <label class="ck-label">Gouvernorat <span class="ck-required">*</span></label>
+          <select [(ngModel)]="gouvernerat" (ngModelChange)="onGouverneratChange()" class="ck-select">
+            <option value="">— Sélectionner —</option>
+            @for (g of gouvernerats; track g) {
+              <option [value]="g">{{ g }}</option>
+            }
+          </select>
+        </div>
+
+        @if (gouvernerat) {
+          <div class="ck-field-group">
+            <label class="ck-label">Ville / Délégation <span class="ck-required">*</span></label>
+            <select [(ngModel)]="ville" (ngModelChange)="onVilleChange()" class="ck-select">
+              <option value="">— Sélectionner —</option>
+              @for (v of villes; track v) {
+                <option [value]="v">{{ v }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        @if (ville) {
+          <div class="ck-field-group">
+            <label class="ck-label">Localité / Quartier</label>
+            <input
+              type="text"
+              [(ngModel)]="localite"
+              class="ck-input"
+              placeholder="Cité, quartier, lotissement…" />
+          </div>
+        }
+
+        <div class="ck-field-group">
+          <label class="ck-label">Rue / Détails complémentaires</label>
+          <textarea
+            [(ngModel)]="adresse"
+            rows="2"
+            class="ck-textarea"
+            placeholder="N° et nom de rue, immeuble, étage…">
+          </textarea>
+        </div>
+      </div>
+
+      <!-- Payment mode -->
+      <div class="ck-card">
+        <div class="ck-card-title"><i class="fas fa-credit-card"></i> Mode de paiement</div>
+        <div class="ck-radio-group">
+          <label class="ck-radio-opt" [class.active]="modePaiement === 'EN_LIGNE'">
+            <input type="radio" [(ngModel)]="modePaiement" value="EN_LIGNE" />
+            <i class="fas fa-globe"></i>
+            <span>En ligne</span>
+          </label>
+          <label class="ck-radio-opt" [class.active]="modePaiement === 'CARTE'">
+            <input type="radio" [(ngModel)]="modePaiement" value="CARTE" />
+            <i class="fas fa-credit-card"></i>
+            <span>Par carte</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Discount option -->
+      @if (tauxReduction > 0) {
+        <div class="ck-card">
+          <div class="ck-card-title"><i class="fas fa-tag"></i> Remise partenaire ({{ tauxReduction }}%)</div>
+          <div class="ck-radio-group ck-radio-col">
+            <label class="ck-radio-opt" [class.active]="optionRemise === 'IMMEDIATE'">
+              <input type="radio" [(ngModel)]="optionRemise" value="IMMEDIATE" />
+              <div>
+                <span class="ck-opt-label">Remise immédiate</span>
+                <span class="ck-opt-desc">{{ tauxReduction }}% déduits directement du total</span>
+              </div>
+            </label>
+            <label class="ck-radio-opt" [class.active]="optionRemise === 'REMBOURSEMENT'">
+              <input type="radio" [(ngModel)]="optionRemise" value="REMBOURSEMENT" />
+              <div>
+                <span class="ck-opt-label">Remboursement après livraison</span>
+                <span class="ck-opt-desc">{{ tauxReduction }}% crédités sur votre solde une fois livrée</span>
+              </div>
+            </label>
+          </div>
+        </div>
+      }
+
+      <!-- Error -->
+      @if (error) {
+        <div class="ck-error"><i class="fas fa-exclamation-circle"></i> {{ error }}</div>
+      }
+    </div>
+
+    <!-- ── RIGHT: SUMMARY ── -->
+    <div class="ck-summary-col">
+      <div class="ck-card ck-summary">
+        <div class="ck-card-title"><i class="fas fa-shopping-bag"></i> Récapitulatif</div>
+
+        <div class="ck-items">
+          @for (item of cartService.items; track item.produitId) {
+            <div class="ck-item">
+              <div class="ck-item-info">
+                <span class="ck-item-name">{{ item.nom }}</span>
+                <span class="ck-item-qty">× {{ item.qty }}</span>
+              </div>
+              <div class="ck-item-right">
+                <span class="ck-item-price">{{ (item.prix * item.qty) | number:'1.2-2' }} DT</span>
+                <button class="ck-item-remove" (click)="removeItem(item.produitId)" title="Supprimer">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="ck-totals">
+          <div class="ck-total-row">
+            <span>Sous-total</span>
+            <span>{{ subtotal | number:'1.2-2' }} DT</span>
+          </div>
+          @if (remise > 0) {
+            <div class="ck-total-row ck-discount">
+              <span>Remise ({{ tauxReduction }}%)</span>
+              <span>− {{ remise | number:'1.2-2' }} DT</span>
+            </div>
+          }
+          @if (remiseRembours > 0) {
+            <div class="ck-total-row ck-rebours">
+              <span>Crédit après livraison</span>
+              <span>+ {{ remiseRembours | number:'1.2-2' }} DT</span>
+            </div>
+          }
+          <div class="ck-total-row">
+            <span>Frais de livraison</span>
+            <span>{{ LIVRAISON | number:'1.2-2' }} DT</span>
+          </div>
+          <div class="ck-total-row ck-grand">
+            <span>Total</span>
+            <span>{{ total | number:'1.2-2' }} DT</span>
+          </div>
+        </div>
+
+        <button class="ck-btn-order" (click)="commander()" [disabled]="submitting">
+          @if (submitting) {
+            <span class="ck-spinner"></span> Traitement…
+          } @else {
+            <i class="fas fa-bolt"></i> Confirmer la commande
+          }
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

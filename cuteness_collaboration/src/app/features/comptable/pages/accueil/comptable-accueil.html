@@ -1,0 +1,327 @@
+<div class="section-content">
+  <div class="welcome-banner">
+    <div class="wb-left">
+      <div class="wb-title">📊 Vue globale financière</div>
+      <div class="wb-sub">Tableau de bord · Cuteness Collaboration</div>
+    </div>
+    <div class="wb-date"><i class="fas fa-calendar"></i> {{ currentDateLabel }}</div>
+  </div>
+
+  <div class="success-banner" *ngIf="state.isLoading$ | async">
+    <i class="fas fa-spinner fa-spin"></i> Chargement des données...
+  </div>
+  <div class="dt-empty" *ngIf="state.error$ | async as err">
+    <i class="fas fa-exclamation-circle"></i> {{ err }}
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-coral">
+      <div class="kpi-icon"><i class="fas fa-coins"></i></div>
+      <div class="kpi-val">{{ kpis.totalCommissionsValidees }} DT</div>
+      <div class="kpi-lbl">Commissions validées</div>
+    </div>
+    <div class="kpi-card kpi-gold">
+      <div class="kpi-icon"><i class="fas fa-clock"></i></div>
+      <div class="kpi-val">{{ totalEnAttente | number:'1.2-2' }} DT</div>
+      <div class="kpi-lbl">En attente validation</div>
+      <div class="kpi-sub">{{ commissionsEnAttente.length }} à traiter</div>
+    </div>
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-icon"><i class="fas fa-box"></i></div>
+      <div class="kpi-val">{{ kpis.totalTransactionsPacks }} DT</div>
+      <div class="kpi-lbl">Revenus packs</div>
+    </div>
+    <div class="kpi-card kpi-mint">
+      <div class="kpi-icon"><i class="fas fa-store"></i></div>
+      <div class="kpi-val">{{ kpis.totalTransactionsBoutique }} DT</div>
+      <div class="kpi-lbl">Revenus boutique</div>
+    </div>
+    <div class="kpi-card kpi-purple">
+      <div class="kpi-icon"><i class="fas fa-paper-plane"></i></div>
+      <div class="kpi-val">{{ totalAVirer | number:'1.2-2' }} DT</div>
+      <div class="kpi-lbl">Total à virer</div>
+      <div class="kpi-sub">{{ partenairesAvecSolde.length }} partenaires</div>
+    </div>
+    <div class="kpi-card kpi-teal">
+      <div class="kpi-icon"><i class="fas fa-chart-line"></i></div>
+      <div class="kpi-val">{{ kpis.revenusMonth }} DT</div>
+      <div class="kpi-lbl">CA total ce mois</div>
+    </div>
+  </div>
+
+  <!-- Commissions urgentes -->
+  <div class="home-section" *ngIf="commissionsEnAttente.length > 0">
+    <div class="hs-header">
+      <div class="hs-title"><i class="fas fa-exclamation-circle"></i> Commissions à valider</div>
+      <button class="hs-link" (click)="goTo('commissions')">Voir tout →</button>
+    </div>
+    <div class="mini-list">
+      <div class="mini-item" *ngFor="let c of commissionsEnAttente.slice(0, 3)">
+        <div class="mi-left">
+          <div class="mi-name">{{ c.partenaire }} ← {{ c.source }}</div>
+          <div class="mi-meta">Niveau {{ c.niveau }} · {{ c.pack }} · {{ c.date }}</div>
+        </div>
+        <div class="mi-right">
+          <div class="mi-amount">{{ c.montant }} DT</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inscriptions à livrer -->
+  @if (inscSuccess) {
+    <div class="success-banner" style="background:#EDFAF4; border-color:#4ECBA0; color:#1e9b6b; margin-bottom:12px;">
+      <i class="fas fa-check-circle"></i> {{ inscSuccess }}
+    </div>
+  }
+  @if (inscError) {
+    <div class="success-banner" style="background:#FFF0F0; border-color:#F87171; color:#d43c3c; margin-bottom:12px;">
+      <i class="fas fa-exclamation-triangle"></i> {{ inscError }}
+    </div>
+  }
+  <div class="home-section" *ngIf="inscriptionsTraitees.length > 0">
+    <div class="hs-header">
+      <div class="hs-title">
+        <i class="fas fa-user-check"></i> Inscriptions traitées — à livrer
+        <span class="badge st-EN_ATTENTE" style="margin-left:8px;">{{ inscriptionsTraitees.length }}</span>
+      </div>
+    </div>
+    <div class="mini-list">
+      <div class="mini-item" *ngFor="let d of inscriptionsTraitees">
+        <div class="mi-left">
+          <div class="mi-name">{{ d.nomClient }}</div>
+          <div class="mi-meta">
+            Pack {{ d.nomPack }} · {{ d.region }} · Parrain {{ d.nomParrain }}
+            · Traité par {{ d.nomSuperviseur }}
+          </div>
+          @if (d.navexRef) {
+            <div style="margin-top:4px; font-size:11px; color:#4ECBA0; font-weight:700;">
+              <i class="fas fa-shipping-fast"></i> Navex : {{ d.navexRef }}
+            </div>
+          }
+        </div>
+        <div class="mi-right" style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+          <div class="mi-amount">{{ d.prixPack }} DT</div>
+          <button class="btn-valider" style="font-size:11px; padding:5px 12px;"
+            (click)="marquerLivree(d.id)">
+            <i class="fas fa-check"></i> Marquer livrée
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Commandes produits en cours -->
+  @if (cmdSuccess) {
+    <div class="success-banner" style="background:#EDFAF4; border-color:#4ECBA0; color:#1e9b6b; margin-bottom:12px;">
+      <i class="fas fa-check-circle"></i> {{ cmdSuccess }}
+    </div>
+  }
+  @if (commandesEnCours.length > 0) {
+    <div class="home-section">
+      <div class="hs-header">
+        <div class="hs-title">
+          <i class="fas fa-box"></i> Commandes produits en cours
+          <span class="badge st-EN_ATTENTE" style="margin-left:8px;">{{ commandesEnCours.length }}</span>
+        </div>
+        <button class="hs-link" (click)="goTo('commandes')">Voir tout →</button>
+      </div>
+      <div class="mini-list">
+        @for (c of commandesEnCours; track c.id) {
+          <div class="mini-item">
+            <div class="mi-left">
+              <div class="mi-name">Commande #{{ c.id }} — {{ c.nomPartenaire }}</div>
+              <div class="mi-meta">
+                {{ c.regionPartenaire }} · {{ c.modePaiement }}
+                · Traité par superviseur
+              </div>
+              @if (c.navexRef) {
+                <div style="margin-top:4px; font-size:11px; color:#3AAFDA; font-weight:700;">
+                  <i class="fas fa-shipping-fast"></i> Navex : {{ c.navexRef }}
+                </div>
+              }
+            </div>
+            <div class="mi-right" style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+              <div class="mi-amount">{{ c.montantTotal | number:'1.2-2' }} DT</div>
+              <span style="font-size:10px; padding:2px 8px; border-radius:10px; font-weight:700;"
+                [style.background]="c.statut === 'EN_ATTENTE' ? '#FFF7ED' : '#EFF9FF'"
+                [style.color]="c.statut === 'EN_ATTENTE' ? '#D97706' : '#0369A1'"
+                [style.border]="c.statut === 'EN_ATTENTE' ? '1px solid #FBD38D' : '1px solid #BAE6FD'">
+                {{ c.statut === 'EN_ATTENTE' ? '⏳ En attente' : '🔧 En préparation' }}
+              </span>
+              <button class="btn-valider" style="font-size:11px; padding:5px 12px; background:#7C3AED; border-color:#7C3AED;"
+                (click)="goTo('commandes')">
+                <i class="fas fa-eye"></i> Consulter commandes
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Commandes packs en attente -->
+  @if (inscriptionsEnCours.length > 0) {
+    <div class="home-section">
+      <div class="hs-header">
+        <div class="hs-title">
+          <i class="fas fa-box-open"></i> Commandes packs en cours
+          <span class="badge st-EN_ATTENTE" style="margin-left:8px;">{{ inscriptionsEnCours.length }}</span>
+        </div>
+        <button class="hs-link" (click)="goTo('commandes')">Voir tout →</button>
+      </div>
+      <div class="mini-list">
+        @for (i of inscriptionsEnCours; track i.id) {
+          <div class="mini-item">
+            <div class="mi-left">
+              <div class="mi-name">{{ i.nomClient }} — Pack {{ i.nomPack }}</div>
+              <div class="mi-meta">
+                {{ i.region }}
+                @if (i.nomParrain) { · Parrain : {{ i.nomParrain }} }
+                @if (i.nomSuperviseur) { · Superviseur : {{ i.nomSuperviseur }} }
+              </div>
+            </div>
+            <div class="mi-right" style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+              <div class="mi-amount">{{ i.prixPack | number:'1.2-2' }} DT</div>
+              <span style="font-size:10px; padding:2px 8px; border-radius:10px; font-weight:700;"
+                [style.background]="i.statut === 'NOUVELLE' ? '#FFF7ED' : '#EFF9FF'"
+                [style.color]="i.statut === 'NOUVELLE' ? '#D97706' : '#0369A1'"
+                [style.border]="i.statut === 'NOUVELLE' ? '1px solid #FBD38D' : '1px solid #BAE6FD'">
+                {{ i.statut === 'NOUVELLE' ? '⏳ Nouvelle' : '🔧 En cours' }}
+              </span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Confirmations Navex -->
+  @if (navexSuccess) {
+    <div class="success-banner" style="background:#EDFAF4; border-color:#4ECBA0; color:#1e9b6b; margin-bottom:12px;">
+      <i class="fas fa-check-circle"></i> {{ navexSuccess }}
+    </div>
+  }
+  @if (navexError) {
+    <div class="success-banner" style="background:#FFF0F0; border-color:#F87171; color:#d43c3c; margin-bottom:12px;">
+      <i class="fas fa-exclamation-triangle"></i> {{ navexError }}
+    </div>
+  }
+  @if (commandesAConfirmer.length > 0) {
+    <div class="home-section">
+      <div class="hs-header">
+        <div class="hs-title">
+          <i class="fas fa-shipping-fast"></i> Confirmations livraison Navex
+          <span class="badge st-EN_ATTENTE" style="margin-left:8px;">{{ commandesAConfirmer.length }}</span>
+        </div>
+        <button class="hs-link" (click)="loadCommandesAConfirmer()">
+          <i class="fas fa-sync-alt"></i> Actualiser
+        </button>
+      </div>
+      <div class="mini-list">
+        @for (c of commandesAConfirmer; track c.id) {
+          <div class="mini-item">
+            <div class="mi-left">
+              <div class="mi-name">
+                Commande #{{ c.id }} — {{ c.nomPartenaire }}
+                @if (c.typeConfirmation === 'RETOUR') {
+                  <span style="margin-left:6px; font-size:11px; background:#FFF0F0; color:#d43c3c; border:1px solid #F87171; padding:2px 8px; border-radius:10px; font-weight:700;">
+                    🔄 RETOUR
+                  </span>
+                } @else {
+                  <span style="margin-left:6px; font-size:11px; background:#EDFAF4; color:#059669; border:1px solid #4ECBA0; padding:2px 8px; border-radius:10px; font-weight:700;">
+                    ✅ LIVRAISON
+                  </span>
+                }
+              </div>
+              <div class="mi-meta">
+                {{ c.regionPartenaire }} · {{ c.montantTotal | number:'1.2-2' }} DT
+                @if (c.navexStatut) { · Navex : <strong>{{ c.navexStatut }}</strong> }
+              </div>
+            </div>
+            <div class="mi-right" style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+              <div class="mi-amount">{{ c.montantTotal | number:'1.2-2' }} DT</div>
+              <div style="display:flex; gap:6px;">
+                @if (c.navexRef) {
+                  <a [href]="navexTrackingUrl(c.navexRef)" target="_blank"
+                    class="btn-valider"
+                    style="font-size:11px; padding:5px 10px; background:#3AAFDA; border-color:#3AAFDA; text-decoration:none; display:flex; align-items:center; gap:4px;">
+                    <i class="fas fa-external-link-alt"></i> Consulter Navex
+                  </a>
+                }
+                <button class="btn-valider" style="font-size:11px; padding:5px 10px;"
+                  (click)="confirmerCommande(c.id)">
+                  <i class="fas fa-check"></i>
+                  {{ c.typeConfirmation === 'RETOUR' ? 'Confirmer retour' : 'Confirmer livraison' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Remboursements à approuver -->
+  @if (rembSuccess) {
+    <div class="success-banner" style="background:#EDFAF4; border-color:#4ECBA0; color:#1e9b6b; margin-bottom:12px;">
+      <i class="fas fa-check-circle"></i> {{ rembSuccess }}
+    </div>
+  }
+  @if (rembError) {
+    <div class="success-banner" style="background:#FFF0F0; border-color:#F87171; color:#d43c3c; margin-bottom:12px;">
+      <i class="fas fa-exclamation-triangle"></i> {{ rembError }}
+    </div>
+  }
+  @if (commandesRemboursement.length > 0) {
+    <div class="home-section">
+      <div class="hs-header">
+        <div class="hs-title">
+          <i class="fas fa-undo"></i> Remboursements à approuver
+          <span class="badge st-EN_ATTENTE" style="margin-left:8px;">{{ commandesRemboursement.length }}</span>
+        </div>
+      </div>
+      <div class="mini-list">
+        @for (c of commandesRemboursement; track c.id) {
+          <div class="mini-item">
+            <div class="mi-left">
+              <div class="mi-name">Commande #{{ c.id }} — {{ c.nomPartenaire }}</div>
+              <div class="mi-meta">
+                Livrée · Remboursement {{ c.tauxReduction }}% sur {{ c.montantOriginal | number:'1.2-2' }} DT
+              </div>
+            </div>
+            <div class="mi-right" style="display:flex; align-items:center; gap:10px;">
+              <div class="mi-amount">{{ (c.montantOriginal * c.tauxReduction / 100) | number:'1.2-2' }} DT</div>
+              <button class="btn-valider" style="font-size:11px; padding:5px 12px;"
+                (click)="approuverRemboursement(c.id)">
+                <i class="fas fa-check"></i> Approuver
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Virements urgents -->
+  <div class="home-section" *ngIf="partenairesAvecSolde.length > 0">
+    <div class="hs-header">
+      <div class="hs-title"><i class="fas fa-paper-plane"></i> Partenaires en attente de virement</div>
+      <button class="hs-link" (click)="goTo('virements')">Gérer →</button>
+    </div>
+    <div class="mini-list">
+      <div class="mini-item" *ngFor="let p of partenairesAvecSolde.slice(0, 3)">
+        <div class="pm-icon" [ngClass]="paymentColor(p.typePayment)">
+          <i [class]="paymentIcon(p.typePayment)"></i>
+        </div>
+        <div class="mi-left">
+          <div class="mi-name">{{ p.nom }}</div>
+          <div class="mi-meta">{{ p.typePayment }} · {{ masquerInfo(p.infoBancaire, p.typePayment) }}</div>
+        </div>
+        <div class="mi-right">
+          <div class="mi-amount">{{ p.solde | number:'1.2-2' }} DT</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,288 @@
+<div class="content">
+  <!-- LOADING -->
+  @if (isLoading) {
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Chargement des données...</div>
+    </div>
+  }
+
+  <!-- ERROR -->
+  @if (errorMsg) {
+    <div class="error-banner">
+      <span>⚠️ {{ errorMsg }}</span>
+      <button class="btn-sm" (click)="loadDashboard()">Réessayer</button>
+    </div>
+  }
+
+  <!-- BANNER -->
+  @if (!isLoading) {
+    <div class="banner">
+      <div class="banner-left">
+        <div class="banner-greeting">
+          Bonjour, Admin Cuteness Collaboration
+          <span class="banner-dot"></span>
+        </div>
+        <div class="banner-sub">
+          {{ stats.pendingCommissions }} commissions en attente · Le réseau a grandi de +{{ stats.newThisMonth }} partenaires ce mois.
+        </div>
+      </div>
+      <div class="banner-stats">
+        <div class="bstat">
+          <div class="bstat-val">{{ stats.totalPartners }}</div>
+          <div class="bstat-lbl">Partenaires</div>
+        </div>
+        <div class="bstat">
+          <div class="bstat-val">{{ stats.monthCommissions | number }} DT</div>
+          <div class="bstat-lbl">Commissions</div>
+        </div>
+        <div class="bstat">
+          <div class="bstat-val">{{ stats.deliveryRate }} %</div>
+          <div class="bstat-lbl">Livraisons</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="kpi-grid">
+      @for (k of kpiCards; track k.label) {
+        <div class="kpi">
+          <div class="kpi-top">
+            <div class="kpi-ico" [style.background]="k.iconBg">{{ k.icon }}</div>
+            <div class="kpi-badge"
+              [style.background]="k.trend.startsWith('↑') ? '#E6F6EA' : '#FDECEF'"
+              [style.color]="k.trend.startsWith('↑') ? '#1B842C' : '#C0303E'">
+              {{ k.trend }}
+            </div>
+          </div>
+          <div class="kpi-val">{{ k.value }}</div>
+          <div class="kpi-lbl">{{ k.label }}</div>
+          <div class="kpi-bar-bg">
+            <div class="kpi-bar-fill" [style.width.%]="k.pct" [style.background]="k.color"></div>
+          </div>
+          <div class="kpi-meta">
+            <span>{{ k.pct }}% objectif</span><span>{{ k.target }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- COMPTES EN ATTENTE D'APPROBATION -->
+    @if (compteSuccess) {
+      <div class="kpi-row" style="background:#EDFAF4; border:1px solid #4ECBA0; border-radius:10px;
+           padding:10px 16px; color:#1e9b6b; font-size:13px; font-weight:600; margin-bottom:12px;">
+        ✅ {{ compteSuccess }}
+      </div>
+    }
+    @if (compteError) {
+      <div class="kpi-row" style="background:#FFF0F0; border:1px solid #F87171; border-radius:10px;
+           padding:10px 16px; color:#d43c3c; font-size:13px; font-weight:600; margin-bottom:12px;">
+        ⚠️ {{ compteError }}
+      </div>
+    }
+    @if (comptesEnAttente.length > 0) {
+      <div class="card" style="margin-bottom:20px;">
+        <div class="cpd" style="display:flex; align-items:center; justify-content:space-between; padding-bottom:12px;">
+          <div style="font-size:15px; font-weight:800; color:#1E2340;">
+            🔔 Comptes en attente d'approbation
+            <span style="background:#FFF0EE; color:#FF6B5B; font-size:12px; font-weight:700;
+                  border-radius:20px; padding:2px 10px; margin-left:8px;">
+              {{ comptesEnAttente.length }}
+            </span>
+          </div>
+        </div>
+        <div class="data-table">
+          <div class="dt-head" style="grid-template-columns:2fr 2fr 1fr 1fr 1fr 1fr auto;">
+            <div>Client</div><div>Email</div><div>Pack</div>
+            <div>Parrain</div><div>Région</div><div>Paiement</div><div>Actions</div>
+          </div>
+          @for (c of comptesEnAttente; track c.id) {
+            <div class="dt-row" style="grid-template-columns:2fr 2fr 1fr 1fr 1fr 1fr auto;">
+              <div class="dt-name"><i class="fas fa-user-clock" style="color:#8A92B2; margin-right:6px;"></i>{{ c.nom }}</div>
+              <div style="font-size:12px; color:#4B5275;">{{ c.email }}</div>
+              <div><span class="pack-badge">{{ c.pack }}</span></div>
+              <div style="font-size:12px; color:#4B5275;">{{ c.parrain }}</div>
+              <div style="font-size:12px; color:#4B5275;">{{ c.region || '—' }}</div>
+              <div style="font-size:12px; color:#4B5275;">{{ c.modePaiement || '—' }}</div>
+              <div class="dt-actions">
+                <button class="btn-valider" style="font-size:11px; padding:5px 12px;"
+                  [disabled]="activatingId === c.id"
+                  [style.opacity]="activatingId === c.id ? '0.6' : '1'"
+                  [style.cursor]="activatingId === c.id ? 'not-allowed' : 'pointer'"
+                  (click)="approuverCompte(c.id, c.nom)">
+                  @if (activatingId === c.id) {
+                    <i class="fas fa-spinner fa-spin"></i> Activation...
+                  } @else {
+                    <i class="fas fa-user-check"></i> Activer compte
+                  }
+                </button>
+                <button style="background:#FFF0F0; color:#d43c3c; border:1px solid #FECACA;
+                       border-radius:7px; padding:5px 10px; font-size:11px; font-weight:700; cursor:pointer;"
+                  [disabled]="activatingId === c.id"
+                  (click)="rejeterCompte(c.id, c.nom)">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- TABLE + RIGHT -->
+    <div class="g3" style="margin-bottom: 18px">
+      <div class="card">
+        <div class="cpd" style="padding-bottom:8px; display:flex; align-items:center; justify-content:space-between;">
+          <div>
+            <div class="card-title"> Top Partenaires</div>
+            <div class="card-sub">Classement solde · sparklines de tendance</div>
+          </div>
+          <div style="display:flex; gap:5px;">
+            <div class="chip" [class.on]="partnerFilter === 'month'" [class.off]="partnerFilter !== 'month'" (click)="partnerFilter = 'month'">Ce mois</div>
+            <div class="chip" [class.on]="partnerFilter === 'all'" [class.off]="partnerFilter !== 'all'" (click)="partnerFilter = 'all'">Tout temps</div>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Partenaire</th><th>Ville</th><th>Niveau</th>
+                <th>Solde</th><th>Tendance</th><th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of topPartners; track $index; let i = $index) {
+                <tr>
+                  <td><strong [style.color]="p.rankColor">#{{ i + 1 }}</strong></td>
+                  <td>
+                    <div class="p-name">
+                      <div class="p-ava" [style.background]="p.avaBg" [style.color]="p.avaColor">{{ p.initials }}</div>
+                      <div>
+                        <div class="p-nm">{{ p.name }}</div>
+                        <div class="p-sub">{{ p.referrals }} filleuls</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="td-soft">{{ p.city }}</td>
+                  <td><span class="badge" [style.background]="p.levelBg" [style.color]="p.levelColor">{{ p.level }}</span></td>
+                  <td><strong>{{ p.balance | number }} DT</strong></td>
+                  <td>
+                    <svg width="58" height="20" viewBox="0 0 58 20">
+                      <polyline [attr.points]="p.spark" fill="none" [attr.stroke]="p.sparkColor" stroke-width="1.8" stroke-linecap="round" />
+                    </svg>
+                  </td>
+                  <td><span class="badge" [style.background]="p.statusBg" [style.color]="p.statusColor">{{ p.status }}</span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <!-- Niveaux MLM -->
+        <div class="card">
+          <div class="cpd" style="padding-bottom:10px;">
+            <div class="card-title">Niveaux MLM</div>
+            <div class="card-sub">Répartition {{ stats.totalPartners }} partenaires</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:14px; padding:0 16px 14px;">
+            <div class="donut-wrap">
+              <svg width="95" height="95" viewBox="0 0 95 95">
+                <circle cx="47.5" cy="47.5" r="35" fill="none" stroke="#EAEDF5" stroke-width="11" />
+                <circle cx="47.5" cy="47.5" r="35" fill="none" stroke="#FF6B5B" stroke-width="11" stroke-dasharray="41.9 178.1" stroke-dashoffset="0" transform="rotate(-90 47.5 47.5)" />
+                <circle cx="47.5" cy="47.5" r="35" fill="none" stroke="#3AAFDA" stroke-width="11" stroke-dasharray="61.7 158.3" stroke-dashoffset="-41.9" transform="rotate(-90 47.5 47.5)" />
+                <circle cx="47.5" cy="47.5" r="35" fill="none" stroke="#4ECBA0" stroke-width="11" stroke-dasharray="68.3 151.7" stroke-dashoffset="-103.6" transform="rotate(-90 47.5 47.5)" />
+                <circle cx="47.5" cy="47.5" r="35" fill="none" stroke="#FFD166" stroke-width="11" stroke-dasharray="48.5 171.5" stroke-dashoffset="-171.9" transform="rotate(-90 47.5 47.5)" />
+              </svg>
+              <div class="donut-center">
+                <div class="donut-v">{{ stats.totalPartners }}</div>
+                <div class="donut-l">total</div>
+              </div>
+            </div>
+            <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+              @for (lvl of mlmLevels; track $index) {
+                <div class="legend-row">
+                  <span class="legend-dot" [style.background]="lvl.color"></span>
+                  <span class="legend-lbl">{{ lvl.name }}</span>
+                  <strong>{{ lvl.count }}</strong>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Activité récente -->
+        <div class="card" style="flex:1;">
+          <div class="cpd" style="padding-bottom:8px;">
+            <div class="card-title">⚡ Activité récente</div>
+            <div class="card-sub">Dernières 24 heures</div>
+          </div>
+          <div style="padding:0 14px 12px;">
+            <ul class="tl">
+              @for (a of recentActivity; track $index) {
+                <li>
+                  <div class="tl-ico" [style.background]="a.iconBg">{{ a.icon }}</div>
+                  <div style="flex:1;">
+                    <div class="tl-t">{{ a.title }}</div>
+                    <div class="tl-m">{{ a.meta }}</div>
+                  </div>
+                  <div class="tl-amt" [style.color]="a.amountColor">{{ a.amount }}</div>
+                </li>
+              }
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OBJECTIFS + RÉGIONS -->
+    <div class="g2" style="margin-bottom:18px;">
+      <div class="card">
+        <div class="cpd" style="padding-bottom:12px;">
+          <div class="card-title">🎯 Objectifs Mars 2026</div>
+          <div class="card-sub">Progression en temps réel</div>
+        </div>
+        <div style="padding:0 18px 14px;">
+          @for (o of objectives; track o.label) {
+            <div class="prog">
+              <div class="prog-h">
+                <span class="prog-name">{{ o.label }}</span>
+                <span class="prog-num">{{ o.current }} / {{ o.target }}</span>
+              </div>
+              <div class="prog-bg">
+                <div class="prog-fill" [style.width.%]="o.pct" [style.background]="o.color"></div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cpd" style="padding-bottom:10px;">
+          <div class="card-title">🌍 Régions actives</div>
+          <div class="card-sub">Partenaires par région</div>
+        </div>
+        <div style="padding:0 18px 14px;">
+          @for (r of regions; track r.name) {
+            <div class="reg">
+             
+              <div style="flex:1;">
+                <div class="reg-name">{{ r.name }}</div>
+                <div class="reg-count">{{ r.count }} partenaires</div>
+              </div>
+              <div class="reg-bar-bg">
+                <div class="reg-bar-fill" [style.width.%]="r.pct" [style.background]="r.color"></div>
+              </div>
+              <div class="reg-pct">{{ r.pctLabel }}</div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      <span class="brand-name">Cuteness Collaboration</span> · 
+    </div>
+  }
+</div>

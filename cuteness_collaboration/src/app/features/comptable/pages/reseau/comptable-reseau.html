@@ -1,0 +1,145 @@
+<div class="section-content">
+  <div class="search-bar">
+    <i class="fas fa-search"></i>
+    <input type="text" [(ngModel)]="recherche" placeholder="Rechercher un partenaire..." class="search-input" />
+  </div>
+
+  <!-- Tableau des partenaires - affiché en premier -->
+  <div class="home-section">
+    <div class="hs-header">
+      <div class="hs-title"><i class="fas fa-users"></i> Liste des partenaires</div>
+      <span class="reseau-count">{{ partenairesFiltered.length }} partenaire(s)</span>
+    </div>
+    <div class="data-table">
+      <div class="dt-head reseau-head">
+        <div>Partenaire</div><div>Pack</div><div>Parrain</div>
+        <div>Filleuls</div><div>Solde</div><div>Moyen paiement</div>
+        <div>Info bancaire</div><div>Statut</div>
+      </div>
+      <div class="dt-row reseau-row" *ngFor="let p of partenairesFiltered">
+        <div class="dt-name">
+          <div class="part-avatar">{{ p.nom[0] }}</div>
+          <div>
+            <div class="part-nom">{{ p.nom }}</div>
+            <div class="part-email">{{ p.email }}</div>
+          </div>
+        </div>
+        <div><span class="pack-badge" [ngClass]="'pack-' + (p.pack || 'starter').toLowerCase()">{{ p.pack || 'Aucun' }}</span></div>
+        <div class="dt-parrain">{{ p.parrain || '— Racine —' }}</div>
+        <div class="dt-filleuls">{{ p.filleuls || 0 }} <i class="fas fa-users"></i></div>
+        <div class="dt-amount">{{ (p.solde || 0) | number:'1.2-2' }} DT</div>
+        <div>
+          <span class="pm-badge" [ngClass]="paymentColor(p.typePayment || 'RIB')">
+            <i [class]="paymentIcon(p.typePayment || 'RIB')"></i> {{ p.typePayment || 'RIB' }}
+          </span>
+        </div>
+        <div class="dt-iban">{{ masquerInfo(p.infoBancaire || 'N/A', p.typePayment || 'RIB') }}</div>
+        <div>
+          <span class="statut-badge" [ngClass]="p.actif ? 'st-VALIDEE' : 'st-REFUSEE'">
+            {{ p.actif ? 'Actif' : 'Inactif' }}
+          </span>
+        </div>
+      </div>
+      <div class="dt-empty" *ngIf="partenairesFiltered.length === 0">
+        <i class="fas fa-inbox"></i> Aucun partenaire trouvé
+      </div>
+    </div>
+  </div>
+
+  <!-- Arbre réseau MLM - rendu récursif complet -->
+  <div class="home-section">
+    <div class="hs-header">
+      <div class="hs-title">
+        <i class="fas fa-sitemap"></i>
+        {{ recherche ? 'Arbre du partenaire : ' + recherche : 'Arbre réseau MLM complet' }}
+      </div>
+      <span class="reseau-count" *ngIf="currentTree">
+        {{ countTotalNodes(currentTree) }} nœud(s)
+      </span>
+    </div>
+
+    <!-- Template récursif pour afficher chaque nœud et ses enfants -->
+    <ng-template #nodeTemplate let-node="node" let-level="level">
+      <div class="tree-branch-wrap">
+        <div class="tree-node-card"
+             [class.tree-node-sm]="level >= 2"
+             [class.tree-node-xs]="level >= 3"
+             [class.inactive-node]="!node.actif">
+          <div class="tnc-avatar"
+               [class.tnc-sm]="level >= 2"
+               [ngClass]="'av-' + (node.pack || 'starter').toLowerCase()">
+            {{ node.nom ? node.nom[0] : '?' }}
+          </div>
+          <div class="tnc-name" [class.tnc-name-sm]="level >= 2">{{ node.nom || 'Partenaire' }}</div>
+          <div class="tnc-pack" [class.tnc-pack-sm]="level >= 2">{{ node.pack || 'Aucun' }}</div>
+          <div class="tnc-solde" [class.tnc-solde-sm]="level >= 2">{{ node.solde || 0 | number:'1.0-0' }} DT</div>
+        </div>
+
+        <div *ngIf="node.filleuls && node.filleuls.length > 0"
+             [ngClass]="level === 1 ? 'tree-level-2' : 'tree-level-3'">
+          <ng-container *ngFor="let child of node.filleuls">
+            <ng-container *ngTemplateOutlet="nodeTemplate; context: { node: child, level: level + 1 }"></ng-container>
+          </ng-container>
+        </div>
+      </div>
+    </ng-template>
+
+    <ng-container *ngIf="currentTree as reseau; else noTree">
+      <div class="reseau-tree-wrap">
+        <!-- Racine : réseau complet -->
+        <ng-container *ngIf="!recherche">
+          <div class="tree-root-node">
+            <div class="trn-avatar" style="background:white url('cute_logo.png') no-repeat left center; background-size:auto 88%; overflow:hidden; padding:0;"></div>
+            <div class="trn-name">{{ reseau.nom || 'Cuteness Collaboration' }}</div>
+            <div class="trn-sub">Racine du réseau</div>
+          </div>
+          <div class="tree-connector-v"></div>
+        </ng-container>
+
+        <!-- Racine : partenaire trouvé -->
+        <ng-container *ngIf="recherche">
+          <div class="tree-root-node">
+            <div class="trn-avatar" [ngClass]="'av-' + (reseau.pack || 'starter').toLowerCase()">
+              {{ reseau.nom ? reseau.nom[0] : '?' }}
+            </div>
+            <div class="trn-name">{{ reseau.nom || 'Partenaire' }}</div>
+            <div class="trn-sub">{{ reseau.pack || 'Aucun' }} — {{ reseau.solde || 0 | number:'1.0-0' }} DT</div>
+          </div>
+          <div class="tree-connector-v" *ngIf="reseau.filleuls && reseau.filleuls.length > 0"></div>
+        </ng-container>
+
+        <ng-container *ngIf="reseau.filleuls && reseau.filleuls.length > 0; else emptyTree">
+          <div class="tree-level-1">
+            <ng-container *ngFor="let n1 of reseau.filleuls">
+              <ng-container *ngTemplateOutlet="nodeTemplate; context: { node: n1, level: 1 }"></ng-container>
+            </ng-container>
+          </div>
+        </ng-container>
+
+        <ng-template #emptyTree>
+          <div class="tree-empty-state">
+            <i class="fas fa-users"></i>
+            <p>Aucun filleul pour ce partenaire</p>
+            <span>Ce partenaire n'a pas encore de filleuls</span>
+          </div>
+        </ng-template>
+      </div>
+    </ng-container>
+
+    <ng-template #noTree>
+      <ng-container *ngIf="recherche; else loadingTree">
+        <div class="tree-empty-state">
+          <i class="fas fa-search"></i>
+          <p>Partenaire introuvable</p>
+          <span>Aucun nœud ne correspond à "{{ recherche }}" dans le réseau</span>
+        </div>
+      </ng-container>
+      <ng-template #loadingTree>
+        <div class="reseau-loading">
+          <i class="fas fa-spinner fa-spin"></i>
+          <span>Chargement du réseau...</span>
+        </div>
+      </ng-template>
+    </ng-template>
+  </div>
+</div>

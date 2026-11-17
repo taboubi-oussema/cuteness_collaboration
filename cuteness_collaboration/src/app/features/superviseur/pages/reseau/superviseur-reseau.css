@@ -1,0 +1,163 @@
+/* Inherits all layout from superviseur-dashboard.css via host component */
+
+/* ── Role banner ── */
+.role-banner {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; border-radius: 10px;
+  background: #F3F0FF; border: 1.5px solid #C4B5FD;
+  color: #7C3AED; font-size: 13px; font-weight: 700;
+  margin-bottom: 16px;
+}
+.role-banner i { font-size: 14px; }
+.role-count { margin-left: auto; font-size: 12px; opacity: 0.75; }
+
+/* ── Search bar ── */
+.search-bar {
+  display: flex; align-items: center; gap: 10px;
+  background: #fff; border: 1.5px solid #EAEDF5;
+  border-radius: 10px; padding: 9px 14px;
+  margin-bottom: 16px; transition: border-color 0.15s;
+}
+.search-bar:focus-within { border-color: #7C3AED; }
+.search-bar i { color: #8A92B2; }
+.search-input { border: none; outline: none; font-size: 13px; font-weight: 500; flex: 1; background: none; }
+.search-clear {
+  background: none; border: none; cursor: pointer;
+  color: #8A92B2; font-size: 13px; padding: 0;
+}
+.search-clear:hover { color: #7C3AED; }
+
+/* ── Card ── */
+.sv-card {
+  background: #fff; border: 1.5px solid #EAEDF5;
+  border-radius: 14px; overflow: hidden; margin-bottom: 18px;
+}
+.sv-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1.5px solid #EAEDF5;
+}
+.sv-card-title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 14px; font-weight: 800; color: #1E2340;
+}
+.sv-card-title i { color: #7C3AED; }
+.sv-count { font-size: 12px; font-weight: 700; color: #8A92B2; }
+
+/* ── Table ── */
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th {
+  font-size: 11px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.4px; color: #8A92B2;
+  padding: 10px 16px; text-align: left;
+  border-bottom: 1.5px solid #EAEDF5; white-space: nowrap;
+}
+td { font-size: 13px; padding: 11px 16px; border-bottom: 1px solid #EAEDF5; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #F3F0FF; transition: background 0.15s; }
+.td-soft { color: #8A92B2; font-size: 12px; }
+
+/* ── Avatars & badges ── */
+.p-name { display: flex; align-items: center; gap: 9px; }
+.p-ava {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800; flex-shrink: 0;
+}
+.p-nm  { font-size: 13px; font-weight: 700; color: #1E2340; }
+.p-sub { font-size: 11px; color: #8A92B2; }
+
+.pack-badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 9px; border-radius: 20px;
+  font-size: 11px; font-weight: 700;
+}
+.pack-starter { background: #FFF0F5; color: #FF6B9D; }
+.pack-silver  { background: #EDFAF4; color: #4ECBA0; }
+.pack-gold    { background: #FFF0EE; color: #FF6B5B; }
+.pack-aucun   { background: #F7F8FC; color: #8A92B2; }
+
+.av-starter { background: #FFF0F5; color: #FF6B9D; }
+.av-silver  { background: #EDFAF4; color: #4ECBA0; }
+.av-gold    { background: #FFF0EE; color: #FF6B5B; }
+.av-aucun   { background: #F7F8FC; color: #8A92B2; }
+
+.statut-badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.st-VALIDEE   { background: #EDFAF4; color: #1e9b6b; }
+.st-REFUSEE   { background: #FFF0F0; color: #d43c3c; }
+
+.dt-empty {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 36px; font-size: 13px; font-weight: 600; color: #8A92B2;
+}
+
+/* ── MLM Tree ── */
+.reseau-tree-wrap { padding: 20px 24px; overflow-x: auto; }
+
+.tree-root-node {
+  display: flex; flex-direction: column; align-items: center;
+  margin-bottom: 4px;
+}
+.trn-avatar {
+  width: 50px; height: 50px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 800; margin-bottom: 6px;
+}
+.root-color { background: #F3F0FF; color: #7C3AED; }
+.trn-name { font-size: 14px; font-weight: 800; color: #1E2340; }
+.trn-sub  { font-size: 11px; color: #8A92B2; margin-top: 2px; }
+
+.tree-connector-v {
+  width: 2px; height: 24px; background: #C4B5FD;
+  margin: 0 auto 0;
+}
+
+.tree-level-1 {
+  display: flex; flex-wrap: wrap; gap: 16px;
+  justify-content: center; padding: 4px 0 12px;
+}
+.tree-level-2, .tree-level-3 {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  justify-content: center; margin-top: 10px; padding-left: 12px;
+  border-left: 2px solid #E9D5FF;
+}
+
+.tree-branch-wrap { display: flex; flex-direction: column; align-items: center; }
+
+.tree-node-card {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 12px 16px; min-width: 110px;
+  background: #fff; border: 1.5px solid #EAEDF5;
+  border-radius: 12px; text-align: center;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.tree-node-card:hover { border-color: #7C3AED; box-shadow: 0 4px 16px rgba(124,58,237,0.12); }
+.tree-node-sm  { min-width: 90px; padding: 9px 12px; border-radius: 10px; }
+.tree-node-xs  { min-width: 76px; padding: 7px 9px; border-radius: 8px; }
+.inactive-node { opacity: 0.45; }
+
+.tnc-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 800; margin-bottom: 6px;
+}
+.tnc-sm { width: 28px; height: 28px; font-size: 12px; margin-bottom: 4px; }
+.tnc-name { font-size: 12px; font-weight: 700; color: #1E2340; line-height: 1.2; }
+.tnc-name-sm { font-size: 11px; }
+.tnc-pack { font-size: 10px; color: #8A92B2; margin-top: 2px; }
+.tnc-pack-sm { font-size: 9px; }
+.tnc-niveau { font-size: 10px; font-weight: 700; color: #7C3AED; margin-top: 2px; }
+
+.tree-empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 40px; gap: 8px; color: #8A92B2;
+}
+.tree-empty-state i { font-size: 28px; margin-bottom: 4px; }
+.tree-empty-state p { font-size: 14px; font-weight: 700; color: #1E2340; }
+.tree-empty-state span { font-size: 12px; }
+
+.reseau-loading {
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px; padding: 36px;
+  font-size: 13px; font-weight: 600; color: #8A92B2;
+}

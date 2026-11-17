@@ -1,0 +1,286 @@
+/* ── Table colonnes ── */
+.rn-head, .rn-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 80px 100px 90px 1.4fr 80px 90px;
+  align-items: center;
+  min-width: 0;
+}
+
+.dt-iban.full {
+  font-family: monospace;
+  font-size: 12px;
+  color: #374151;
+  word-break: break-all;
+}
+
+.text-muted { color: #9ca3af; font-size: 13px; }
+
+.btn-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #e91e8c;
+  background: transparent;
+  color: #e91e8c;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-edit:hover { background: #e91e8c; color: #fff; }
+
+/* ── Modal overlay ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-box {
+  background: #fff;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Modal header ── */
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  position: relative;
+}
+.modal-avatar {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff6b5b, #e91e8c);
+  color: #fff;
+  font-size: 20px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.modal-title { font-size: 16px; font-weight: 800; color: #1a1a2e; }
+.modal-subtitle { font-size: 12.5px; color: #9ca3af; margin-top: 2px; }
+.modal-close {
+  margin-left: auto;
+  background: none; border: none;
+  font-size: 18px; cursor: pointer; color: #9ca3af;
+  padding: 4px 8px; border-radius: 6px;
+  transition: background 0.15s;
+}
+.modal-close:hover { background: #f3f4f6; color: #374151; }
+
+/* ── Alerts ── */
+.alert-success, .alert-danger {
+  margin: 12px 24px 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px; font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+}
+.alert-success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+.alert-danger  { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+
+/* ── Modal body ── */
+.modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 18px; }
+
+.field-group { display: flex; flex-direction: column; gap: 7px; }
+.field-group label {
+  font-size: 12.5px; font-weight: 700;
+  color: #6b7280; text-transform: uppercase; letter-spacing: 0.4px;
+  display: flex; align-items: center; gap: 6px;
+}
+.field-input, .field-select {
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+  background: #fff;
+}
+.field-input:focus, .field-select:focus { border-color: #e91e8c; }
+
+/* ── Radio paiement ── */
+.radio-group { display: flex; gap: 10px; }
+.radio-card {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 9px 12px; border-radius: 10px;
+  border: 1.5px solid #e5e7eb; cursor: pointer;
+  font-size: 13px; font-weight: 600; color: #6b7280;
+  transition: all 0.15s;
+}
+.radio-card input { display: none; }
+.radio-card.active { border-color: #e91e8c; color: #e91e8c; background: #fff0f8; }
+
+/* ── Toggle statut ── */
+.toggle-wrap { display: flex; align-items: center; gap: 12px; }
+.toggle-switch { position: relative; width: 44px; height: 24px; cursor: pointer; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; inset: 0;
+  background: #d1d5db; border-radius: 999px;
+  transition: background 0.2s;
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 18px; height: 18px;
+  left: 3px; top: 3px;
+  background: #fff; border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+.toggle-switch input:checked + .toggle-slider { background: #e91e8c; }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+.toggle-label { font-size: 13.5px; font-weight: 700; color: #9ca3af; }
+.toggle-label.active { color: #e91e8c; }
+
+/* ── Filleuls section ── */
+.filleuls-section { background: #f9fafb; border-radius: 12px; padding: 14px; }
+.loading-sm, .empty-filleuls {
+  font-size: 13px; color: #9ca3af;
+  text-align: center; padding: 10px 0;
+}
+.filleuls-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.filleul-row {
+  display: flex; align-items: center; gap: 10px;
+  background: #fff; border-radius: 10px;
+  padding: 9px 12px;
+  border: 1px solid #f1f5f9;
+}
+.filleul-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, #3aafd9, #7c3aed);
+  color: #fff; font-weight: 800; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.filleul-info { flex: 1; min-width: 0; }
+.filleul-nom  { font-size: 13.5px; font-weight: 700; color: #1a1a2e; }
+.filleul-email{ font-size: 11.5px; color: #9ca3af; }
+.btn-remove-filleul {
+  background: none; border: 1.5px solid #fca5a5;
+  color: #ef4444; border-radius: 8px;
+  padding: 5px 9px; cursor: pointer; font-size: 13px;
+  transition: all 0.15s;
+}
+.btn-remove-filleul:hover { background: #fef2f2; }
+
+/* ── Modal footer ── */
+.modal-footer {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid #f1f5f9;
+}
+.btn-cancel {
+  padding: 9px 20px; border-radius: 10px;
+  border: 1.5px solid #e5e7eb; background: #fff;
+  color: #6b7280; font-weight: 600; font-size: 14px; cursor: pointer;
+}
+.btn-cancel:hover { background: #f9fafb; }
+.btn-save {
+  padding: 9px 24px; border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #ff6b5b, #e91e8c);
+  color: #fff; font-weight: 700; font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+  transition: opacity 0.15s;
+}
+.btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-save:not(:disabled):hover { opacity: 0.9; }
+
+/* ── Scrollbar modale ── */
+.modal-box::-webkit-scrollbar { width: 4px; }
+.modal-box::-webkit-scrollbar-thumb { background: #e0c8d0; border-radius: 4px; }
+
+/* ══ RESPONSIVE MOBILE ══ */
+@media (max-width: 768px) {
+
+  /* Cache l'en-tête du tableau */
+  .rn-head { display: none !important; }
+
+  /* Chaque ligne devient une carte */
+  .rn-row {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    padding: 12px;
+    min-width: unset !important;
+    border-bottom: 1px solid #f1f5f9;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+  }
+
+  /* Partenaire (nom + email) : pleine largeur, en premier */
+  .rn-row .dt-name {
+    flex: 0 0 100%;
+    order: 1;
+  }
+
+  /* Pack badge */
+  .rn-row > div:nth-child(2) { order: 2; flex: 1 1 auto; }
+
+  /* Parrain */
+  .rn-row .text-muted { order: 3; flex: 1 1 auto; font-size: 12px; }
+
+  /* Filleuls */
+  .rn-row .dt-filleuls { order: 4; flex: 1 1 auto; }
+
+  /* Solde */
+  .rn-row .dt-amount { order: 5; flex: 1 1 auto; font-weight: 700; color: #e91e8c; }
+
+  /* Mode paiement */
+  .rn-row > div:nth-child(6) { order: 6; flex: 1 1 auto; }
+
+  /* Info bancaire : masquée sur mobile (trop longue) */
+  .rn-row .dt-iban { display: none !important; }
+
+  /* Statut */
+  .rn-row > div:nth-child(8) { order: 7; flex: 1 1 auto; }
+
+  /* Actions : pleine largeur, aligné à droite */
+  .rn-row > div:nth-child(9) {
+    order: 8;
+    flex: 0 0 100%;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  /* Petits labels avant chaque champ */
+  .rn-row > div:nth-child(2)::before  { content: 'Pack ';    font-size: 10px; color: #9ca3af; display: block; }
+  .rn-row .text-muted::before          { content: 'Parrain '; font-size: 10px; color: #9ca3af; display: block; }
+  .rn-row .dt-filleuls::before         { content: 'Filleuls '; font-size: 10px; color: #9ca3af; display: block; }
+  .rn-row .dt-amount::before           { content: 'Solde ';   font-size: 10px; color: #9ca3af; display: block; }
+  .rn-row > div:nth-child(6)::before  { content: 'Paiement '; font-size: 10px; color: #9ca3af; display: block; }
+  .rn-row > div:nth-child(8)::before  { content: 'Statut ';  font-size: 10px; color: #9ca3af; display: block; }
+
+  /* data-table sans overflow horizontal */
+  .data-table { overflow-x: unset; }
+
+  /* Bouton modifier pleine largeur */
+  .btn-edit { width: 100%; justify-content: center; }
+
+  /* Search bar */
+  .search-bar { margin-bottom: 12px; }
+
+  /* Modal full-screen sur mobile */
+  .modal-box { max-height: 95vh; border-radius: 14px 14px 0 0; }
+  .modal-overlay { align-items: flex-end; padding: 0; }
+}

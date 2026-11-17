@@ -1,0 +1,127 @@
+<div class="section-content">
+
+  <!-- ── FORM ── -->
+  <div class="signalement-form">
+    <div class="sf-title"><i class="fas fa-flag"></i> Envoyer un signalement au superviseur</div>
+
+    <div class="sf-field">
+      <label>Type de problème</label>
+      <div class="priorite-selector">
+        <button [class.active]="sigType === 'COMMISSION'" class="ps-btn ps-haute"  (click)="sigType = 'COMMISSION'">
+          <i class="fas fa-coins"></i> Commission
+        </button>
+        <button [class.active]="sigType === 'PAIEMENT'"   class="ps-btn ps-moyenne" (click)="sigType = 'PAIEMENT'">
+          <i class="fas fa-credit-card"></i> Paiement
+        </button>
+        <button [class.active]="sigType === 'COMMANDE'"   class="ps-btn ps-basse"  (click)="sigType = 'COMMANDE'">
+          <i class="fas fa-box"></i> Commande
+        </button>
+        <button [class.active]="sigType === 'TECHNIQUE'"  class="ps-btn"            (click)="sigType = 'TECHNIQUE'">
+          <i class="fas fa-wrench"></i> Technique
+        </button>
+      </div>
+    </div>
+
+    <div class="sf-field">
+      <label>Description</label>
+      <textarea [(ngModel)]="sigDesc" placeholder="Décrivez le problème en détail…" class="sf-textarea" rows="4"></textarea>
+    </div>
+
+    <div class="sf-field">
+      <label>Priorité</label>
+      <div class="priorite-selector">
+        <button [class.active]="sigPriorite === 'HAUTE'"   class="ps-btn ps-haute"   (click)="sigPriorite = 'HAUTE'">
+          <i class="fas fa-exclamation-circle"></i> Haute
+        </button>
+        <button [class.active]="sigPriorite === 'MOYENNE'" class="ps-btn ps-moyenne" (click)="sigPriorite = 'MOYENNE'">
+          <i class="fas fa-minus-circle"></i> Moyenne
+        </button>
+        <button [class.active]="sigPriorite === 'BASSE'"   class="ps-btn ps-basse"   (click)="sigPriorite = 'BASSE'">
+          <i class="fas fa-info-circle"></i> Basse
+        </button>
+      </div>
+    </div>
+
+    <div class="sf-field">
+      <label>Pièce jointe (facultative)</label>
+      <input type="file" (change)="onFileChange($event)" class="sf-input" accept="image/*,.pdf" />
+    </div>
+
+    <button class="btn-envoyer" (click)="envoyerSignalement()" [disabled]="sigLoading || !sigDesc.trim()">
+      <i class="fas fa-paper-plane"></i> {{ sigLoading ? 'Envoi...' : 'Envoyer au superviseur' }}
+    </button>
+
+    @if (sigSuccess) {
+      <div class="success-banner">
+        <i class="fas fa-check-circle"></i> {{ sigSuccess }}
+      </div>
+    }
+    @if (sigError) {
+      <div class="error-banner">
+        <i class="fas fa-exclamation-triangle"></i> {{ sigError }}
+      </div>
+    }
+  </div>
+
+  <!-- ── HISTORIQUE ── -->
+  <div class="home-section" style="margin-top:24px;">
+    <div class="hs-header">
+      <div class="hs-title"><i class="fas fa-history"></i> Mes signalements</div>
+      <button class="btn-sm" (click)="load()" style="margin-left:auto;">
+        <i class="fas fa-sync-alt"></i> Actualiser
+      </button>
+    </div>
+
+    @if (listLoading) {
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Chargement…</div>
+      </div>
+    }
+    @if (listError) {
+      <div class="error-banner">{{ listError }}</div>
+    }
+
+    <div class="signalement-list">
+      @for (s of signalements; track s.id) {
+        <div class="signalement-item" [class.sig-escalade]="s.statut === 'ESCALADE'">
+          <div class="si-left">
+            <div class="si-sujet">
+              <span class="statut-badge" style="margin-right:6px;" [ngClass]="prioriteColor(s.priorite)">{{ s.priorite }}</span>
+              {{ typeLabel(s.type) }}
+            </div>
+            <div class="si-desc">{{ s.description }}</div>
+            @if (s.noteEscalade) {
+              <div class="si-escalade-note" style="margin-top:6px; font-size:12px; color:#7C3AED; background:#f5f3ff; padding:6px 10px; border-radius:6px;">
+                🔺 <strong>Escaladé :</strong> {{ s.noteEscalade }}
+              </div>
+            }
+            @if (s.reponseSuperviseur) {
+              <div style="margin-top:8px; font-size:12.5px; background:#eff6ff; border-left:3px solid #3b82f6; padding:8px 12px; border-radius:0 8px 8px 0; color:#1d4ed8;">
+                <strong>💬 Réponse du superviseur :</strong>
+                <div style="margin-top:4px;">{{ s.reponseSuperviseur }}</div>
+              </div>
+            }
+            @if (s.reponseAdmin) {
+              <div class="si-reponse-admin" style="margin-top:8px; font-size:12.5px; background:#edfaf4; border-left:3px solid #4ECBA0; padding:8px 12px; border-radius:0 8px 8px 0; color:#15803d;">
+                <strong>✅ Réponse de l'administrateur :</strong>
+                <div style="margin-top:4px;">{{ s.reponseAdmin }}</div>
+              </div>
+            }
+            <div class="si-meta" style="margin-top:6px;">
+              {{ s.date ? (s.date | date:'dd/MM/yyyy') : '' }} · ID : {{ s.id }}
+            </div>
+          </div>
+          <div class="si-right">
+            <span class="statut-badge" [ngClass]="statutColor(s.statut)">{{ statutLabel(s.statut) }}</span>
+          </div>
+        </div>
+      }
+      @if (!listLoading && signalements.length === 0) {
+        <div class="dt-empty">
+          <i class="fas fa-inbox"></i> Aucun signalement
+        </div>
+      }
+    </div>
+  </div>
+</div>

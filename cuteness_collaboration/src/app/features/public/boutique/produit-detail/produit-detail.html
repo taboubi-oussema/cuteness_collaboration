@@ -1,0 +1,293 @@
+<div class="pd-page">
+
+  <!-- ── NAVBAR ── -->
+  <nav class="pd-navbar">
+    <a routerLink="/" class="pd-brand">
+      <img src="cute_logo.png" alt="Cuteness" class="pd-logo" />
+    </a>
+    <div class="pd-nav-actions">
+      @if (isAuthenticated) {
+        <a routerLink="/checkout" class="pd-cart-btn">
+          <i class="fas fa-shopping-bag"></i>
+          @if (cartService.count > 0) {
+            <span class="pd-cart-badge">{{ cartService.count }}</span>
+          }
+        </a>
+        <a routerLink="/partner/dashboard" class="btn-ghost">Mon espace</a>
+      } @else {
+        <a routerLink="/auth/login" class="btn-ghost">Se connecter</a>
+        <a routerLink="/packs" class="btn-primary">Rejoindre</a>
+      }
+    </div>
+  </nav>
+
+  <!-- ── BACK LINK ── -->
+  <div class="pd-back">
+    <button (click)="goBack()" class="pd-back-btn">
+      <i class="fas fa-arrow-left"></i> Retour à la boutique
+    </button>
+  </div>
+
+  <!-- ── LOADING ── -->
+  @if (isLoading) {
+    <div class="pd-loading">
+      <div class="pd-spinner"></div>
+      <p>Chargement du produit…</p>
+    </div>
+  }
+
+  <!-- ── ERROR STATE ── -->
+  @if (!isLoading && loadError) {
+    <div class="pd-error-state">
+      <i class="fas fa-exclamation-circle"></i>
+      <p>{{ loadError }}</p>
+      <button (click)="goBack()" class="pd-back-btn">
+        <i class="fas fa-arrow-left"></i> Retour à la boutique
+      </button>
+    </div>
+  }
+
+  <!-- ── PRODUCT HERO ── -->
+  @if (!isLoading && produit) {
+    <div class="pd-hero">
+      <div class="pd-hero-img-wrap">
+        @if (galleryImages.length > 0) {
+          <img [src]="getImageUrl(galleryImages[activeImg])" [alt]="produit.nom" class="pd-hero-img" />
+          @if (galleryImages.length > 1) {
+            <button class="pd-carousel-btn pd-carousel-prev" (click)="prevImg()">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="pd-carousel-btn pd-carousel-next" (click)="nextImg()">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+            <div class="pd-carousel-dots">
+              @for (img of galleryImages; track $index) {
+                <span class="pd-dot" [class.active]="$index === activeImg" (click)="activeImg = $index"></span>
+              }
+            </div>
+          }
+        } @else {
+          <div class="pd-hero-img-placeholder">
+            <i class="fas fa-spa"></i>
+          </div>
+        }
+        @if (produit.bestSeller) {
+          <span class="pd-badge-best">⭐ Best Seller</span>
+        }
+        @if (produit.enPromo) {
+          <span class="pd-badge-promo">🔥 Promo</span>
+        }
+      </div>
+
+      <div class="pd-hero-info">
+        @if (produit.categorie) {
+          <div class="pd-cat-badge"
+               [style.color]="produit.categorie.couleur"
+               [style.background]="produit.categorie.couleur + '18'">
+            {{ produit.categorie.nom }}
+          </div>
+        }
+        <h1 class="pd-title">{{ produit.nom }}</h1>
+
+        <div class="pd-price-row">
+          @if (produit.enPromo && produit.prixPromo != null) {
+            <span class="pd-price-old">{{ produit.prix | number:'1.2-2' }} DT</span>
+            <span class="pd-price-new">{{ produit.prixPromo | number:'1.2-2' }} DT</span>
+            <span class="pd-promo-tag">Économisez {{ (produit.prix - produit.prixPromo!) | number:'1.2-2' }} DT</span>
+          } @else {
+            <span class="pd-price-new">{{ produit.prix | number:'1.2-2' }} DT</span>
+          }
+        </div>
+
+        <div class="pd-stock" [class.out]="produit.stock === 0">
+          @if (produit.stock > 5) {
+            <i class="fas fa-check-circle"></i> En stock
+          } @else if (produit.stock > 0) {
+            <i class="fas fa-exclamation-circle"></i> Plus que {{ produit.stock }} en stock
+          } @else {
+            <i class="fas fa-times-circle"></i> Rupture de stock
+          }
+        </div>
+
+        @if (produit.description) {
+          <div class="pd-desc-block">
+            <h3>Description</h3>
+            <p>{{ produit.description }}</p>
+          </div>
+        }
+
+        <!-- ── ACTIONS ── -->
+        <div class="pd-actions">
+          @if (produit.stock === 0) {
+            <button class="pd-btn-cart" disabled>
+              <i class="fas fa-times-circle"></i> Rupture de stock
+            </button>
+          } @else if (isAuthenticated) {
+            <button class="pd-btn-cart" (click)="addToCart()" [disabled]="addedToCart">
+              @if (addedToCart) {
+                <i class="fas fa-check"></i> Ajouté au panier
+              } @else {
+                <i class="fas fa-shopping-bag"></i> Ajouter au panier
+              }
+            </button>
+            <button class="pd-btn-order" (click)="commanderDirect()">
+              <i class="fas fa-bolt"></i> Commander
+            </button>
+          } @else {
+            <a routerLink="/auth/login" class="pd-btn-order" style="text-decoration:none; justify-content:center">
+              <i class="fas fa-lock"></i> Se connecter pour commander
+            </a>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- ── AVIS SECTION ── -->
+    <div class="pd-avis-section">
+      <div class="pd-section-header">
+        <h2>Expériences des partenaires</h2>
+        <span class="pd-avis-count">{{ avis.length }} avis</span>
+      </div>
+
+      <!-- Avis Grid -->
+      @if (avis.length > 0) {
+        <div class="pd-avis-grid">
+          @for (a of avis; track a.id) {
+            <div class="pd-avis-card">
+              @if (a.imageUrl) {
+                <div class="pd-avis-img-wrap">
+                  <img [src]="getImageUrl(a.imageUrl)" alt="Photo" class="pd-avis-img" />
+                </div>
+              }
+              <div class="pd-avis-body">
+                <div class="pd-avis-header">
+                  <div class="pd-avis-avatar">{{ a.auteurNom.charAt(0) | uppercase }}</div>
+                  <div class="pd-avis-meta">
+                    <div class="pd-avis-author">{{ a.auteurNom }}</div>
+                    <div class="pd-avis-date">{{ formatDate(a.dateCreation) }}</div>
+                  </div>
+                  @if (isAdmin()) {
+                    <button class="pd-avis-delete" (click)="deleteAvis(a.id)" title="Supprimer">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  }
+                </div>
+                @if (a.contenu) {
+                  <p class="pd-avis-text">"{{ a.contenu }}"</p>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="pd-avis-empty">
+          <i class="fas fa-comment-dots"></i>
+          <p>Aucun avis pour ce produit. Soyez le premier à partager votre expérience !</p>
+        </div>
+      }
+
+      <!-- ── ADD AVIS FORM ── -->
+      @if (isAuthenticated) {
+        <div class="pd-form-wrap">
+          <h3>Partagez votre expérience</h3>
+
+          @if (submitSuccess) {
+            <div class="pd-alert-success">
+              <i class="fas fa-check-circle"></i> Votre avis a été publié avec succès !
+            </div>
+          }
+          @if (submitError) {
+            <div class="pd-alert-error">
+              <i class="fas fa-exclamation-circle"></i> {{ submitError }}
+            </div>
+          }
+
+          <div class="pd-form">
+            <textarea
+              [(ngModel)]="newContenu"
+              placeholder="Décrivez votre expérience avec ce produit…"
+              rows="4"
+              class="pd-textarea">
+            </textarea>
+
+            <div class="pd-upload-zone">
+              <label class="pd-upload-label">
+                <i class="fas fa-camera"></i>
+                <span>{{ selectedImageFile ? selectedImageFile.name : 'Ajouter une photo (optionnel)' }}</span>
+                <input type="file" accept="image/*" (change)="onImageChange($event)" hidden />
+              </label>
+              @if (imagePreview) {
+                <div class="pd-img-preview-wrap">
+                  <img [src]="imagePreview" alt="Aperçu" class="pd-img-preview" />
+                  <button class="pd-img-remove" (click)="selectedImageFile=null; imagePreview=null">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              }
+            </div>
+
+            <button class="pd-submit-btn"
+                    (click)="submitAvis()"
+                    [disabled]="submitting || (!newContenu.trim() && !selectedImageFile)">
+              @if (submitting) {
+                <span class="pd-btn-spinner"></span> Publication…
+              } @else {
+                <i class="fas fa-paper-plane"></i> Publier mon avis
+              }
+            </button>
+          </div>
+        </div>
+      } @else {
+        <div class="pd-login-cta">
+          <i class="fas fa-lock"></i>
+          <p>Connectez-vous pour partager votre expérience avec ce produit.</p>
+          <a routerLink="/auth/login" class="btn-primary">Se connecter</a>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── CART TOAST ── -->
+  @if (showCartToast) {
+    <div class="pd-cart-toast">
+      <div class="pct-header">
+        <span class="pct-title"><i class="fas fa-check-circle"></i> Ajouté au panier</span>
+        <button class="pct-close" (click)="closeCartToast()"><i class="fas fa-times"></i></button>
+      </div>
+
+      <div class="pct-items">
+        @for (item of cartService.items; track item.produitId) {
+          <div class="pct-item">
+            <div class="pct-item-img">
+              @if (item.imageUrl) {
+                <img [src]="getImageUrl(item.imageUrl)" [alt]="item.nom" />
+              } @else {
+                <i class="fas fa-spa"></i>
+              }
+            </div>
+            <div class="pct-item-info">
+              <span class="pct-item-name">{{ item.nom }}</span>
+              <span class="pct-item-qty">Qté : {{ item.qty }}</span>
+            </div>
+            <span class="pct-item-price">{{ (item.prix * item.qty) | number:'1.2-2' }} DT</span>
+          </div>
+        }
+      </div>
+
+      <div class="pct-footer">
+        <div class="pct-total">
+          Total <strong>{{ cartService.subtotal() | number:'1.2-2' }} DT</strong>
+        </div>
+        <button class="pct-btn-checkout" (click)="closeCartToast(true)">
+          <i class="fas fa-shopping-bag"></i>
+          Voir le panier ({{ cartService.count }})
+        </button>
+      </div>
+
+      <div class="pct-progress-bar">
+        <div class="pct-progress-fill"></div>
+      </div>
+    </div>
+  }
+
+</div>

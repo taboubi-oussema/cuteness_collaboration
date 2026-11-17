@@ -1,0 +1,331 @@
+<!-- NAVBAR -->
+<nav class="spd-nav">
+  <a routerLink="/" class="spd-nav-brand">
+    <img src="cute_logo.png" alt="Cuteness" class="spd-nav-logo" />
+  </a>
+  <div class="spd-nav-links">
+    <a routerLink="/">Accueil</a>
+    <a routerLink="/packs">Packs</a>
+    <a routerLink="/auth/login">Se connecter</a>
+  </div>
+  <div class="spd-nav-actions">
+    <button class="spd-btn-ghost" routerLink="/auth/login">Se connecter</button>
+    <button class="spd-btn-primary" (click)="choisir()">
+      <i class="fas fa-user-plus"></i> S'inscrire
+    </button>
+  </div>
+</nav>
+
+<!-- LOADING -->
+@if (isLoading) {
+  <div class="spd-loading">
+    <i class="fas fa-spinner fa-spin"></i>
+    <p>Chargement...</p>
+  </div>
+}
+
+@if (!isLoading && pack && sousPack) {
+
+  <!-- LANG TOGGLE -->
+  <div class="spd-lang-bar">
+    <button class="spd-lang-btn" [class.active]="lang === 'fr'" (click)="lang = 'fr'">🇫🇷 Français</button>
+    <button class="spd-lang-btn" [class.active]="lang === 'ar'" (click)="lang = 'ar'">🇸🇦 العربية</button>
+  </div>
+
+  <div class="spd-page" [dir]="lang === 'ar' ? 'rtl' : 'ltr'">
+
+    <!-- ── HERO ── -->
+    <section class="spd-hero" [style.background]="themeGradient()">
+      <a [routerLink]="['/packs', pack.id]" class="spd-back-btn">
+        <i class="fas fa-arrow-left"></i>
+        {{ lang === 'ar' ? 'العودة إلى الباقة' : 'Retour au pack' }}
+      </a>
+      <div class="spd-hero-inner">
+        <div class="spd-hero-pack-label">
+          {{ lang === 'ar' ? 'باقة' : 'Pack' }} {{ lang === 'ar' ? (pack.nomAr || pack.nom) : pack.nom }}
+          &nbsp;·&nbsp; {{ pack.prix }} DT
+        </div>
+        <div class="spd-hero-emoji">{{ sousPack.emoji }}</div>
+        <h1 class="spd-hero-name">
+          {{ lang === 'ar' ? (sousPack.nomAr || sousPack.nom) : sousPack.nom }}
+        </h1>
+        @if (lang === 'ar' && sousPack.nomAr) {
+          <div class="spd-hero-name-fr">{{ sousPack.nom }}</div>
+        }
+        <div class="spd-hero-count">
+          <i class="fas fa-box"></i>
+          {{ products.length }}
+          {{ lang === 'ar' ? 'منتج مضمّن' : (products.length > 1 ? 'produits inclus' : 'produit inclus') }}
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PHOTO GALLERY ── -->
+    @if (images.length > 0) {
+      <section class="spd-gallery">
+        <div class="spd-gallery-main">
+          <img [src]="getImageUrl(images[currentImgIndex])"
+               alt="{{ sousPack.nom }}"
+               class="spd-gallery-img" />
+          @if (images.length > 1) {
+            <button class="spd-gallery-nav spd-gallery-prev" (click)="prevImg()">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="spd-gallery-nav spd-gallery-next" (click)="nextImg()">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+            <div class="spd-gallery-counter">{{ currentImgIndex + 1 }} / {{ images.length }}</div>
+          }
+        </div>
+        @if (images.length > 1) {
+          <div class="spd-gallery-thumbs">
+            @for (img of images; track img; let i = $index) {
+              <img [src]="getImageUrl(img)" alt="" class="spd-gallery-thumb"
+                   [class.active]="i === currentImgIndex"
+                   (click)="currentImgIndex = i" />
+            }
+          </div>
+        }
+      </section>
+    }
+
+    <!-- ── TOP CTA ── -->
+    <section class="spd-cta-section">
+      @if (isPartenaire) {
+        <button class="spd-btn-commander" (click)="openOrderModal()" [style.background]="themeGradient()">
+          <i class="fas fa-shopping-bag"></i> Commander ce pack
+        </button>
+      } @else {
+        <button class="spd-btn-choisir" (click)="choisir()" [style.background]="themeGradient()">
+          <i class="fas fa-hand-pointer"></i>
+          {{ lang === 'ar' ? 'اختر ' + (sousPack.nomAr || sousPack.nom) : 'Choisir ' + sousPack.nom }}
+        </button>
+      }
+      <p class="spd-cta-note">
+        <i class="fas fa-shield-halved"></i>
+        {{ lang === 'ar' ? 'دفع مرة واحدة · تفعيل فوري · بدون التزام' : 'Paiement unique · Activation immédiate · Sans engagement' }}
+      </p>
+    </section>
+
+    <!-- ── PRODUCTS ── -->
+    <section class="spd-products-section">
+      <h2 class="spd-section-title" [style.color]="themeColor()">
+        <i class="fas fa-box-open"></i>
+        {{ lang === 'ar' ? 'محتوى هذه المجموعة' : 'Contenu de ce sous-pack' }}
+      </h2>
+
+      @if (products.length > 0) {
+        <div class="spd-products-grid">
+          @for (prod of products; track prod; let i = $index) {
+            <div class="spd-product-card" [style.border-left-color]="themeColor()">
+              <div class="spd-product-num" [style.background]="themeGradient()">{{ i + 1 }}</div>
+              <div class="spd-product-name">{{ prod }}</div>
+              <i class="fas fa-check-circle spd-product-check" [style.color]="themeColor()"></i>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="spd-no-products">
+          {{ lang === 'ar' ? 'لا توجد منتجات مُدرجة بعد.' : 'Aucun produit renseigné pour ce sous-pack.' }}
+        </p>
+      }
+    </section>
+
+    <!-- ── BOTTOM CTA ── -->
+    <section class="spd-bottom-cta">
+      <div class="spd-bottom-cta-inner">
+        <div class="spd-bottom-cta-emoji">{{ sousPack.emoji }}</div>
+        <h3 class="spd-bottom-cta-title">
+          {{ lang === 'ar'
+              ? 'هل أنت مستعد لاختيار ' + (sousPack.nomAr || sousPack.nom) + '؟'
+              : 'Prêt à choisir ' + sousPack.nom + ' ?' }}
+        </h3>
+        <p class="spd-bottom-cta-sub">
+          {{ lang === 'ar'
+              ? 'انضم إلى شبكة Cuteness Collaboration وابدأ مسيرتك.'
+              : 'Rejoignez Cuteness Collaboration et démarrez votre aventure.' }}
+        </p>
+        @if (isPartenaire) {
+          <button class="spd-btn-commander" (click)="openOrderModal()" [style.background]="themeGradient()">
+            <i class="fas fa-shopping-bag"></i> Commander ce pack
+          </button>
+        } @else {
+          <button class="spd-btn-choisir" (click)="choisir()" [style.background]="themeGradient()">
+            <i class="fas fa-hand-pointer"></i>
+            {{ lang === 'ar' ? 'اختر ' + (sousPack.nomAr || sousPack.nom) : 'Choisir ' + sousPack.nom }}
+          </button>
+        }
+        <div class="spd-bottom-links">
+          <a [routerLink]="['/packs', pack.id]" class="spd-link-back">
+            <i class="fas fa-arrow-left"></i>
+            {{ lang === 'ar' ? 'تغيير المجموعة' : 'Changer de sous-pack' }}
+          </a>
+          @if (!isPartenaire) {
+            <a routerLink="/auth/login" class="spd-link-back">
+              <i class="fas fa-sign-in-alt"></i>
+              {{ lang === 'ar' ? 'لديّ حساب بالفعل' : 'J\'ai déjà un compte' }}
+            </a>
+          }
+        </div>
+      </div>
+    </section>
+
+  </div>
+}
+
+<!-- ══ MODALE COMMANDE (partenaires) ══ -->
+@if (showOrderModal) {
+  <div class="spd-overlay" (click)="closeOrderModal()">
+    <div class="spd-order-modal" (click)="$event.stopPropagation()">
+
+      <!-- En-tête -->
+      <div class="cmd-modal-header">
+        <div class="cmd-modal-title">
+          <i class="fas fa-shopping-bag"></i>
+          Commander — {{ pack?.nom }}
+        </div>
+        <button class="cmd-modal-close" (click)="closeOrderModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Récap pack -->
+      <div class="cmd-pack-recap">
+        <span class="cmd-recap-emoji">{{ sousPack?.emoji }}</span>
+        <div class="cmd-recap-info">
+          <span class="cmd-recap-name">{{ sousPack?.nom }}</span>
+          <span class="cmd-recap-pack">Pack {{ pack?.nom }}</span>
+        </div>
+        <span class="cmd-recap-price">{{ pack?.prix | number:'1.2-2' }} DT</span>
+      </div>
+
+      <!-- Succès -->
+      @if (orderSuccess) {
+        <div class="cmd-success">
+          <div class="cmd-success-icon">✅</div>
+          <h3>Commande enregistrée !</h3>
+          <p>Votre superviseur va la traiter prochainement.</p>
+          <button class="cmd-btn-confirm" (click)="closeOrderModal()">
+            <i class="fas fa-home"></i> Retour au dashboard
+          </button>
+        </div>
+      }
+
+      @if (!orderSuccess) {
+        <div class="cmd-modal-body">
+
+          @if (orderError) {
+            <div class="cmd-error">
+              <i class="fas fa-exclamation-circle"></i> {{ orderError }}
+            </div>
+          }
+
+          <!-- Adresse de livraison -->
+          <div class="cmd-card">
+            <div class="cmd-card-title">
+              <i class="fas fa-map-marker-alt"></i> Adresse de livraison
+            </div>
+
+            <div class="cmd-field-group">
+              <label class="cmd-label">Gouvernorat <span class="cmd-req">*</span></label>
+              <select class="cmd-select" [(ngModel)]="orderForm.gouvernerat" (ngModelChange)="onGouverneratChange()">
+                <option value="">— Sélectionner —</option>
+                @for (g of gouvernerats; track g) {
+                  <option [value]="g">{{ g }}</option>
+                }
+              </select>
+            </div>
+
+            @if (orderForm.gouvernerat) {
+              <div class="cmd-field-group">
+                <label class="cmd-label">Ville / Délégation <span class="cmd-req">*</span></label>
+                <select class="cmd-select" [(ngModel)]="orderForm.ville">
+                  <option value="">— Sélectionner —</option>
+                  @for (v of villes; track v) {
+                    <option [value]="v">{{ v }}</option>
+                  }
+                </select>
+              </div>
+            }
+
+            @if (orderForm.ville) {
+              <div class="cmd-field-group">
+                <label class="cmd-label">Localité / Quartier</label>
+                <input class="cmd-input" type="text" [(ngModel)]="orderForm.localite"
+                       placeholder="Cité, quartier, lotissement…" />
+              </div>
+            }
+
+            <div class="cmd-field-group">
+              <label class="cmd-label">Rue / Détails complémentaires</label>
+              <textarea class="cmd-textarea" rows="2" [(ngModel)]="orderForm.adresse"
+                        placeholder="N° et nom de rue, immeuble, étage…"></textarea>
+            </div>
+          </div>
+
+          <!-- Mode de paiement -->
+          <div class="cmd-card">
+            <div class="cmd-card-title">
+              <i class="fas fa-credit-card"></i> Mode de paiement
+            </div>
+            <div class="cmd-radio-group">
+              <label class="cmd-radio-opt" [class.active]="orderForm.modePaiement === 'ESPECES'">
+                <input type="radio" [(ngModel)]="orderForm.modePaiement" value="ESPECES" />
+                <i class="fas fa-money-bill-wave"></i>
+                <span>Espèces</span>
+              </label>
+              <label class="cmd-radio-opt" [class.active]="orderForm.modePaiement === 'VIREMENT'">
+                <input type="radio" [(ngModel)]="orderForm.modePaiement" value="VIREMENT" />
+                <i class="fas fa-university"></i>
+                <span>Virement</span>
+              </label>
+              <label class="cmd-radio-opt" [class.active]="orderForm.modePaiement === 'CHEQUE'">
+                <input type="radio" [(ngModel)]="orderForm.modePaiement" value="CHEQUE" />
+                <i class="fas fa-file-invoice"></i>
+                <span>Chèque</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Remise partenaire -->
+          @if (tauxReduction > 0) {
+            <div class="cmd-card">
+              <div class="cmd-card-title">
+                <i class="fas fa-tag"></i> Remise partenaire ({{ tauxReduction }}%)
+              </div>
+              <div class="cmd-radio-group cmd-radio-col">
+                <label class="cmd-radio-opt" [class.active]="orderForm.optionRemise === 'IMMEDIATE'">
+                  <input type="radio" [(ngModel)]="orderForm.optionRemise" value="IMMEDIATE" />
+                  <div>
+                    <span class="cmd-opt-label">Remise immédiate</span>
+                    <span class="cmd-opt-desc">{{ tauxReduction }}% déduits directement du total</span>
+                  </div>
+                </label>
+                <label class="cmd-radio-opt" [class.active]="orderForm.optionRemise === 'REMBOURSEMENT'">
+                  <input type="radio" [(ngModel)]="orderForm.optionRemise" value="REMBOURSEMENT" />
+                  <div>
+                    <span class="cmd-opt-label">Remboursement après livraison</span>
+                    <span class="cmd-opt-desc">{{ tauxReduction }}% crédités sur votre solde une fois livrée</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+          }
+
+        </div>
+
+        <div class="cmd-modal-footer">
+          <button class="cmd-btn-cancel" (click)="closeOrderModal()">Annuler</button>
+          <button class="cmd-btn-confirm" (click)="passerCommande()" [disabled]="orderLoading">
+            @if (orderLoading) {
+              <span class="cmd-spinner"></span> Traitement…
+            } @else {
+              <i class="fas fa-bolt"></i> Confirmer la commande
+            }
+          </button>
+        </div>
+      }
+
+    </div>
+  </div>
+}

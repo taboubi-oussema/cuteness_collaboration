@@ -1,0 +1,51 @@
+<div class="section-content">
+  <div class="section-actions">
+    <div class="filter-tabs">
+      <button [class.active]="filtreType === 'TOUS'" (click)="filtreType = 'TOUS'">Toutes</button>
+      <button [class.active]="filtreType === 'PACK'" (click)="filtreType = 'PACK'">Packs</button>
+      <button [class.active]="filtreType === 'BOUTIQUE'" (click)="filtreType = 'BOUTIQUE'">Boutique</button>
+    </div>
+    <div class="filter-tabs">
+      <button [class.active]="filtreStatut === 'TOUS'" (click)="filtreStatut = 'TOUS'">Tous</button>
+      <button [class.active]="filtreStatut === 'PAYEE'" (click)="filtreStatut = 'PAYEE'">Payées</button>
+      <button [class.active]="filtreStatut === 'EN_ATTENTE'" (click)="filtreStatut = 'EN_ATTENTE'">En attente</button>
+      <button [class.active]="filtreStatut === 'ANNULEE'" (click)="filtreStatut = 'ANNULEE'">Annulées</button>
+    </div>
+  </div>
+
+  <div class="totaux-bar">
+    <div class="tb-item"><div class="tb-val">{{ filtered.length }}</div><div class="tb-lbl">Transactions</div></div>
+    <div class="tb-item"><div class="tb-val">{{ totalBrut | number:'1.2-2' }} DT</div><div class="tb-lbl">Montant brut</div></div>
+    <div class="tb-item tb-green"><div class="tb-val">{{ totalReduction | number:'1.2-2' }} DT</div><div class="tb-lbl">Total réductions</div></div>
+    <div class="tb-item tb-coral"><div class="tb-val">{{ totalNet | number:'1.2-2' }} DT</div><div class="tb-lbl">Montant net</div></div>
+  </div>
+
+  <div class="data-table">
+    <div class="dt-head trans-head">
+      <div>ID</div><div>Partenaire</div><div>Type</div><div>Description</div>
+      <div>Brut</div><div>Réduction</div><div>Net</div><div>Date</div><div>Statut</div>
+    </div>
+    @for (t of filtered; track t.id) {
+      <div class="dt-row trans-row">
+        <div class="dt-ref">{{ t.id }}</div>
+        <div class="dt-name">{{ t.partenaire }}</div>
+        <div><span class="type-badge" [ngClass]="t.type === 'PACK' ? 'tb-pack' : 'tb-boutique'">{{ t.type }}</span></div>
+        <div class="dt-desc">{{ t.description }}</div>
+        <div class="dt-montant">{{ t.montant }} DT</div>
+        @if (t.reduction > 0) {
+          <div class="dt-reduction">-{{ t.reduction }} DT</div>
+        } @else {
+          <div class="dt-reduction">—</div>
+        }
+        <div class="dt-amount">{{ t.montantFinal }} DT</div>
+        <div class="dt-date">{{ t.date }}</div>
+        <div><span class="statut-badge" [ngClass]="'st-' + t.statut">{{ t.statut }}</span></div>
+      </div>
+    }
+    @if (filtered.length === 0) {
+      <div class="dt-empty">
+        <i class="fas fa-inbox"></i> Aucune transaction trouvée
+      </div>
+    }
+  </div>
+</div>

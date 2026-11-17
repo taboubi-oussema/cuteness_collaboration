@@ -1,0 +1,80 @@
+<div class="chat-wrapper">
+
+  <!-- Floating bubble button -->
+  <button class="chat-bubble" (click)="toggle()" [class.open]="isOpen" aria-label="Assistant Cuteness">
+    @if (!isOpen) {
+      <span class="bubble-icon">💬</span>
+    } @else {
+      <span class="bubble-icon">✕</span>
+    }
+  </button>
+
+  <!-- Chat panel -->
+  <div class="chat-panel" [class.visible]="isOpen" [dir]="isRTL ? 'rtl' : 'ltr'">
+
+    <!-- Header -->
+    <div class="chat-header">
+      <div class="header-avatar">✨</div>
+      <div class="header-info">
+        <span class="header-name">{{ t.name }}</span>
+        <span class="header-status">{{ t.status }}</span>
+      </div>
+      <!-- Language selector -->
+      <div class="lang-switcher">
+        @for (opt of LANG_OPTIONS; track opt.code) {
+          <button
+            class="lang-btn"
+            [class.active]="lang === opt.code"
+            (click)="setLang(opt.code)"
+            [title]="opt.flag + ' ' + opt.label"
+          >{{ opt.flag }} {{ opt.label }}</button>
+        }
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="chat-messages" #messagesContainer>
+      @for (msg of messages; track $index) {
+        <div class="message" [class.user]="msg.role === 'user'" [class.bot]="msg.role === 'bot'">
+          <div class="bubble">{{ msg.text }}</div>
+        </div>
+      }
+
+      <!-- Loading indicator -->
+      @if (loading) {
+        <div class="message bot">
+          <div class="bubble typing">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Quick options -->
+    @if (showQuickOptions) {
+      <div class="quick-options">
+        <div class="quick-options-label">Suggestions :</div>
+        @for (opt of quickOptions; track $index) {
+          <button class="quick-option-btn" (click)="sendQuickReply(opt[lang])" [disabled]="loading">
+            {{ opt[lang] }}
+          </button>
+        }
+      </div>
+    }
+
+    <!-- Input -->
+    <div class="chat-input-area">
+      <textarea
+        [(ngModel)]="input"
+        (keydown)="onKeydown($event)"
+        [placeholder]="t.placeholder"
+        rows="1"
+        [disabled]="loading"
+      ></textarea>
+      <button class="send-btn" (click)="send()" [disabled]="loading || !input.trim()">
+        ➤
+      </button>
+    </div>
+
+  </div>
+</div>

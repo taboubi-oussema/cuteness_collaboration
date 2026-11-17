@@ -1,0 +1,581 @@
+<div class="home-wrap" [class.lang-ar]="lang === 'ar'" [dir]="lang === 'ar' ? 'rtl' : 'ltr'">
+
+<!-- ── PROMO BANNER ── -->
+@if (bannerActif && bannerTexte) {
+  <div class="promo-banner" [style.background]="bannerCouleur">
+    @if (bannerLien) {
+      <a [href]="bannerLien" target="_blank" style="color:inherit; text-decoration:none;">{{ bannerTexte }} →</a>
+    } @else {
+      {{ bannerTexte }}
+    }
+  </div>
+}
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+  <a routerLink="/" class="nav-brand">
+    <img src="cute_logo.png" alt="Cuteness" class="nav-logo-img" />
+  </a>
+  <div class="nav-links">
+    <a href="#features"     (click)="scrollTo($event,'features')">{{ t('nav_features') }}</a>
+    <a routerLink="/packs">{{ t('nav_packs') }}</a>
+    <a routerLink="/formations">{{ t('nav_formations') }}</a>
+    <a href="#how"          (click)="scrollTo($event,'how')">{{ t('nav_how') }}</a>
+    <a href="#boutique"     (click)="scrollTo($event,'boutique')">{{ t('nav_boutique') }}</a>
+    @if (challengesActifs.length > 0) {
+      <a href="#challenges" (click)="scrollTo($event,'challenges')">{{ t('nav_challenges') }}</a>
+    }
+    <a href="#testimonials" (click)="scrollTo($event,'testimonials')">{{ t('nav_testimonials') }}</a>
+  </div>
+  <div class="nav-actions">
+    <button class="lang-btn" (click)="toggleLang()" [title]="lang === 'fr' ? 'Passer en arabe' : 'Passer en français'">
+      @if (lang === 'fr') {
+        <span class="lang-flag">🇸🇦</span>
+        <span class="lang-label">العربية</span>
+      } @else {
+        <span class="lang-flag">🇫🇷</span>
+        <span class="lang-label">Français</span>
+      }
+    </button>
+    <a class="btn-ghost" routerLink="/auth/login">{{ t('nav_login') }}</a>
+    <a class="btn-primary" routerLink="/packs">
+      <i class="fas fa-user-plus"></i> {{ t('nav_join') }}
+    </a>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-deco hd-1"></div>
+  <div class="hero-deco hd-2"></div>
+  <div class="hero-deco hd-3"></div>
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        {{ tr(heroBadge, 'hero_badge') }}
+      </div>
+      <h1 class="hero-title">{{ tr(heroTitre, 'hero_titre') }}</h1>
+      <p class="hero-desc">{{ tr(heroSousTitre, 'hero_sous_titre') }}</p>
+      <div class="hero-cta">
+        <button class="btn-hero-primary" (click)="goToPacks()">
+          <i class="fas fa-rocket"></i> {{ tr(heroCtaPrimaire, 'hero_cta_primaire') }}
+        </button>
+        <a href="#how" (click)="scrollTo($event,'how')" class="btn-hero-ghost">
+          <i class="fas fa-play-circle"></i> {{ tr(heroCtaSecondaire, 'hero_cta_secondaire') }}
+        </a>
+      </div>
+      <div class="hero-trust">
+        <div class="trust-avatars">
+          <span class="ta-1">LM</span>
+          <span class="ta-2">SR</span>
+          <span class="ta-3">MB</span>
+          <span class="ta-4">YB</span>
+        </div>
+        <div class="trust-text"><strong>+{{ statsPartenaires }}</strong> {{ t('stat_partners') }}</div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      @if (heroImageUrl) {
+        <div class="hero-image-wrap">
+          <img [src]="getImageUrl(heroImageUrl)" alt="Hero" class="hero-custom-img" />
+        </div>
+      } @else {
+        <div class="float-card fc-1">
+          <div class="fc-inner">
+            <div class="fc-icon fc-mint"><i class="fas fa-check-circle"></i></div>
+            <div class="fc-text">
+              <div class="fc-label">{{ t('mock_commission') }}</div>
+              <div class="fc-sub">+320 DT · {{ t('mock_ago') }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="dashboard-mockup">
+          <div class="mock-topbar">
+            <div>
+              <div class="mock-topbar-title">{{ t('mock_hello') }}</div>
+              <div class="mock-topbar-sub">{{ t('mock_sub') }}</div>
+            </div>
+            <div class="mock-stats">
+              <div class="ms"><div class="ms-val">{{ statsPartenaires }}</div><div class="ms-lbl">{{ t('mock_partners_lbl') }}</div></div>
+              <div class="ms"><div class="ms-val">{{ statsCommissions }}</div><div class="ms-lbl">{{ t('mock_commissions_lbl') }}</div></div>
+              <div class="ms"><div class="ms-val">{{ statsLivraison }}</div><div class="ms-lbl">{{ t('mock_deliveries_lbl') }}</div></div>
+            </div>
+          </div>
+          <div class="mock-body">
+            <div class="mock-kpi-row">
+              <div class="mock-kpi">
+                <div class="mk-top">
+                  <div class="mk-icon mk-coral"><i class="fas fa-users"></i></div>
+                  <div class="mk-trend up">+12%</div>
+                </div>
+                <div class="mk-val">{{ statsPartenaires }}</div>
+                <div class="mk-lbl">{{ t('mock_kpi_partners') }}</div>
+                <div class="mk-bar"><div class="mk-bar-fill" style="width:72%;background:var(--coral)"></div></div>
+              </div>
+              <div class="mock-kpi">
+                <div class="mk-top">
+                  <div class="mk-icon mk-blue"><i class="fas fa-percent"></i></div>
+                  <div class="mk-trend up">+8%</div>
+                </div>
+                <div class="mk-val">{{ statsCommissions }}</div>
+                <div class="mk-lbl">{{ t('mock_kpi_commissions') }}</div>
+                <div class="mk-bar"><div class="mk-bar-fill" style="width:58%;background:var(--blue)"></div></div>
+              </div>
+              <div class="mock-kpi">
+                <div class="mk-top">
+                  <div class="mk-icon mk-mint"><i class="fas fa-shopping-cart"></i></div>
+                  <div class="mk-trend up">+24%</div>
+                </div>
+                <div class="mk-val">1 236</div>
+                <div class="mk-lbl">{{ t('mock_kpi_orders') }}</div>
+                <div class="mk-bar"><div class="mk-bar-fill" style="width:85%;background:var(--mint)"></div></div>
+              </div>
+              <div class="mock-kpi">
+                <div class="mk-top">
+                  <div class="mk-icon mk-gold"><i class="fas fa-chart-line"></i></div>
+                  <div class="mk-trend down">-3%</div>
+                </div>
+                <div class="mk-val">{{ statsCa }}</div>
+                <div class="mk-lbl">{{ t('mock_kpi_revenue') }}</div>
+                <div class="mk-bar"><div class="mk-bar-fill" style="width:62%;background:#F59E0B"></div></div>
+              </div>
+            </div>
+            <div class="mock-chart-section">
+              <div class="mcs-header">
+                <div class="mcs-title">{{ t('mock_chart') }}</div>
+                <div class="mcs-export">{{ t('mock_export') }}</div>
+              </div>
+              <div class="chart-bars">
+                <div class="bar-wrap"><div class="bar" style="height:35%"></div><div class="bar-lbl">Aoû</div></div>
+                <div class="bar-wrap"><div class="bar" style="height:42%"></div><div class="bar-lbl">Sep</div></div>
+                <div class="bar-wrap"><div class="bar" style="height:50%"></div><div class="bar-lbl">Oct</div></div>
+                <div class="bar-wrap"><div class="bar" style="height:46%"></div><div class="bar-lbl">Nov</div></div>
+                <div class="bar-wrap"><div class="bar" style="height:62%"></div><div class="bar-lbl">Déc</div></div>
+                <div class="bar-wrap"><div class="bar" style="height:71%"></div><div class="bar-lbl">Jan</div></div>
+                <div class="bar-wrap"><div class="bar" style="height:85%"></div><div class="bar-lbl">Fév</div></div>
+                <div class="bar-wrap"><div class="bar bar-active" style="height:100%"></div><div class="bar-lbl">Mar</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="float-card fc-2">
+          <div class="fc-inner">
+            <div class="fc-icon fc-blue"><i class="fas fa-user-plus"></i></div>
+            <div class="fc-text">
+              <div class="fc-label">{{ t('mock_newpartner') }}</div>
+              <div class="fc-sub">{{ t('mock_level') }}</div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ── STATS BAND ── -->
+<div class="stats-band">
+  <div class="stats-inner">
+    <div class="stat-item reveal">
+      <div class="stat-icon"><i class="fas fa-users"></i></div>
+      <div class="stat-num">{{ statsPartenaires }}</div>
+      <div class="stat-lbl">{{ t('stat_partners') }}</div>
+    </div>
+    <div class="stat-item reveal">
+      <div class="stat-icon"><i class="fas fa-coins"></i></div>
+      <div class="stat-num">{{ statsCommissions }}</div>
+      <div class="stat-lbl">{{ t('stat_commissions') }}</div>
+    </div>
+    <div class="stat-item reveal">
+      <div class="stat-icon"><i class="fas fa-truck"></i></div>
+      <div class="stat-num">{{ statsLivraison }}</div>
+      <div class="stat-lbl">{{ t('stat_delivery') }}</div>
+    </div>
+    <div class="stat-item reveal">
+      <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+      <div class="stat-num">{{ statsCa }}</div>
+      <div class="stat-lbl">{{ t('stat_revenue') }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FEATURES ── -->
+<section class="features" id="features">
+  <div class="section-header reveal">
+    <div class="section-tag">{{ t('feat_tag') }}</div>
+    <h2 class="section-title">{{ t('feat_title') }}</h2>
+    <p class="section-desc">{{ t('feat_desc') }}</p>
+  </div>
+  <div class="features-grid">
+    <div class="feat-card feat-card-highlight reveal">
+      <div class="feat-icon"><i class="fas fa-sitemap"></i></div>
+      <h3 class="feat-title">{{ t('feat1_title') }}</h3>
+      <p class="feat-desc">{{ t('feat1_desc') }}</p>
+      <div class="feat-tags">
+        <span>{{ t('feat1_tag1') }}</span><span>{{ t('feat1_tag2') }}</span><span>{{ t('feat1_tag3') }}</span>
+      </div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon fi-coral"><i class="fas fa-chart-bar"></i></div>
+      <h3 class="feat-title">{{ t('feat2_title') }}</h3>
+      <p class="feat-desc">{{ t('feat2_desc') }}</p>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon fi-blue"><i class="fas fa-percentage"></i></div>
+      <h3 class="feat-title">{{ t('feat3_title') }}</h3>
+      <p class="feat-desc">{{ t('feat3_desc') }}</p>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon fi-mint"><i class="fas fa-box-open"></i></div>
+      <h3 class="feat-title">{{ t('feat4_title') }}</h3>
+      <p class="feat-desc">{{ t('feat4_desc') }}</p>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon fi-gold"><i class="fas fa-file-invoice-dollar"></i></div>
+      <h3 class="feat-title">{{ t('feat5_title') }}</h3>
+      <p class="feat-desc">{{ t('feat5_desc') }}</p>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon fi-purple"><i class="fas fa-bell"></i></div>
+      <h3 class="feat-title">{{ t('feat6_title') }}</h3>
+      <p class="feat-desc">{{ t('feat6_desc') }}</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="how" id="how">
+  <div class="section-header reveal">
+    <div class="section-tag">{{ t('how_tag') }}</div>
+    <h2 class="section-title">{{ t('how_title') }}</h2>
+  </div>
+  <div class="steps-row reveal">
+    <div class="step">
+      <div class="step-num"><span>1</span></div>
+      <div class="step-title">{{ t('step1_title') }}</div>
+      <div class="step-desc">{{ t('step1_desc') }}</div>
+    </div>
+    <div class="step">
+      <div class="step-num"><span>2</span></div>
+      <div class="step-title">{{ t('step2_title') }}</div>
+      <div class="step-desc">{{ t('step2_desc') }}</div>
+    </div>
+    <div class="step">
+      <div class="step-num"><span>3</span></div>
+      <div class="step-title">{{ t('step3_title') }}</div>
+      <div class="step-desc">{{ t('step3_desc') }}</div>
+    </div>
+    <div class="step">
+      <div class="step-num"><span>4</span></div>
+      <div class="step-title">{{ t('step4_title') }}</div>
+      <div class="step-desc">{{ t('step4_desc') }}</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PACKS ── -->
+<section class="packs" id="packs">
+  <div class="section-header reveal">
+    <div class="section-tag">{{ t('packs_tag') }}</div>
+    <h2 class="section-title">{{ t('packs_title') }}</h2>
+    <p class="section-desc">{{ t('packs_desc') }}</p>
+  </div>
+  <div class="packs-grid">
+    @for (pack of apiPacks; track pack.id || pack.nom) {
+      <div class="pack-card reveal" [class.featured]="isPopular(pack.nom)"
+           (click)="choosePack(pack)" style="cursor:pointer">
+        @if (isPopular(pack.nom)) {
+          <div class="pack-badge">{{ t('pack_popular') }}</div>
+        }
+        <div class="pack-icon">{{ pack.emoji }}</div>
+        <div class="pack-name" [class.pack-name-white]="isPopular(pack.nom)">{{ packName(pack) }}</div>
+        <div class="pack-price">{{ pack.prix }} DT</div>
+        <div class="pack-price-sub">{{ t('pack_payment') }}</div>
+        <ul class="pack-features">
+          @for (f of packFeatures(pack); track f) {
+            <li><i class="fas fa-check"></i> {{ f }}</li>
+          }
+        </ul>
+        @if (pack.sousPacks?.length) {
+          <div class="pack-sp-preview">
+            @for (sp of pack.sousPacks; track sp.id || sp.nom) {
+              <span class="pack-sp-tag">{{ sp.emoji || (sp.modeleEmoji || '📦') }} {{ sp.modeleNom || sp.nom }}</span>
+            }
+          </div>
+        }
+        <button class="btn-pack">{{ t('pack_detail') }} <i class="fas fa-arrow-right"></i></button>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- ── BOUTIQUE ── -->
+<section class="features boutique-section" id="boutique">
+  <div class="section-header reveal">
+    <div class="section-tag">{{ t('boutique_tag') }}</div>
+    <h2 class="section-title">{{ tr(boutiqueTitle, 'boutique_title_cms') }}</h2>
+    <p class="section-desc">{{ tr(boutiqueSousTitre, 'boutique_sub_cms') }}</p>
+  </div>
+  <div class="features-grid boutique-grid">
+    <div class="feat-card reveal feat-center">
+      <div class="feat-icon fi-coral feat-icon-center"><i class="fas fa-shopping-bag"></i></div>
+      <h3 class="feat-title">{{ t('boutique_f1_title') }}</h3>
+      <p class="feat-desc">{{ t('boutique_f1_desc') }}</p>
+    </div>
+    <div class="feat-card reveal feat-center">
+      <div class="feat-icon fi-blue feat-icon-center"><i class="fas fa-tags"></i></div>
+      <h3 class="feat-title">{{ t('boutique_f2_title') }}</h3>
+      <p class="feat-desc">{{ t('boutique_f2_desc') }}</p>
+    </div>
+    <div class="feat-card reveal feat-center">
+      <div class="feat-icon fi-mint feat-icon-center"><i class="fas fa-star"></i></div>
+      <h3 class="feat-title">{{ t('boutique_f3_title') }}</h3>
+      <p class="feat-desc">{{ t('boutique_f3_desc') }}</p>
+    </div>
+  </div>
+  <div class="boutique-cta reveal">
+    <a routerLink="/boutique" class="btn-cta-boutique">
+      <i class="fas fa-shopping-bag"></i> {{ t('boutique_cta') }}
+    </a>
+  </div>
+</section>
+
+<!-- ── CHALLENGES ── -->
+@if (challengesActifs.length > 0) {
+  <section class="challenges-section" id="challenges">
+    <div class="ch-bg-glow ch-bg-glow-1"></div>
+    <div class="ch-bg-glow ch-bg-glow-2"></div>
+
+    <div class="section-header ch-anim" style="padding: 0 48px 60px;">
+      <div class="section-tag ch-tag">{{ t('ch_tag') }}</div>
+      <h2 class="section-title ch-title">{{ t('ch_title') }}</h2>
+      <p class="section-desc ch-desc">{{ t('ch_desc') }}</p>
+    </div>
+
+    <div class="ch-showcases">
+      @for (c of challengesActifs; track c.id) {
+        <div class="ch-showcase ch-anim">
+
+          <!-- ── IMAGE ── -->
+          <div class="ch-showcase-img-side">
+            @if (c.imageUrl) {
+              <img class="ch-showcase-img" [src]="getImageUrl(c.imageUrl)" [alt]="c.titre" />
+            } @else {
+              <div class="ch-showcase-no-img">🏆</div>
+            }
+            <div class="ch-showcase-top">
+              @if (c.ouvert) {
+                <div class="ch-badge ch-badge-live"><span class="ch-live-dot"></span> {{ t('ch_live') }}</div>
+              } @else {
+                <div class="ch-badge ch-badge-soon">{{ t('ch_soon') }}</div>
+              }
+              <div class="ch-showcase-pts-pill">🏆 {{ c.pointsTotaux ?? 0 }} pts</div>
+            </div>
+          </div>
+
+          <!-- ── CONTENT ── -->
+          <div class="ch-showcase-body">
+            <div class="ch-showcase-dates">
+              @if (c.dateDebut) {
+                <span class="ch-date-chip">{{ t('ch_start') }} {{ c.dateDebut }}</span>
+              }
+              @if (c.dateFin) {
+                <span class="ch-date-chip ch-date-end">{{ t('ch_end') }} {{ c.dateFin }}</span>
+              }
+            </div>
+
+            <h3 class="ch-showcase-title">{{ c.titre }}</h3>
+
+            @if (c.description) {
+              <p class="ch-showcase-desc">{{ c.description }}</p>
+            } @else {
+              <p class="ch-showcase-desc">{{ t('ch_default_desc') }}</p>
+            }
+
+            @if (c.recompenseDescription) {
+              <div class="ch-showcase-reward">
+                <span class="ch-reward-icon">🎁</span>
+                <div>
+                  <div class="ch-reward-label">{{ t('ch_reward_lbl') }}</div>
+                  <div class="ch-reward-text">{{ c.recompenseDescription }}</div>
+                </div>
+              </div>
+            }
+
+            @if (c.conditions?.length) {
+              <div class="ch-conds-header"><i class="fas fa-list-check"></i> {{ t('ch_conditions') }}</div>
+              <div class="ch-conds-list">
+                @for (cond of c.conditions; track cond.id; let i = $index) {
+                  <div class="ch-cond-item">
+                    <div class="ch-cond-num">{{ i + 1 }}</div>
+                    <div class="ch-cond-icon-wrap">{{ CH_TYPE_ICONS[cond.type] || '✓' }}</div>
+                    <div class="ch-cond-info">
+                      <div class="ch-cond-name">{{ cond.description || getCHTypeLabel(cond.type) }}</div>
+                      @if (cond.objectifValeur > 1) {
+                        <div class="ch-cond-obj">{{ t('ch_objective') }} {{ cond.objectifValeur }}</div>
+                      }
+                    </div>
+                    <div class="ch-cond-pts">+{{ cond.pointsRecompense }}<span>pts</span></div>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (c.ouvert) {
+              <a routerLink="/auth/login" class="ch-showcase-cta">
+                <i class="fas fa-trophy"></i> {{ t('ch_participate') }}
+              </a>
+            } @else {
+              <div class="ch-showcase-cta ch-showcase-cta-soon">
+                <i class="fas fa-clock"></i> {{ t('ch_available') }} {{ c.dateDebut }}
+              </div>
+            }
+          </div>
+
+        </div><!-- /.ch-showcase -->
+      }
+    </div>
+  </section>
+}
+
+<!-- ── TESTIMONIALS ── -->
+<section class="testimonials" id="testimonials">
+  <div class="section-header reveal">
+    <div class="section-tag">{{ t('testim_tag') }}</div>
+    <h2 class="section-title">{{ t('testim_title') }}</h2>
+  </div>
+  <div class="testim-grid">
+    <div class="testim-card reveal">
+      <div class="testim-stars">★★★★★</div>
+      <p class="testim-text">{{ t('testim1_text') }}</p>
+      <div class="testim-author">
+        <div class="testim-avatar ta-1">LM</div>
+        <div><div class="testim-name">L. Mansouri</div><div class="testim-role">{{ t('testim1_role') }}</div></div>
+      </div>
+    </div>
+    <div class="testim-card reveal">
+      <div class="testim-stars">★★★★★</div>
+      <p class="testim-text">{{ t('testim2_text') }}</p>
+      <div class="testim-author">
+        <div class="testim-avatar ta-2">SR</div>
+        <div><div class="testim-name">S. Rezgui</div><div class="testim-role">{{ t('testim2_role') }}</div></div>
+      </div>
+    </div>
+    <div class="testim-card reveal">
+      <div class="testim-stars">★★★★☆</div>
+      <p class="testim-text">{{ t('testim3_text') }}</p>
+      <div class="testim-author">
+        <div class="testim-avatar ta-3">YB</div>
+        <div><div class="testim-name">Y. Bouzid</div><div class="testim-role">{{ t('testim3_role') }}</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta-section">
+  <div class="cta-inner">
+    <h2 class="cta-title">{{ tr(ctaTitre, 'cta_titre') }}</h2>
+    <p class="cta-desc">{{ tr(ctaDesc, 'cta_desc_text') }}</p>
+    <div class="cta-btns">
+      <button class="btn-cta-white" (click)="goToPacks()">
+        <i class="fas fa-user-plus"></i> {{ t('cta_create') }}
+      </button>
+      <button class="btn-cta-outline" routerLink="/auth/login">
+        <i class="fas fa-sign-in-alt"></i> {{ t('cta_login') }}
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-brand-text">Cuteness Collaboration</div>
+      <p class="footer-brand-desc">{{ tr(footerDesc, 'footer_desc_cms') }}</p>
+      <div class="footer-social">
+        @if (footerFacebook) {
+          <a [href]="footerFacebook" target="_blank" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+        } @else {
+          <div class="social-btn"><i class="fab fa-facebook-f"></i></div>
+        }
+        @if (footerInstagram) {
+          <a [href]="footerInstagram" target="_blank" class="social-btn"><i class="fab fa-instagram"></i></a>
+        } @else {
+          <div class="social-btn"><i class="fab fa-instagram"></i></div>
+        }
+        @if (footerLinkedin) {
+          <a [href]="footerLinkedin" target="_blank" class="social-btn"><i class="fab fa-linkedin-in"></i></a>
+        } @else {
+          <div class="social-btn"><i class="fab fa-linkedin-in"></i></div>
+        }
+        @if (footerWhatsapp) {
+          <a [href]="footerWhatsapp" target="_blank" class="social-btn"><i class="fab fa-whatsapp"></i></a>
+        } @else {
+          <div class="social-btn"><i class="fab fa-whatsapp"></i></div>
+        }
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>{{ t('footer_platform') }}</h4>
+      <ul>
+        <li><a routerLink="/admin/dashboard">{{ t('footer_dashboard') }}</a></li>
+        <li><a href="#features" (click)="scrollTo($event,'features')">{{ t('footer_features') }}</a></li>
+        <li><a href="#boutique" (click)="scrollTo($event,'boutique')">{{ t('footer_boutique') }}</a></li>
+        <li><a routerLink="/packs">{{ t('footer_packs') }}</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>{{ t('footer_account') }}</h4>
+      <ul>
+        <li><a routerLink="/auth/login">{{ t('footer_login') }}</a></li>
+        <li><a routerLink="/auth/register">{{ t('footer_register') }}</a></li>
+        <li><a routerLink="/auth/reset-password">{{ t('footer_forgot') }}</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>{{ t('footer_support') }}</h4>
+      <ul>
+        <li><a href="#how" (click)="scrollTo($event,'how')">{{ t('footer_how') }}</a></li>
+        <li><a href="#testimonials" (click)="scrollTo($event,'testimonials')">{{ t('footer_testim') }}</a></li>
+        <li><a href="mailto:contact@cuteness.tn">{{ t('footer_contact') }}</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>{{ t('footer_rights') }}</span>
+    <span>{{ t('footer_made') }}</span>
+  </div>
+</footer>
+
+<style>
+.promo-banner {
+  width: 100%;
+  text-align: center;
+  padding: 10px 16px;
+  color: #fff;
+  font-size: .9rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+.hero-image-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hero-custom-img {
+  max-width: 100%;
+  max-height: 480px;
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.18);
+  object-fit: cover;
+}
+</style>
+
+</div><!-- /.home-wrap -->

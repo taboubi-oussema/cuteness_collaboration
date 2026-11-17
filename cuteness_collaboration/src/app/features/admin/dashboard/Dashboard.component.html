@@ -1,0 +1,830 @@
+html
+<div class="dashboard-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-brand">
+      <img src="cute_logo.png" alt="Cuteness" class="sb-logo" />
+    </div>
+
+    <div class="nav-sec">Principal</div>
+    <div class="nav-item" [class.active]="activeNav === 'dashboard'" (click)="setNav('dashboard')">
+      <span class="nav-ico">📊</span> Admin Dashboard
+    </div>
+    <div
+      class="nav-item"
+      [class.active]="activeNav === 'partenaires'"
+      (click)="setNav('partenaires')"
+    >
+      <span class="nav-ico">🤝</span> Partenaires
+      <span class="nav-badge">{{ stats.totalPartners }}</span>
+      @if (stats.newThisMonth > 0) {
+        <span class="nav-badge green">+{{ stats.newThisMonth }}</span>
+      }
+    </div>
+    <div class="nav-item" [class.active]="activeNav === 'mlm'" (click)="setNav('mlm')">
+      <span class="nav-ico">🌳</span> Réseau MLM
+      @if (stats.newThisMonth > 0) {
+        <span class="nav-badge green">+{{ stats.newThisMonth }}</span>
+      }
+    </div>
+    <div class="nav-item" [class.active]="activeNav === 'packs'" (click)="setNav('packs')">
+      <span class="nav-ico">📦</span> Packs
+    </div>
+    <div class="nav-item" [class.active]="activeNav === 'boutique'" (click)="setNav('boutique')">
+      <span class="nav-ico">🛍️</span> Boutique
+    </div>
+
+    <div class="nav-sec">Finance</div>
+    <div
+      class="nav-item"
+      [class.active]="activeNav === 'commissions'"
+      (click)="setNav('commissions')"
+    >
+      <span class="nav-ico">💰</span> Commissions
+      @if (stats.pendingCommissions > 0) {
+        <span class="nav-badge coral">{{ stats.pendingCommissions }}</span>
+      }
+    </div>
+    <div
+      class="nav-item"
+      [class.active]="activeNav === 'transactions'"
+      (click)="setNav('transactions')"
+    >
+      <span class="nav-ico">💳</span> Transactions
+    </div>
+    <div class="nav-item" [class.active]="activeNav === 'rapports'" (click)="setNav('rapports')">
+      <span class="nav-ico">📋</span> Rapports
+    </div>
+
+    <div class="nav-sec">Analytics</div>
+    <div class="nav-item" [class.active]="activeNav === 'soldes'" (click)="setNav('soldes')">
+      <span class="nav-ico">📈</span> Évolution Soldes
+    </div>
+    <div
+      class="nav-item"
+      [class.active]="activeNav === 'croissance'"
+      (click)="setNav('croissance')"
+    >
+      <span class="nav-ico">🚀</span> Croissance Réseau
+    </div>
+    <div class="nav-item" [class.active]="activeNav === 'bi'" (click)="setNav('bi')">
+      <span class="nav-ico">🧠</span> Module BI
+    </div>
+
+    <div class="nav-sec">Système</div>
+    <div
+      class="nav-item"
+      [class.active]="activeNav === 'formations'"
+      (click)="setNav('formations')"
+    >
+      <span class="nav-ico">🎓</span> Formations
+    </div>
+    <div class="nav-item" [class.active]="activeNav === 'notifs'" (click)="setNav('notifs')">
+      <span class="nav-ico">🔔</span> Notifications
+      @if (notifNonLues > 0) {
+        <span class="nav-badge blue">{{ notifNonLues }}</span>
+      }
+    </div>
+    <div
+      class="nav-item"
+      [class.active]="activeNav === 'signalements'"
+      (click)="setNav('signalements')"
+    >
+      <span class="nav-ico">⚠️</span> Signalements
+      @if (stats.reports > 0) {
+        <span class="nav-badge amber">{{ stats.reports }}</span>
+      }
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="admin-row">
+        <div class="admin-ava">A</div>
+        <div>
+          <div class="admin-name">Admin Principal</div>
+          <div class="admin-role">Super Admin · En ligne</div>
+        </div>
+      </div>
+      <button class="btn-logout" (click)="logout()">
+        <span>🚪</span> Déconnexion
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div>
+        <div class="topbar-title">AdminDashboard</div>
+        <div class="topbar-date">{{ today | date: 'EEEE d MMMM yyyy' }}</div>
+      </div>
+      <div class="topbar-right">
+        <input
+          class="search-inp"
+          type="text"
+          [(ngModel)]="searchQuery"
+          placeholder="Partenaire, pack, commande..."
+        />
+        <div class="tb-btn">🗓️</div>
+        <div class="tb-btn tb-notif-btn">
+          🔔
+          @if (notifNonLues > 0) {
+            <span class="nb-unread">{{ notifNonLues }}</span>
+          }
+          @if (notifTotal > 0) {
+            <span class="nb-total">{{ notifTotal }}</span>
+          }
+        </div>
+        <div class="tb-avatar">A</div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+      <!-- LOADING STATE -->
+      <div *ngIf="isLoading" class="loading-container">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Chargement des données...</div>
+      </div>
+
+      <!-- ERROR STATE -->
+      <div *ngIf="errorMsg" class="error-banner">
+        <span>⚠️ {{ errorMsg }}</span>
+        <button class="btn-sm" (click)="loadDashboard()">Réessayer</button>
+      </div>
+
+      <!-- BANNER -->
+      <div class="banner">
+        <div class="banner-left">
+          <div class="banner-greeting">
+            Bonjour, Admin Cuteness Collaboration
+            <span class="banner-dot"></span>
+          </div>
+          <div class="banner-sub">
+            {{ stats.pendingCommissions }} commissions en attente · Le réseau a grandi de +{{
+              stats.newThisMonth
+            }}
+            partenaires ce mois.
+          </div>
+        </div>
+        <div class="banner-stats">
+          <div class="bstat">
+            <div class="bstat-val">{{ stats.totalPartners }}</div>
+            <div class="bstat-lbl">Partenaires</div>
+          </div>
+          <div class="bstat">
+            <div class="bstat-val">{{ stats.monthCommissions | number }} DT</div>
+            <div class="bstat-lbl">Commissions</div>
+          </div>
+          <div class="bstat">
+            <div class="bstat-val">{{ stats.deliveryRate }} %</div>
+            <div class="bstat-lbl">Livraisons</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI CARDS -->
+      <div class="kpi-grid">
+        <div class="kpi" *ngFor="let k of kpiCards">
+          <div class="kpi-top">
+            <div class="kpi-ico" [style.background]="k.iconBg">{{ k.icon }}</div>
+            <div
+              class="kpi-badge"
+              [style.background]="k.trend.startsWith('+') ? '#E6F6EA' : '#FDECEF'"
+              [style.color]="k.trend.startsWith('+') ? '#1B842C' : '#C0303E'"
+            >
+              {{ k.trend }}
+            </div>
+          </div>
+          <div class="kpi-val">{{ k.value }}</div>
+          <div class="kpi-lbl">{{ k.label }}</div>
+          <div class="kpi-bar-bg">
+            <div class="kpi-bar-fill" [style.width.%]="k.pct" [style.background]="k.color"></div>
+          </div>
+          <div class="kpi-meta">
+            <span>{{ k.pct }}% objectif</span><span>{{ k.target }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ÉVOLUTION SOLDES -->
+      <div class="sec-hdr">
+        <div class="sec-title">Évolution des Soldes Partenaires</div>
+        <button class="btn-sm" (click)="exportCsv()">Exporter CSV ↓</button>
+      </div>
+
+      <div class="card" style="margin-bottom: 18px">
+        <div class="cpd" style="padding-bottom: 6px">
+          <div class="card-title">Solde interne par partenaire</div>
+          <div class="card-sub">Évolution mensuelle sur 8 mois — crédité à 25% après livraison</div>
+        </div>
+        <div style="padding: 5px 18px 2px; display: flex; gap: 6px; flex-wrap: wrap">
+          <div
+            *ngFor="let p of partnerChips"
+            class="chip"
+            [class.on]="activeSoldesChip === p.key"
+            [class.off]="activeSoldesChip !== p.key"
+            (click)="filterSoldes(p.key)"
+          >
+            {{ p.label }}
+          </div>
+        </div>
+        <div style="padding: 6px 18px 16px; overflow-x: auto">
+          <svg width="100%" height="290" viewBox="0 0 860 290" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <linearGradient id="gMansouri" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="#FF6B5B" stop-opacity="0.18" />
+                <stop offset="100%" stop-color="#FF6B5B" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <line x1="60" x2="840" y1="20" y2="20" stroke="#EAEDF5" stroke-width="1" />
+            <line x1="60" x2="840" y1="75" y2="75" stroke="#EAEDF5" stroke-width="1" />
+            <line x1="60" x2="840" y1="130" y2="130" stroke="#EAEDF5" stroke-width="1" />
+            <line x1="60" x2="840" y1="185" y2="185" stroke="#EAEDF5" stroke-width="1" />
+            <line x1="60" x2="840" y1="240" y2="240" stroke="#EAEDF5" stroke-width="1" />
+            <line x1="60" x2="60" y1="20" y2="240" stroke="#EAEDF5" stroke-width="1" />
+            <text x="54" y="24" text-anchor="end" fill="#8A92B2" font-size="11">3000</text>
+            <text x="54" y="79" text-anchor="end" fill="#8A92B2" font-size="11">2000</text>
+            <text x="54" y="134" text-anchor="end" fill="#8A92B2" font-size="11">1000</text>
+            <text x="54" y="189" text-anchor="end" fill="#8A92B2" font-size="11">500</text>
+            <text x="54" y="244" text-anchor="end" fill="#8A92B2" font-size="11">0</text>
+            <text x="90" y="262" text-anchor="middle" fill="#8A92B2" font-size="11">Août</text>
+            <text x="200" y="262" text-anchor="middle" fill="#8A92B2" font-size="11">Sep</text>
+            <text x="310" y="262" text-anchor="middle" fill="#8A92B2" font-size="11">Oct</text>
+            <text x="420" y="262" text-anchor="middle" fill="#8A92B2" font-size="11">Nov</text>
+            <text x="530" y="262" text-anchor="middle" fill="#8A92B2" font-size="11">Déc</text>
+            <text x="640" y="262" text-anchor="middle" fill="#8A92B2" font-size="11">Jan</text>
+            <text x="750" y="262" text-anchor="middle" fill="#8A92B2" font-size="11">Fév</text>
+            <text x="840" y="262" text-anchor="middle" fill="#8A92B2" font-size="11">Mar</text>
+            <!-- L. Mansouri -->
+            <g [style.opacity]="getOpacity('mansouri')">
+              <path
+                d="M90,232 L200,210 L310,177 L420,130 L530,80 L640,40 L750,21 L840,18 L840,240 L90,240 Z"
+                fill="url(#gMansouri)"
+              />
+              <polyline
+                points="90,232 200,210 310,177 420,130 530,80 640,40 750,21 840,18"
+                fill="none"
+                stroke="#FF6B5B"
+                [attr.stroke-width]="getWidth('mansouri')"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <circle cx="90" cy="232" r="4.5" fill="white" stroke="#FF6B5B" stroke-width="2.5" />
+              <circle cx="200" cy="210" r="4.5" fill="white" stroke="#FF6B5B" stroke-width="2.5" />
+              <circle cx="310" cy="177" r="4.5" fill="white" stroke="#FF6B5B" stroke-width="2.5" />
+              <circle cx="420" cy="130" r="4.5" fill="white" stroke="#FF6B5B" stroke-width="2.5" />
+              <circle cx="530" cy="80" r="4.5" fill="white" stroke="#FF6B5B" stroke-width="2.5" />
+              <circle cx="640" cy="40" r="4.5" fill="white" stroke="#FF6B5B" stroke-width="2.5" />
+              <circle cx="750" cy="21" r="4.5" fill="white" stroke="#FF6B5B" stroke-width="2.5" />
+              <circle cx="840" cy="18" r="6" fill="#FF6B5B" stroke="white" stroke-width="2.5" />
+              <rect x="793" y="5" width="58" height="17" rx="6" fill="#FF6B5B" />
+              <text
+                x="822"
+                y="16"
+                text-anchor="middle"
+                fill="white"
+                font-size="9.5"
+                font-weight="700"
+              >
+                3 240 DT
+              </text>
+            </g>
+            <!-- S. Rezgui -->
+            <g [style.opacity]="getOpacity('rezgui')">
+              <polyline
+                points="90,237 200,226 310,212 420,196 530,176 640,154 750,133 840,118"
+                fill="none"
+                stroke="#3AAFDA"
+                [attr.stroke-width]="getWidth('rezgui')"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-dasharray="8,4"
+              />
+              <circle cx="90" cy="237" r="3.5" fill="white" stroke="#3AAFDA" stroke-width="2" />
+              <circle cx="200" cy="226" r="3.5" fill="white" stroke="#3AAFDA" stroke-width="2" />
+              <circle cx="840" cy="118" r="5" fill="#3AAFDA" stroke="white" stroke-width="2" />
+            </g>
+            <!-- M. Ben Ali -->
+            <g [style.opacity]="getOpacity('benali')">
+              <polyline
+                points="90,239 200,233 310,222 420,210 530,196 640,179 750,162 840,147"
+                fill="none"
+                stroke="#4ECBA0"
+                [attr.stroke-width]="getWidth('benali')"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-dasharray="8,4"
+              />
+              <circle cx="840" cy="147" r="5" fill="#4ECBA0" stroke="white" stroke-width="2" />
+            </g>
+            <!-- Y. Bouzid -->
+            <g [style.opacity]="getOpacity('bouzid')">
+              <polyline
+                points="90,240 200,238 310,235 420,230 530,223 640,213 750,203 840,195"
+                fill="none"
+                stroke="#FFD166"
+                [attr.stroke-width]="getWidth('bouzid')"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-dasharray="8,4"
+              />
+              <circle cx="840" cy="195" r="5" fill="#FFD166" stroke="white" stroke-width="2" />
+            </g>
+            <!-- A. Khelifi -->
+            <g [style.opacity]="getOpacity('khelifi')">
+              <polyline
+                points="90,240 200,239 310,238 420,235 530,232 640,227 750,221 840,215"
+                fill="none"
+                stroke="#FFB3C6"
+                [attr.stroke-width]="getWidth('khelifi')"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-dasharray="8,4"
+              />
+              <circle cx="840" cy="215" r="5" fill="#FFB3C6" stroke="white" stroke-width="2" />
+            </g>
+          </svg>
+        </div>
+        <div class="chart-legend">
+          <span class="leg-item"
+            ><span class="leg-solid" style="background: #ff6b5b"></span>L. Mansouri</span
+          >
+          <span class="leg-item"
+            ><span class="leg-dashed" style="border-top-color: #3aafda"></span>S. Rezgui</span
+          >
+          <span class="leg-item"
+            ><span class="leg-dashed" style="border-top-color: #4ecba0"></span>M. Ben Ali</span
+          >
+          <span class="leg-item"
+            ><span class="leg-dashed" style="border-top-color: #ffd166"></span>Y. Bouzid</span
+          >
+          <span class="leg-item"
+            ><span class="leg-dashed" style="border-top-color: #ffb3c6"></span>A. Khelifi</span
+          >
+        </div>
+      </div>
+
+      <!-- CROISSANCE -->
+      <div class="sec-hdr">
+        <div class="sec-title">Croissance du Réseau — Nouveaux Partenaires</div>
+      </div>
+
+      <div class="g2" style="margin-bottom: 18px">
+        <div class="card">
+          <div class="cpd" style="padding-bottom: 6px">
+            <div class="card-title">Nouveaux partenaires par mois</div>
+            <div class="card-sub">Objectif mensuel : 30 partenaires</div>
+          </div>
+          <div style="padding: 0 18px 4px; overflow-x: auto">
+            <svg
+              width="100%"
+              height="200"
+              viewBox="0 0 430 200"
+              preserveAspectRatio="xMidYMid meet"
+            >
+              <line
+                x1="38"
+                x2="422"
+                y1="46"
+                y2="46"
+                stroke="#FF6B5B"
+                stroke-width="1.5"
+                stroke-dasharray="6,4"
+              />
+              <text x="424" y="50" fill="#FF6B5B" font-size="9" font-weight="700">30</text>
+              <line x1="38" x2="422" y1="93" y2="93" stroke="#EAEDF5" stroke-width="1" />
+              <line x1="38" x2="422" y1="140" y2="140" stroke="#EAEDF5" stroke-width="1" />
+              <line x1="38" x2="422" y1="187" y2="187" stroke="#EAEDF5" stroke-width="1" />
+              <text x="34" y="50" text-anchor="end" fill="#8A92B2" font-size="9">30</text>
+              <text x="34" y="97" text-anchor="end" fill="#8A92B2" font-size="9">20</text>
+              <text x="34" y="144" text-anchor="end" fill="#8A92B2" font-size="9">10</text>
+              <rect x="48" y="154" width="32" height="33" rx="7" fill="#3AAFDA" opacity="0.85" />
+              <text
+                x="64"
+                y="149"
+                text-anchor="middle"
+                fill="#3AAFDA"
+                font-size="9"
+                font-weight="700"
+              >
+                14
+              </text>
+              <text x="64" y="197" text-anchor="middle" fill="#8A92B2" font-size="9">Août</text>
+              <rect x="100" y="140" width="32" height="47" rx="7" fill="#3AAFDA" opacity="0.9" />
+              <text
+                x="116"
+                y="135"
+                text-anchor="middle"
+                fill="#3AAFDA"
+                font-size="9"
+                font-weight="700"
+              >
+                18
+              </text>
+              <text x="116" y="197" text-anchor="middle" fill="#8A92B2" font-size="9">Sep</text>
+              <rect x="152" y="122" width="32" height="65" rx="7" fill="#FF6B5B" opacity="0.85" />
+              <text
+                x="168"
+                y="117"
+                text-anchor="middle"
+                fill="#FF6B5B"
+                font-size="9"
+                font-weight="700"
+              >
+                22
+              </text>
+              <text x="168" y="197" text-anchor="middle" fill="#8A92B2" font-size="9">Oct</text>
+              <rect x="204" y="109" width="32" height="78" rx="7" fill="#FF6B5B" opacity="0.9" />
+              <text
+                x="220"
+                y="104"
+                text-anchor="middle"
+                fill="#FF6B5B"
+                font-size="9"
+                font-weight="700"
+              >
+                27
+              </text>
+              <text x="220" y="197" text-anchor="middle" fill="#8A92B2" font-size="9">Nov</text>
+              <rect x="256" y="93" width="32" height="94" rx="7" fill="#4ECBA0" />
+              <text
+                x="272"
+                y="88"
+                text-anchor="middle"
+                fill="#4ECBA0"
+                font-size="9"
+                font-weight="700"
+              >
+                31 ✓
+              </text>
+              <text x="272" y="197" text-anchor="middle" fill="#8A92B2" font-size="9">Déc</text>
+              <rect x="308" y="106" width="32" height="81" rx="7" fill="#FFD166" />
+              <text
+                x="324"
+                y="101"
+                text-anchor="middle"
+                fill="#B8860B"
+                font-size="9"
+                font-weight="700"
+              >
+                28
+              </text>
+              <text x="324" y="197" text-anchor="middle" fill="#8A92B2" font-size="9">Jan</text>
+              <rect x="360" y="116" width="32" height="71" rx="7" fill="#3AAFDA" opacity="0.8" />
+              <text
+                x="376"
+                y="111"
+                text-anchor="middle"
+                fill="#3AAFDA"
+                font-size="9"
+                font-weight="700"
+              >
+                25
+              </text>
+              <text x="376" y="197" text-anchor="middle" fill="#8A92B2" font-size="9">Fév</text>
+            </svg>
+          </div>
+          <div class="mini-stats">
+            <div class="mstat">
+              <div class="mstat-v" style="color: #3aafda">165</div>
+              <div class="mstat-l">Total 7 mois</div>
+            </div>
+            <div class="mstat">
+              <div class="mstat-v" style="color: #ff6b5b">23.6</div>
+              <div class="mstat-l">Moy/mois</div>
+            </div>
+            <div class="mstat">
+              <div class="mstat-v" style="color: #4ecba0">31</div>
+              <div class="mstat-l">Meilleur mois</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cpd" style="padding-bottom: 8px">
+            <div class="card-title">Croissance cumulée</div>
+            <div class="card-sub">117 → 248 partenaires (+112%)</div>
+          </div>
+          <div style="padding: 0 18px; overflow-x: auto">
+            <svg
+              width="100%"
+              height="168"
+              viewBox="0 0 340 168"
+              preserveAspectRatio="xMidYMid meet"
+            >
+              <defs>
+                <linearGradient id="gGrow" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#4ECBA0" stop-opacity="0.22" />
+                  <stop offset="100%" stop-color="#4ECBA0" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+              <line x1="36" x2="330" y1="22" y2="22" stroke="#EAEDF5" stroke-width="1" />
+              <line x1="36" x2="330" y1="72" y2="72" stroke="#EAEDF5" stroke-width="1" />
+              <line x1="36" x2="330" y1="122" y2="122" stroke="#EAEDF5" stroke-width="1" />
+              <text x="32" y="26" text-anchor="end" fill="#8A92B2" font-size="9.5">250</text>
+              <text x="32" y="76" text-anchor="end" fill="#8A92B2" font-size="9.5">200</text>
+              <text x="32" y="126" text-anchor="end" fill="#8A92B2" font-size="9.5">150</text>
+              <path
+                d="M46,148 L92,134 L138,120 L184,102 L230,82 L276,54 L330,20 L330,155 L46,155 Z"
+                fill="url(#gGrow)"
+              />
+              <polyline
+                points="46,148 92,134 138,120 184,102 230,82 276,54 330,20"
+                fill="none"
+                stroke="#4ECBA0"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <circle cx="46" cy="148" r="3.5" fill="white" stroke="#4ECBA0" stroke-width="2" />
+              <circle cx="92" cy="134" r="3.5" fill="white" stroke="#4ECBA0" stroke-width="2" />
+              <circle cx="138" cy="120" r="3.5" fill="white" stroke="#4ECBA0" stroke-width="2" />
+              <circle cx="184" cy="102" r="3.5" fill="white" stroke="#4ECBA0" stroke-width="2" />
+              <circle cx="230" cy="82" r="3.5" fill="white" stroke="#4ECBA0" stroke-width="2" />
+              <circle cx="276" cy="54" r="3.5" fill="white" stroke="#4ECBA0" stroke-width="2" />
+              <circle cx="330" cy="20" r="5.5" fill="#4ECBA0" stroke="white" stroke-width="2.5" />
+              <rect x="283" y="7" width="48" height="16" rx="6" fill="#4ECBA0" />
+              <text
+                x="307"
+                y="18"
+                text-anchor="middle"
+                fill="white"
+                font-size="9.5"
+                font-weight="700"
+              >
+                +112 %
+              </text>
+              <text x="46" y="164" text-anchor="middle" fill="#8A92B2" font-size="9">Août</text>
+              <text x="138" y="164" text-anchor="middle" fill="#8A92B2" font-size="9">Oct</text>
+              <text x="230" y="164" text-anchor="middle" fill="#8A92B2" font-size="9">Déc</text>
+              <text x="330" y="164" text-anchor="middle" fill="#8A92B2" font-size="9">Mar</text>
+            </svg>
+          </div>
+          <div class="mini-stats" style="padding-top: 8px">
+            <div class="mstat">
+              <div class="mstat-v" style="color: #8a92b2">117</div>
+              <div class="mstat-l">Départ Août</div>
+            </div>
+            <div style="display: flex; align-items: center; font-size: 17px; color: #8a92b2">→</div>
+            <div class="mstat">
+              <div class="mstat-v" style="color: #4ecba0">248</div>
+              <div class="mstat-l">Mars 2026</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLE + RIGHT -->
+      <div class="g3" style="margin-bottom: 18px">
+        <div class="card">
+          <div
+            class="cpd"
+            style="
+              padding-bottom: 8px;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+            "
+          >
+            <div>
+              <div class="card-title">🌸 Top Partenaires</div>
+              <div class="card-sub">Classement solde · sparklines de tendance</div>
+            </div>
+            <div style="display: flex; gap: 5px">
+              <div
+                class="chip"
+                [class.on]="partnerFilter === 'month'"
+                [class.off]="partnerFilter !== 'month'"
+                (click)="partnerFilter = 'month'"
+              >
+                Ce mois
+              </div>
+              <div
+                class="chip"
+                [class.on]="partnerFilter === 'all'"
+                [class.off]="partnerFilter !== 'all'"
+                (click)="partnerFilter = 'all'"
+              >
+                Tout temps
+              </div>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Partenaire</th>
+                  <th>Ville</th>
+                  <th>Niveau</th>
+                  <th>Solde</th>
+                  <th>Tendance</th>
+                  <th>Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let p of topPartners; let i = index">
+                  <td>
+                    <strong [style.color]="p.rankColor">#{{ i + 1 }}</strong>
+                  </td>
+                  <td>
+                    <div class="p-name">
+                      <div class="p-ava" [style.background]="p.avaBg" [style.color]="p.avaColor">
+                        {{ p.initials }}
+                      </div>
+                      <div>
+                        <div class="p-nm">{{ p.name }}</div>
+                        <div class="p-sub">{{ p.referrals }} filleuls</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="td-soft">{{ p.city }}</td>
+                  <td>
+                    <span
+                      class="badge"
+                      [style.background]="p.levelBg"
+                      [style.color]="p.levelColor"
+                      >{{ p.level }}</span
+                    >
+                  </td>
+                  <td>
+                    <strong>{{ p.balance | number }} DT</strong>
+                  </td>
+                  <td>
+                    <svg width="58" height="20" viewBox="0 0 58 20">
+                      <polyline
+                        [attr.points]="p.spark"
+                        fill="none"
+                        [attr.stroke]="p.sparkColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                      />
+                    </svg>
+                  </td>
+                  <td>
+                    <span
+                      class="badge"
+                      [style.background]="p.statusBg"
+                      [style.color]="p.statusColor"
+                      >{{ p.status }}</span
+                    >
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px">
+          <!-- Donut -->
+          <div class="card">
+            <div class="cpd" style="padding-bottom: 10px">
+              <div class="card-title">Niveaux MLM</div>
+              <div class="card-sub">Répartition {{ stats.totalPartners }} partenaires</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 14px; padding: 0 16px 14px">
+              <div class="donut-wrap">
+                <svg width="95" height="95" viewBox="0 0 95 95">
+                  <circle
+                    cx="47.5"
+                    cy="47.5"
+                    r="35"
+                    fill="none"
+                    stroke="#EAEDF5"
+                    stroke-width="11"
+                  />
+                  <circle
+                    cx="47.5"
+                    cy="47.5"
+                    r="35"
+                    fill="none"
+                    stroke="#FF6B5B"
+                    stroke-width="11"
+                    stroke-dasharray="41.9 178.1"
+                    stroke-dashoffset="0"
+                    transform="rotate(-90 47.5 47.5)"
+                  />
+                  <circle
+                    cx="47.5"
+                    cy="47.5"
+                    r="35"
+                    fill="none"
+                    stroke="#3AAFDA"
+                    stroke-width="11"
+                    stroke-dasharray="61.7 158.3"
+                    stroke-dashoffset="-41.9"
+                    transform="rotate(-90 47.5 47.5)"
+                  />
+                  <circle
+                    cx="47.5"
+                    cy="47.5"
+                    r="35"
+                    fill="none"
+                    stroke="#4ECBA0"
+                    stroke-width="11"
+                    stroke-dasharray="68.3 151.7"
+                    stroke-dashoffset="-103.6"
+                    transform="rotate(-90 47.5 47.5)"
+                  />
+                  <circle
+                    cx="47.5"
+                    cy="47.5"
+                    r="35"
+                    fill="none"
+                    stroke="#FFD166"
+                    stroke-width="11"
+                    stroke-dasharray="48.5 171.5"
+                    stroke-dashoffset="-171.9"
+                    transform="rotate(-90 47.5 47.5)"
+                  />
+                </svg>
+                <div class="donut-center">
+                  <div class="donut-v">{{ stats.totalPartners }}</div>
+                  <div class="donut-l">total</div>
+                </div>
+              </div>
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 6px">
+                <div class="legend-row" *ngFor="let lvl of mlmLevels">
+                  <span class="legend-dot" [style.background]="lvl.color"></span>
+                  <span class="legend-lbl">{{ lvl.name }}</span>
+                  <strong>{{ lvl.count }}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Timeline -->
+          <div class="card" style="flex: 1">
+            <div class="cpd" style="padding-bottom: 8px">
+              <div class="card-title">⚡ Activité récente</div>
+              <div class="card-sub">Dernières 24 heures</div>
+            </div>
+            <div style="padding: 0 14px 12px">
+              <ul class="tl">
+                <li *ngFor="let a of recentActivity">
+                  <div class="tl-ico" [style.background]="a.iconBg">{{ a.icon }}</div>
+                  <div style="flex: 1">
+                    <div class="tl-t">{{ a.title }}</div>
+                    <div class="tl-m">{{ a.meta }}</div>
+                  </div>
+                  <div class="tl-amt" [style.color]="a.amountColor">{{ a.amount }}</div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- OBJECTIFS + RÉGIONS -->
+      <div class="g2" style="margin-bottom: 18px">
+        <div class="card">
+          <div class="cpd" style="padding-bottom: 12px">
+            <div class="card-title">🎯 Objectifs Mars 2026</div>
+            <div class="card-sub">Progression en temps réel</div>
+          </div>
+          <div style="padding: 0 18px 14px">
+            <div class="prog" *ngFor="let o of objectives">
+              <div class="prog-h">
+                <span class="prog-name">{{ o.label }}</span
+                ><span class="prog-num">{{ o.current }} / {{ o.target }}</span>
+              </div>
+              <div class="prog-bg">
+                <div class="prog-fill" [style.width.%]="o.pct" [style.background]="o.color"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cpd" style="padding-bottom: 10px">
+            <div class="card-title">🌍 Régions actives</div>
+            <div class="card-sub">Partenaires par région</div>
+          </div>
+          <div style="padding: 0 18px 14px">
+            <div class="reg" *ngFor="let r of regions">
+              <div class="reg-flag">{{ r.flag }}</div>
+              <div style="flex: 1">
+                <div class="reg-name">{{ r.name }}</div>
+                <div class="reg-count">{{ r.count }} partenaires</div>
+              </div>
+              <div class="reg-bar-bg">
+                <div
+                  class="reg-bar-fill"
+                  [style.width.%]="r.pct"
+                  [style.background]="r.color"
+                ></div>
+              </div>
+              <div class="reg-pct">{{ r.pctLabel }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-note">
+        <span class="brand-name">Cuteness Collaboration</span> · Admin Dashboard · v2.0 · Mars 2026
+        🌸
+      </div>
+    </div>
+  </main>
+</div>

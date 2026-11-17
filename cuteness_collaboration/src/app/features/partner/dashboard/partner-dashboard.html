@@ -1,0 +1,1419 @@
+<div class="pd-shell" [class.sidebar-open]="sidebarOpen">
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" [class.open]="sidebarOpen">
+    <div class="sb-brand">
+      <img src="cute_logo.png" alt="Cuteness" class="sb-logo" />
+      <button class="sb-close" (click)="toggleSidebar()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="sb-partner">
+      <div class="sb-avatar">{{ partenaire.nom[0] }}</div>
+      <div class="sb-info">
+        <div class="sb-name">{{ partenaire.nom }}</div>
+        <div class="sb-pack">{{ partenaire.packEmoji }} Pack {{ partenaire.pack }}</div>
+      </div>
+    </div>
+
+    <nav class="sb-nav">
+      <button
+        class="sb-item"
+        [class.active]="activeSection === 'accueil'"
+        (click)="setSection('accueil')"
+      >
+        <i class="fas fa-home"></i><span>Accueil</span>
+      </button>
+      <button
+        class="sb-item"
+        [class.active]="activeSection === 'reseau'"
+        (click)="setSection('reseau')"
+      >
+        <i class="fas fa-sitemap"></i><span>Mon Réseau</span>
+      </button>
+      <button
+        class="sb-item"
+        [class.active]="activeSection === 'commissions'"
+        (click)="setSection('commissions')"
+      >
+        <i class="fas fa-coins"></i><span>Commissions</span>
+        @if (kpis.commissionsEnAttente > 0) {
+          <span class="sb-badge">{{ kpis.commissionsEnAttente }}</span>
+        }
+      </button>
+      <button
+        class="sb-item"
+        [class.active]="activeSection === 'commandes'"
+        (click)="setSection('commandes')"
+      >
+        <i class="fas fa-shopping-cart"></i><span>Commandes</span>
+        @if (kpis.commandesEnAttente > 0) {
+          <span class="sb-badge">{{ kpis.commandesEnAttente }}</span>
+        }
+      </button>
+      <button
+        class="sb-item"
+        [class.active]="activeSection === 'boutique'"
+        (click)="setSection('boutique')"
+      >
+        <i class="fas fa-store"></i><span>Boutique</span>
+        @if (panier.length > 0) { <span class="sb-badge sb-badge-mint">{{ panier.length }}</span> }
+      </button>
+      <button
+        class="sb-item"
+        [class.active]="activeSection === 'formations'"
+        (click)="setSection('formations')"
+      >
+        <i class="fas fa-graduation-cap"></i><span>Formations</span>
+      </button>
+      <button
+        class="sb-item"
+        [class.active]="activeSection === 'notifications'"
+        (click)="setSection('notifications')"
+      >
+        <i class="fas fa-bell"></i><span>Notifications</span>
+        <span class="sb-badge notif" *ngIf="notifCount > 0">{{ notifCount }}</span>
+      </button>
+      <button
+        class="sb-item"
+        [class.active]="activeSection === 'profil'"
+        (click)="setSection('profil')"
+      >
+        <i class="fas fa-user-circle"></i><span>Mon Profil</span>
+      </button>
+      <button
+        class="sb-item"
+        [class.active]="activeSection === 'signalement'"
+        (click)="setSection('signalement')"
+      >
+        <i class="fas fa-flag"></i><span>Signalements</span>
+        <span class="sb-badge" *ngIf="signalementAvecReponseCount > 0">{{ signalementAvecReponseCount }}</span>
+      </button>
+      <button
+        class="sb-item"
+        [class.active]="activeSection === 'challenges'"
+        (click)="setSection('challenges')"
+      >
+        <i class="fas fa-trophy"></i><span>Challenges & Rewards</span>
+        @if (challengesActifs.length > 0) {
+          <span class="sb-badge sb-badge-gold">{{ challengesActifs.length }}</span>
+        }
+      </button>
+      <button
+        class="sb-item"
+        [class.active]="activeSection === 'virements'"
+        (click)="setSection('virements')"
+      >
+        <i class="fas fa-paper-plane"></i><span>Virements</span>
+        @if (virements.length > 0) {
+          <span class="sb-badge sb-badge-mint">{{ virements.length }}</span>
+        }
+      </button>
+      <button
+        class="sb-item"
+        [class.active]="activeSection === 'upgrade'"
+        (click)="setSection('upgrade')"
+      >
+        <i class="fas fa-arrow-alt-circle-up"></i><span>Upgrade Pack</span>
+      </button>
+    </nav>
+
+    <div class="sb-footer">
+      <button class="sb-btn-signaler" (click)="openSignalementModal()">
+        <i class="fas fa-exclamation-circle"></i><span>Signaler un problème</span>
+      </button>
+      <button class="sb-logout" (click)="logout()">
+        <i class="fas fa-sign-out-alt"></i><span>Déconnexion</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="pd-main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <button class="topbar-menu" (click)="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="topbar-title">
+        @if (activeSection === 'accueil') { <span>Partenaire · Cuteness Collaboration</span> }
+        @if (activeSection === 'reseau') { <span>🌐 Mon Réseau MLM</span> }
+        @if (activeSection === 'commissions') { <span>💰 Mes Commissions</span> }
+        @if (activeSection === 'commandes') { <span>📦 Mes Commandes</span> }
+        @if (activeSection === 'boutique') { <span>🛍️ Boutique</span> }
+        @if (activeSection === 'formations') { <span>🎓 Formations</span> }
+        @if (activeSection === 'notifications') { <span>🔔 Notifications</span> }
+        @if (activeSection === 'profil') { <span>👤 Mon Profil</span> }
+        @if (activeSection === 'signalement') { <span>🚩 Mes Signalements</span> }
+        @if (activeSection === 'challenges') { <span>🏆 Challenges & Rewards</span> }
+        @if (activeSection === 'upgrade') { <span>🚀 Upgrade Pack</span> }
+        @if (activeSection === 'virements') { <span>💸 Mes Virements</span> }
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-solde">
+          <i class="fas fa-wallet"></i>
+          {{ kpis.solde | number: '1.2-2' }} DT
+        </div>
+        <button class="topbar-notif" (click)="setSection('notifications')">
+          <i class="fas fa-bell"></i>
+          @if (notifCount > 0) { <span class="tn-badge">{{ notifCount }}</span> }
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══════════ ACCUEIL ═══════════ -->
+    <div class="section-content" *ngIf="activeSection === 'accueil'">
+      <div class="welcome-banner">
+        <div class="wb-left">
+          <div class="wb-title">Bonjour, {{ partenaire.nom.split(' ')[0] }} </div>
+          <div class="wb-sub">
+            {{ partenaire.packEmoji }} Pack {{ partenaire.pack }} · {{ partenaire.tauxCommission }}%
+            commission · {{ partenaire.niveaux }} niveaux MLM
+          </div>
+        </div>
+        <div class="wb-code">
+          <div class="wbc-label">Votre code parrainage</div>
+          <div class="wbc-code">{{ partenaire.codeParrainage }}</div>
+          <button class="wbc-copy" (click)="copierCode()">
+            <i class="fas fa-copy"></i> Copier
+          </button>
+        </div>
+      </div>
+
+      <!-- Prochain virement -->
+      <div class="prochain-virement-banner" *ngIf="prochainVirement">
+        <div class="pvb-icon"><i class="fas fa-calendar-check"></i></div>
+        <div class="pvb-content">
+          <div class="pvb-title">Prochain virement prévu</div>
+          <div class="pvb-date">{{ prochainVirementFormatted }}</div>
+        </div>
+        <div class="pvb-badge">Bientôt</div>
+      </div>
+
+      <!-- ── RÉCOMPENSES ACTIVES ── -->
+      @if (mesPoints.recompensesActives && mesPoints.recompensesActives.length > 0) {
+        <div class="reward-banner">
+          <div class="rb-bg-glow"></div>
+
+          <div class="rb-left">
+            <div class="rb-icon-wrap">
+              <span class="rb-icon-pulse"></span>
+              <span class="rb-icon">🎁</span>
+            </div>
+            <div class="rb-text">
+              <div class="rb-live-badge"><span class="rb-dot"></span> Récompense active</div>
+              <div class="rb-headline">
+                @for (r of mesPoints.recompensesActives; track r.id) {
+                  @if (r.type === 'REDUCTION_POURCENT') {
+                    <span>🎉 -{{ r.valeur }}% de remise sur vos commandes !</span>
+                  } @else if (r.type === 'COMMISSION_BOOST') {
+                    <span>🚀 +{{ r.valeur }}% de boost commission !</span>
+                  } @else if (r.type === 'TIRAGE_SORT') {
+                    <span>🎰 Vous participez au tirage au sort !</span>
+                  } @else {
+                    <span>🏅 {{ r.description }}</span>
+                  }
+                }
+              </div>
+              <div class="rb-sub">Profitez de votre avantage exclusif avant expiration !</div>
+              <div class="rb-expiries">
+                @for (r of mesPoints.recompensesActives; track r.id) {
+                  @if (r.dateFin) {
+                    <span class="rb-expiry-chip">
+                      <i class="fas fa-clock"></i> Expire le {{ r.dateFin }}
+                    </span>
+                  }
+                }
+              </div>
+            </div>
+          </div>
+
+          <button class="rb-cta" (click)="setSection('boutique')">
+            <i class="fas fa-shopping-bag"></i>
+            En profiter maintenant
+          </button>
+        </div>
+      }
+
+      <!-- KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-coral">
+          <div class="kpi-icon"><i class="fas fa-wallet"></i></div>
+          <div class="kpi-val">{{ kpis.solde | number: '1.2-2' }} DT</div>
+          <div class="kpi-lbl">Solde interne</div>
+        </div>
+        <div class="kpi-card kpi-mint">
+          <div class="kpi-icon"><i class="fas fa-coins"></i></div>
+          <div class="kpi-val">{{ kpis.commissionsTotal }} DT</div>
+          <div class="kpi-lbl">Total commissions</div>
+          <div class="kpi-sub" *ngIf="kpis.commissionsEnAttente > 0">
+            <i class="fas fa-clock"></i> {{ kpis.commissionsEnAttente }} en attente
+          </div>
+        </div>
+        <div class="kpi-card kpi-blue">
+          <div class="kpi-icon"><i class="fas fa-shopping-cart"></i></div>
+          <div class="kpi-val">{{ kpis.commandesTotal }}</div>
+          <div class="kpi-lbl">Commandes totales</div>
+          <div class="kpi-sub" *ngIf="kpis.commandesEnAttente > 0">
+            <i class="fas fa-clock"></i> {{ kpis.commandesEnAttente }} en cours
+          </div>
+        </div>
+        <div class="kpi-card kpi-gold">
+          <div class="kpi-icon"><i class="fas fa-users"></i></div>
+          <div class="kpi-val">{{ kpis.filleulsTotal }}</div>
+          <div class="kpi-lbl">Filleuls actifs</div>
+        </div>
+      </div>
+
+      <!-- Grade & Points card -->
+      <div class="home-grade-card" [ngClass]="'hgc-grade-' + mesPoints.grade.toLowerCase()" (click)="setSection('challenges')" role="button" tabindex="0">
+        <div class="hgc-left">
+          <div class="hgc-badge">{{ gradeSymbol(mesPoints.grade) }}</div>
+          <div class="hgc-info">
+            <div class="hgc-label">MON GRADE</div>
+            <div class="hgc-grade">{{ mesPoints.grade }}</div>
+            <div class="hgc-bar-row">
+              <div class="hgc-bar">
+                <div class="hgc-fill" [style.width.%]="mesPoints.progressPct"></div>
+              </div>
+              <span class="hgc-pct">{{ mesPoints.progressPct }}%</span>
+            </div>
+            @if (mesPoints.pointsProchainGrade > 0) {
+              <div class="hgc-next">encore <strong>{{ mesPoints.pointsProchainGrade }} pts</strong> pour le grade suivant</div>
+            } @else if (isMaxGrade) {
+              <div class="hgc-max">🏆 Grade maximum !</div>
+            }
+          </div>
+        </div>
+        <div class="hgc-stats">
+          <div class="hgc-stat">
+            <div class="hgc-val">{{ mesPoints.pointsTotal }}</div>
+            <div class="hgc-lbl">pts totaux</div>
+          </div>
+          <div class="hgc-sep"></div>
+          <div class="hgc-stat">
+            <div class="hgc-val hgc-val-ch">{{ mesPoints.pointsChallenge ?? 0 }}</div>
+            <div class="hgc-lbl">pts challenges</div>
+          </div>
+        </div>
+        <div class="hgc-arrow"><i class="fas fa-chevron-right"></i></div>
+      </div>
+
+      <!-- Challenges en cours (aperçu) -->
+      @if (challengesActifs.length > 0) {
+        <div class="home-section">
+          <div class="hs-header">
+            <div class="hs-title"><i class="fas fa-trophy"></i> Challenges en cours</div>
+            <button class="hs-link" (click)="setSection('challenges')">Voir tout →</button>
+          </div>
+          <div class="pd-ch-showcases">
+            @for (c of challengesActifs.slice(0, 1); track c.id) {
+              <div class="pd-ch-showcase">
+                <div class="pd-ch-img-side">
+                  @if (c.imageUrl) {
+                    <img class="pd-ch-img" [src]="getImageUrl(c.imageUrl)" [alt]="c.titre" />
+                  } @else {
+                    <div class="pd-ch-no-img">🏆</div>
+                  }
+                  <div class="pd-ch-top">
+                    @if (c.ouvert) {
+                      <div class="pd-ch-badge pd-ch-badge-live"><span class="pd-ch-live-dot"></span> En cours</div>
+                    } @else {
+                      <div class="pd-ch-badge pd-ch-badge-soon">⏳ Bientôt</div>
+                    }
+                    <div class="pd-ch-pts-pill">🏆 {{ c.pointsTotaux ?? 0 }} pts</div>
+                  </div>
+                </div>
+                <div class="pd-ch-body">
+                  <div class="pd-ch-dates">
+                    @if (c.dateDebut) { <span class="pd-ch-date-chip">📅 Début : {{ c.dateDebut }}</span> }
+                    @if (c.dateFin)   { <span class="pd-ch-date-chip pd-ch-date-end">⏰ Fin : {{ c.dateFin }}</span> }
+                  </div>
+                  <div class="pd-ch-title">{{ c.titre }}</div>
+                  @if (c.description) {
+                    <div class="pd-ch-desc">{{ c.description }}</div>
+                  } @else {
+                    <div class="pd-ch-desc pd-ch-desc-placeholder">Accomplissez les étapes pour remporter vos points.</div>
+                  }
+                  @if (c.recompenseDescription) {
+                    <div class="pd-ch-reward"><span>🎁</span> {{ c.recompenseDescription }}</div>
+                  }
+                  @if (c.conditions?.length) {
+                    <div class="pd-ch-conds-title">Ce qu'il faut accomplir :</div>
+                    <div class="pd-ch-conds-list">
+                      @for (cond of c.conditions; track cond.id; let i = $index) {
+                        <div class="pd-ch-cond-item">
+                          <div class="pd-ch-cond-num">{{ i + 1 }}</div>
+                          <div class="pd-ch-cond-icon">{{ CH_TYPE_ICONS[cond.type] || '✓' }}</div>
+                          <div class="pd-ch-cond-info">
+                            <div class="pd-ch-cond-name">{{ cond.description || CH_TYPE_LABELS[cond.type] }}</div>
+                          </div>
+                          <div class="pd-ch-cond-pts">+{{ cond.pointsRecompense }}<span>pts</span></div>
+                        </div>
+                      }
+                    </div>
+                  }
+                  @if (!c.ouvert) {
+                    <div class="pd-ch-cta pd-ch-cta-soon"><i class="fas fa-clock"></i> Disponible le {{ c.dateDebut }}</div>
+                  } @else {
+                    <button class="pd-ch-cta" (click)="setSection('challenges')">
+                      <i class="fas fa-trophy"></i>
+                      {{ isParticipant(c.id) ? 'Voir ma progression' : 'Participer maintenant' }}
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Quick actions -->
+      <div class="quick-links-row" style="margin-bottom:0;">
+        <button class="ql-card ql-signaler" (click)="openSignalementModal()">
+          <div class="ql-icon"><i class="fas fa-exclamation-circle"></i></div>
+          <div class="ql-content">
+            <div class="ql-title">Signaler un problème</div>
+            <div class="ql-sub">Commission, commande, paiement ou technique</div>
+          </div>
+          <i class="fas fa-arrow-right ql-arr"></i>
+        </button>
+      </div>
+
+      <!-- Quick links: Packs & Formations -->
+      <div class="quick-links-row">
+        <a href="/packs" class="ql-card ql-packs">
+          <div class="ql-icon"><i class="fas fa-box-open"></i></div>
+          <div class="ql-content">
+            <div class="ql-title">Découvrir les Packs</div>
+            <div class="ql-sub">Consultez les packs disponibles et leurs avantages</div>
+          </div>
+          <i class="fas fa-external-link-alt ql-arr"></i>
+        </a>
+        <a href="/formations" class="ql-card ql-formations">
+          <div class="ql-icon"><i class="fas fa-graduation-cap"></i></div>
+          <div class="ql-content">
+            <div class="ql-title">Mes Formations</div>
+            <div class="ql-sub">Accédez à votre espace de formation exclusif</div>
+          </div>
+          <i class="fas fa-external-link-alt ql-arr"></i>
+        </a>
+      </div>
+
+      <!-- Dernières commissions -->
+      <div class="home-section">
+        <div class="hs-header">
+          <div class="hs-title"><i class="fas fa-coins"></i> Dernières commissions</div>
+          <button class="hs-link" (click)="setSection('commissions')">Voir tout →</button>
+        </div>
+        <div class="mini-list">
+          <div class="mini-item" *ngFor="let c of commissions.slice(0, 3)">
+            <div class="mi-left">
+              <div class="mi-name">{{ c.partenaire }}</div>
+              <div class="mi-meta">Niveau {{ c.niveau }} · {{ c.date }}</div>
+            </div>
+            <div class="mi-right">
+              <div class="mi-amount">+{{ c.montant }} DT</div>
+              <div class="statut-badge" [ngClass]="'st-' + c.statut">{{ c.statut }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dernières notifications -->
+      <div class="home-section">
+        <div class="hs-header">
+          <div class="hs-title"><i class="fas fa-bell"></i> Notifications récentes</div>
+          <button class="hs-link" (click)="setSection('notifications')">Voir tout →</button>
+        </div>
+        <div class="mini-list">
+          <div class="mini-item" *ngFor="let n of notifications.slice(0, 3)" [class.unread]="!n.lu">
+            <div class="mi-notif-icon" [ngClass]="notifColor(n.type)">
+              <i [class]="notifIcon(n.type)"></i>
+            </div>
+            <div class="mi-left">
+              <div class="mi-name">{{ n.titre }}</div>
+              <div class="mi-meta">{{ n.date | date:'dd/MM/yyyy' }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ═══════════ RÉSEAU ═══════════ -->
+    <div class="section-content" *ngIf="activeSection === 'reseau'">
+      <div class="reseau-stats" *ngIf="reseau">
+        <div class="rs-card">
+          <div class="rs-val">{{ kpis.filleulsTotal }}</div>
+          <div class="rs-lbl">Total filleuls</div>
+        </div>
+        <div class="rs-card">
+          <div class="rs-val">{{ (reseau.filleuls || []).length }}</div>
+          <div class="rs-lbl">Niveau 1</div>
+        </div>
+        <div class="rs-card">
+          <div class="rs-val">
+            {{ (reseau.filleuls || []).length > 0 ? (reseau.filleuls || []).reduce((a,f)=>a+(f.filleuls||[]).length,0) : 0 }}
+          </div>
+          <div class="rs-lbl">Niveau 2</div>
+        </div>
+        <div class="rs-card">
+          <div class="rs-val">{{ partenaire?.tauxCommission || 0 }}%</div>
+          <div class="rs-lbl">Taux N1</div>
+        </div>
+      </div>
+
+      <div class="reseau-tree" *ngIf="reseau">
+        <!-- Racine -->
+        <div class="tree-root">
+          <div class="tree-node root-node">
+            <div class="tn-avatar root-av">{{ (partenaire?.nom || '?')[0] }}</div>
+            <div class="tn-name">{{ reseau.nom || partenaire?.nom || 'Partenaire' }}</div>
+            <div class="tn-pack">{{ partenaire?.packEmoji || '' }} {{ reseau.pack || 'Aucun' }}</div>
+          </div>
+        </div>
+
+        <!-- Niveau 1 -->
+        <div class="tree-connector"></div>
+        <div class="tree-level">
+          <div class="tree-branch" *ngFor="let f1 of (reseau.filleuls || [])">
+            <div class="tree-node" [class.inactive]="!f1.actif">
+              <div class="tn-avatar" [class.av-inactive]="!f1.actif">{{ (f1.nom || '?')[0] }}</div>
+              <div class="tn-name">{{ f1.nom || 'Partenaire' }}</div>
+              <div class="tn-pack">{{ f1.pack || 'Aucun' }}</div>
+              <div class="tn-status" [class.active-dot]="f1.actif" [class.inactive-dot]="!f1.actif">
+                {{ f1.actif ? 'Actif' : 'Inactif' }}
+              </div>
+            </div>
+
+            <!-- Niveau 2 -->
+            <div class="tree-sub" *ngIf="(f1.filleuls || []).length > 0">
+              <div class="tree-sub-node" *ngFor="let f2 of (f1.filleuls || [])">
+                <div class="tree-node tree-node-sm" [class.inactive]="!f2.actif">
+                  <div class="tn-avatar av-sm" [class.av-inactive]="!f2.actif">{{ (f2.nom || '?')[0] }}</div>
+                  <div class="tn-name tn-sm">{{ f2.nom || 'Partenaire' }}</div>
+                  <div class="tn-pack tn-sm">{{ f2.pack || 'Aucun' }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-share" *ngIf="partenaire">
+        <div class="cs-title"><i class="fas fa-share-alt"></i> Invitez des partenaires</div>
+        <div class="cs-desc">
+          Partagez votre code pour développer votre réseau et gagner des commissions
+        </div>
+        <div class="cs-code-row">
+          <div class="cs-code">{{ partenaire.codeParrainage }}</div>
+          <button class="cs-copy" (click)="copierCode()"><i class="fas fa-copy"></i> Copier</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ COMMISSIONS ═══════════ -->
+    <div class="section-content" *ngIf="activeSection === 'commissions'">
+      <div class="section-kpis">
+        <div class="sk-card sk-mint">
+          <div class="sk-val">{{ kpis.commissionsTotal }} DT</div>
+          <div class="sk-lbl">Total gagné</div>
+        </div>
+        <div class="sk-card sk-coral">
+          <div class="sk-val">
+            {{ commissions | json | slice: 0 : 0 }}{{ kpis.commissionsEnAttente }}
+          </div>
+          <div class="sk-lbl">En attente</div>
+        </div>
+      </div>
+
+      <div class="filter-tabs">
+        <button [class.active]="filtreCommission === 'TOUS'" (click)="filtreCommission = 'TOUS'">
+          Tous
+        </button>
+        <button
+          [class.active]="filtreCommission === 'VALIDEE'"
+          (click)="filtreCommission = 'VALIDEE'"
+        >
+          Validées
+        </button>
+        <button
+          [class.active]="filtreCommission === 'EN_ATTENTE'"
+          (click)="filtreCommission = 'EN_ATTENTE'"
+        >
+          En attente
+        </button>
+        <button
+          [class.active]="filtreCommission === 'REFUSEE'"
+          (click)="filtreCommission = 'REFUSEE'"
+        >
+          Refusées
+        </button>
+      </div>
+
+      <div class="data-table">
+        <div class="dt-head">
+          <div>Partenaire</div>
+          <div>Niveau</div>
+          <div>Montant</div>
+          <div>Date</div>
+          <div>Statut</div>
+        </div>
+        <div class="dt-row" *ngFor="let c of commissionsFiltered">
+          <div class="dt-name"><i class="fas fa-user"></i> {{ c.partenaire }}</div>
+          <div>
+            <span class="niveau-badge">N{{ c.niveau }}</span>
+          </div>
+          <div class="dt-amount">+{{ c.montant }} DT</div>
+          <div class="dt-date">{{ c.date }}</div>
+          <div>
+            <span class="statut-badge" [ngClass]="'st-' + c.statut">{{ c.statut }}</span>
+          </div>
+        </div>
+        <div class="dt-empty" *ngIf="commissionsFiltered.length === 0">
+          <i class="fas fa-inbox"></i> Aucune commission trouvée
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ COMMANDES ═══════════ -->
+    <div class="section-content" *ngIf="activeSection === 'commandes'">
+      <div class="filter-tabs">
+        <button [class.active]="filtreCommande === 'TOUS'" (click)="filtreCommande = 'TOUS'">
+          Toutes
+        </button>
+        <button [class.active]="filtreCommande === 'PAYEE'" (click)="filtreCommande = 'PAYEE'">
+          Payées
+        </button>
+        <button
+          [class.active]="filtreCommande === 'EN_ATTENTE'"
+          (click)="filtreCommande = 'EN_ATTENTE'"
+        >
+          En attente
+        </button>
+        <button [class.active]="filtreCommande === 'ANNULEE'" (click)="filtreCommande = 'ANNULEE'">
+          Annulées
+        </button>
+      </div>
+
+      <div class="data-table">
+        <div class="dt-head">
+          <div>Réf.</div>
+          <div>Produit</div>
+          <div>Montant</div>
+          <div>Date</div>
+          <div>Statut</div>
+        </div>
+        <div class="dt-row" *ngFor="let c of commandesFiltered">
+          <div class="dt-ref">{{ c.id }}</div>
+          <div class="dt-name">{{ c.produit }}</div>
+          <div class="dt-amount">{{ c.montant }} DT</div>
+          <div class="dt-date">{{ c.date }}</div>
+          <div>
+            <span class="statut-badge" [ngClass]="'st-' + c.statut">{{ c.statut }}</span>
+          </div>
+        </div>
+        <div class="dt-empty" *ngIf="commandesFiltered.length === 0">
+          <i class="fas fa-inbox"></i> Aucune commande trouvée
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ BOUTIQUE ═══════════ -->
+    <div class="section-content" *ngIf="activeSection === 'boutique'">
+      <div class="formations-redirect">
+        <div class="fr-icon"><i class="fas fa-store"></i></div>
+        <div class="fr-title">Boutique Cuteness</div>
+        <div class="fr-desc">
+          Découvrez tous nos produits beauté & bien-être.<br>
+          Profitez de votre réduction partenaire de <strong>{{ partenaire.tauxReduction }}%</strong>.
+        </div>
+        <a routerLink="/boutique" class="fr-btn">
+          <i class="fas fa-shopping-bag"></i> Accéder à la boutique
+        </a>
+      </div>
+    </div>
+
+    <!-- ═══════════ FORMATIONS ═══════════ -->
+    <div class="section-content" *ngIf="activeSection === 'formations'">
+      <div class="formations-redirect">
+        <div class="fr-icon"><i class="fas fa-graduation-cap"></i></div>
+        <div class="fr-title">Centre de Formations</div>
+        <div class="fr-desc">Accédez à toutes vos formations exclusives sur la page dédiée.</div>
+        <a href="/formations" class="fr-btn">
+          <i class="fas fa-external-link-alt"></i> Accéder aux formations
+        </a>
+      </div>
+    </div>
+
+    <!-- ═══════════ NOTIFICATIONS ═══════════ -->
+    <div class="section-content" *ngIf="activeSection === 'notifications'">
+
+      <!-- Loading state -->
+      <div class="notif-empty" *ngIf="notificationsLoading">
+        <div class="ne-icon"><i class="fas fa-spinner fa-spin"></i></div>
+        <div class="ne-title">Chargement des notifications…</div>
+      </div>
+
+      <!-- Error state -->
+      <div class="notif-empty" *ngIf="!notificationsLoading && notificationsError">
+        <div class="ne-icon" style="color: #e05a5a;"><i class="fas fa-exclamation-circle"></i></div>
+        <div class="ne-title" style="color: #e05a5a;">Erreur de chargement</div>
+        <div class="ne-sub">{{ notificationsError }}</div>
+        <button class="wbc-copy" style="margin-top:12px;" (click)="loadNotifications()">
+          <i class="fas fa-redo"></i> Réessayer
+        </button>
+      </div>
+
+      <ng-container *ngIf="!notificationsLoading && !notificationsError">
+
+        <!-- Header row with count + mark-all -->
+        <div class="notif-header">
+          <div class="notif-header-left">
+            <span class="notif-count-pill" *ngIf="notifCount > 0">
+              {{ notifCount }} non lue{{ notifCount > 1 ? 's' : '' }}
+            </span>
+            <span class="notif-count-pill notif-all-read" *ngIf="notifCount === 0">
+              <i class="fas fa-check-double"></i> Tout lu
+            </span>
+          </div>
+          <button class="notif-mark-all" (click)="markAllAsRead()" *ngIf="notifCount > 0">
+            <i class="fas fa-check-double"></i> Tout marquer comme lu
+          </button>
+        </div>
+
+        <!-- Empty state -->
+        <div class="notif-empty" *ngIf="notifications.length === 0">
+          <div class="ne-icon"><i class="fas fa-bell-slash"></i></div>
+          <div class="ne-title">Aucune notification</div>
+          <div class="ne-sub">Vos mises à jour de commandes apparaîtront ici.</div>
+        </div>
+
+        <!-- Notification list -->
+        <div class="notif-list" *ngIf="notifications.length > 0">
+          <div class="notif-item" *ngFor="let n of notifications" [class.unread]="!n.lu">
+
+            <!-- Status icon -->
+            <div class="ni-icon" [ngClass]="notifColor(n.type)">
+              <i [class]="notifIcon(n.type)"></i>
+            </div>
+
+            <!-- Body -->
+            <div class="ni-body">
+              <div class="ni-title">{{ n.titre }}</div>
+              <div class="ni-message">{{ n.message }}</div>
+              <div class="ni-meta-row">
+                <span class="ni-date"><i class="fas fa-calendar-alt"></i> {{ n.date | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <span class="ni-statut-badge" [ngClass]="n.lu ? 'ns-lu' : 'ns-non-lu'">
+                {{ n.lu ? 'Lu' : 'Non lu' }}
+              </span>
+            </div>
+
+            <!-- Unread dot -->
+            <div class="ni-dot" *ngIf="!n.lu"></div>
+          </div>
+        </div>
+
+      </ng-container>
+    </div>
+
+    <!-- ═══════════ SIGNALEMENTS ═══════════ -->
+    <div class="section-content" *ngIf="activeSection === 'signalement'">
+      <div class="sig-header-row">
+        <div>
+          <div class="sig-page-title">🚩 Mes signalements</div>
+          <div class="sig-page-sub">Suivez l'état de vos demandes d'assistance</div>
+        </div>
+        <button class="sig-btn-new" (click)="openSignalementModal()">
+          <i class="fas fa-plus"></i> Nouveau signalement
+        </button>
+      </div>
+
+      <div class="sig-loading" *ngIf="sigListLoading">
+        <i class="fas fa-spinner fa-spin"></i> Chargement…
+      </div>
+
+      <div class="sig-empty" *ngIf="!sigListLoading && mesSignalements.length === 0">
+        <div class="sig-empty-icon"><i class="fas fa-flag"></i></div>
+        <div class="sig-empty-title">Aucun signalement</div>
+        <div class="sig-empty-sub">Vous n'avez pas encore signalé de problème.</div>
+        <button class="sig-btn-new" style="margin-top:14px;" (click)="openSignalementModal()">
+          <i class="fas fa-plus"></i> Signaler maintenant
+        </button>
+      </div>
+
+      <div class="sig-list" *ngIf="!sigListLoading && mesSignalements.length > 0">
+        <div class="sig-card" *ngFor="let s of mesSignalements">
+          <div class="sig-card-left">
+            <span class="sig-type-badge">{{ sigTypeLabel(s.type) }}</span>
+            <div class="sig-desc">{{ s.description }}</div>
+            <div class="sig-meta">
+              <i class="fas fa-calendar-alt"></i>
+              {{ s.date ? (s.date | date:'dd/MM/yyyy HH:mm') : '—' }}
+            </div>
+            <div class="sig-note" *ngIf="s.noteEscalade">
+              <i class="fas fa-arrow-up"></i> <strong>Note superviseur :</strong> {{ s.noteEscalade }}
+            </div>
+            <div *ngIf="s.reponseSuperviseur" style="margin-top:8px; font-size:12px; background:#eff6ff; border-left:3px solid #3b82f6; padding:8px 12px; border-radius:0 8px 8px 0; color:#1d4ed8;">
+              <strong>💬 Réponse du superviseur :</strong>
+              <div style="margin-top:3px;">{{ s.reponseSuperviseur }}</div>
+            </div>
+            <div *ngIf="s.reponseAdmin" style="margin-top:8px; font-size:12px; background:#edfaf4; border-left:3px solid #4ECBA0; padding:8px 12px; border-radius:0 8px 8px 0; color:#15803d;">
+              <strong>✅ Réponse de l'administrateur :</strong>
+              <div style="margin-top:3px;">{{ s.reponseAdmin }}</div>
+            </div>
+            <div class="sig-file" *ngIf="s.fileUrl">
+              <a [href]="mediaBase + s.fileUrl" target="_blank">
+                <i class="fas fa-paperclip"></i> Pièce jointe
+              </a>
+            </div>
+          </div>
+          <div class="sig-card-right">
+            <span class="sig-statut" [ngClass]="sigStatutClass(s.statut)">
+              {{ sigStatutLabel(s.statut) }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ CHALLENGES & REWARDS ═══════════ -->
+    @if (activeSection === 'challenges') {
+      <div class="section-content">
+
+        <!-- Grade Hero Card -->
+        <div class="gd-hero" [ngClass]="'gd-hero-' + mesPoints.grade.toLowerCase()">
+          <div class="gd-hero-badge-wrap">
+            <div class="gd-badge" [ngClass]="'gd-badge-' + mesPoints.grade.toLowerCase()">
+              <span class="gd-badge-sym">{{ gradeSymbol(mesPoints.grade) }}</span>
+              <div class="gd-badge-shine"></div>
+            </div>
+          </div>
+          <div class="gd-hero-body">
+            <div class="gd-hero-label">MON GRADE</div>
+            <div class="gd-hero-name" [ngClass]="'gd-name-' + mesPoints.grade.toLowerCase()">{{ mesPoints.grade }}</div>
+            <div class="gd-hero-pts">{{ mesPoints.pointsTotal }} points accumulés</div>
+            <div class="gd-hero-bar-row">
+              <div class="gd-hero-bar">
+                <div class="gd-hero-fill" [style.width.%]="mesPoints.progressPct"
+                     [ngClass]="'gd-fill-' + mesPoints.grade.toLowerCase()"></div>
+              </div>
+              <span class="gd-hero-pct">{{ mesPoints.progressPct }}%</span>
+            </div>
+            @if (mesPoints.pointsProchainGrade > 0) {
+              <div class="gd-hero-next">encore <strong>{{ mesPoints.pointsProchainGrade }} pts</strong> pour le grade suivant</div>
+            } @else if (isMaxGrade) {
+              <div class="gd-hero-max">🏆 Grade maximum atteint !</div>
+            }
+          </div>
+          <div class="gd-hero-challenge">
+            <div class="gd-hero-ch-icon">🏆</div>
+            <div class="gd-hero-ch-val">{{ mesPoints.pointsChallenge ?? 0 }}</div>
+            <div class="gd-hero-ch-lbl">pts challenges</div>
+          </div>
+        </div>
+
+        <!-- Refresh row -->
+        <div class="cw-refresh-row">
+          <div class="cw-refresh-hint">Les points se mettent à jour automatiquement toutes les 30s</div>
+          <button class="cw-refresh-btn" (click)="loadChallenges()" [disabled]="refreshLoading">
+            <i class="fas fa-sync-alt" [class.fa-spin]="refreshLoading"></i>
+            {{ refreshLoading ? 'Actualisation...' : 'Actualiser' }}
+          </button>
+        </div>
+
+        <!-- Points par action -->
+        @if (pointsSources.length > 0) {
+          <div class="cw-earn-section">
+            <div class="cw-earn-header">
+              <div class="cw-earn-title">⚡ Comment gagner des points ?</div>
+              <div class="cw-earn-sub">Chaque action vous rapproche du prochain grade — et de récompenses plus grandes !</div>
+            </div>
+            <div class="cw-earn-grid">
+              @for (src of pointsSources; track src.sourceType) {
+                <div class="cw-earn-card" [ngClass]="actionTheme(src.sourceType)">
+                  <div class="cw-earn-glow"></div>
+                  <div class="cw-earn-icon">{{ actionIcon(src.sourceType) }}</div>
+                  <div class="cw-earn-pts">
+                    +{{ src.pointsParAction }}<span class="cw-earn-unit">pts</span>
+                  </div>
+                  <div class="cw-earn-action">{{ actionLabel(src.sourceType) }}</div>
+                  <div class="cw-earn-desc">{{ actionDesc(src.sourceType) }}</div>
+                  <div class="cw-earn-cta">Gagner →</div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Active Rewards -->
+        @if (mesPoints.recompensesActives && mesPoints.recompensesActives.length > 0) {
+          <div class="cw-section-title">🎁 Récompenses actives</div>
+          <div class="cw-rewards-list">
+            @for (r of mesPoints.recompensesActives; track r.id) {
+              <div class="cw-reward-pill">
+                @if (r.type === 'COMMISSION_BOOST') {
+                  <span class="reward-icon">📈</span>
+                  <span class="reward-text">+{{ r.valeur }}% commission</span>
+                } @else if (r.type === 'REDUCTION_POURCENT') {
+                  <span class="reward-icon">🏷️</span>
+                  <span class="reward-text">-{{ r.valeur }}% sur commandes</span>
+                } @else if (r.type === 'TIRAGE_SORT') {
+                  <span class="reward-icon">🎁</span>
+                  <span class="reward-text">Tirage au sort</span>
+                } @else {
+                  <span class="reward-icon">🏅</span>
+                  <span class="reward-text">{{ r.description }}</span>
+                }
+                @if (r.dateFin) {
+                  <span class="reward-expiry">jusqu'au {{ r.dateFin }}</span>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Active Challenges -->
+        <div class="pd-ch-section-header">
+          <div class="pd-ch-section-title">🎯 Challenges actifs</div>
+          <div class="pd-ch-section-sub">Relevez les défis et gagnez des points &amp; récompenses</div>
+        </div>
+        @if (challengesLoading) {
+          <div class="cw-loading">Chargement des challenges...</div>
+        } @else if (challengesActifs.length === 0) {
+          <div class="cw-empty">Aucun challenge disponible pour le moment.</div>
+        } @else {
+          <div class="pd-ch-showcases">
+            @for (c of challengesActifs; track c.id) {
+              <div class="pd-ch-showcase">
+                <!-- Image -->
+                <div class="pd-ch-img-side">
+                  @if (c.imageUrl) {
+                    <img class="pd-ch-img" [src]="getImageUrl(c.imageUrl)" [alt]="c.titre" />
+                  } @else {
+                    <div class="pd-ch-no-img">🏆</div>
+                  }
+                  <div class="pd-ch-top">
+                    @if (c.ouvert) {
+                      <div class="pd-ch-badge pd-ch-badge-live"><span class="pd-ch-live-dot"></span> En cours</div>
+                    } @else {
+                      <div class="pd-ch-badge pd-ch-badge-soon">⏳ Bientôt</div>
+                    }
+                    <div class="pd-ch-pts-pill">🏆 {{ c.pointsTotaux ?? 0 }} pts</div>
+                  </div>
+                </div>
+                <!-- Content -->
+                <div class="pd-ch-body">
+                  <div class="pd-ch-dates">
+                    @if (c.dateDebut) { <span class="pd-ch-date-chip">📅 Début : {{ c.dateDebut }}</span> }
+                    @if (c.dateFin)   { <span class="pd-ch-date-chip pd-ch-date-end">⏰ Fin : {{ c.dateFin }}</span> }
+                  </div>
+                  <div class="pd-ch-title">{{ c.titre }}</div>
+                  @if (c.description) {
+                    <div class="pd-ch-desc">{{ c.description }}</div>
+                  } @else {
+                    <div class="pd-ch-desc pd-ch-desc-placeholder">Accomplissez les étapes pour remporter vos points et votre récompense.</div>
+                  }
+                  @if (c.recompenseDescription) {
+                    <div class="pd-ch-reward"><span>🎁</span> {{ c.recompenseDescription }}</div>
+                  }
+                  <!-- Conditions avec progression -->
+                  @if (c.conditions?.length) {
+                    <div class="pd-ch-conds-title"><i class="fas fa-list-check"></i> Ce qu'il faut accomplir</div>
+                    <div class="pd-ch-conds-list">
+                      @for (cond of c.conditions; track cond.id; let i = $index) {
+                        @let part = getParticipation(c.id);
+                        @let condProg = getConditionProgress(part, cond.id);
+                        <div class="pd-ch-cond-item" [class.pd-cond-done]="condProg?.complete">
+                          <div class="pd-ch-cond-num">{{ condProg?.complete ? '✓' : (i + 1) }}</div>
+                          <div class="pd-ch-cond-icon">{{ CH_TYPE_ICONS[cond.type] || '✓' }}</div>
+                          <div class="pd-ch-cond-info">
+                            <div class="pd-ch-cond-name">{{ cond.description || CH_TYPE_LABELS[cond.type] }}</div>
+                            @if (isParticipant(c.id)) {
+                              <div class="pd-ch-cond-bar-wrap">
+                                <div class="pd-ch-cond-bar">
+                                  <div class="pd-ch-cond-bar-fill"
+                                       [style.width.%]="condProg ? (condProg.progression / cond.objectifValeur) * 100 : 0"
+                                       [class.bar-done]="condProg?.complete"></div>
+                                </div>
+                                <span class="pd-ch-cond-prog">
+                                  @if (condProg?.complete) { ✅ Complété }
+                                  @else { {{ condProg?.progression ?? 0 }} / {{ cond.objectifValeur }} }
+                                </span>
+                              </div>
+                            }
+                          </div>
+                          <div class="pd-ch-cond-pts">+{{ cond.pointsRecompense }}<span>pts</span></div>
+                        </div>
+                      }
+                    </div>
+                  }
+                  <!-- Statut / CTA -->
+                  @if (getParticipation(c.id)?.complete) {
+                    <div class="pd-ch-cta pd-ch-cta-done">✅ Challenge complété — {{ getParticipation(c.id)?.pointsGagnesTotaux }} pts gagnés</div>
+                  } @else if (!c.ouvert) {
+                    <div class="pd-ch-cta pd-ch-cta-soon"><i class="fas fa-clock"></i> Disponible le {{ c.dateDebut }}</div>
+                  } @else if (isParticipant(c.id)) {
+                    <button class="pd-ch-cta pd-ch-cta-progress" (click)="refreshPoints()">
+                      <i class="fas fa-sync-alt"></i> Rafraîchir ma progression
+                    </button>
+                  } @else {
+                    <button class="pd-ch-cta" (click)="participer(c.id)">
+                      <i class="fas fa-trophy"></i> Participer maintenant
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Points history -->
+        @if (mesPoints.historique && mesPoints.historique.length > 0) {
+          <div class="cw-section-title">📋 Historique des points</div>
+          <div class="cw-history-list">
+            @for (h of mesPoints.historique; track $index) {
+              <div class="cw-history-row">
+                <span class="hist-pts">+{{ h.points }} pts</span>
+                <span class="hist-desc">{{ h.description }}</span>
+                <span class="hist-date">{{ h.date | date:'dd/MM' }}</span>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Leaderboard -->
+        <div class="cw-section-title">🏅 Leaderboard</div>
+        @if (leaderboard.length === 0) {
+          <div class="cw-empty">Aucun classement disponible.</div>
+        } @else {
+          <div class="cw-lb-list">
+            @for (entry of leaderboard; track entry.nom; let i = $index) {
+              <div class="cw-lb-row" [class.top3]="i < 3">
+                <div class="cw-lb-rank">
+                  @if (i === 0) { 🥇 }
+                  @else if (i === 1) { 🥈 }
+                  @else if (i === 2) { 🥉 }
+                  @else { {{ i + 1 }} }
+                </div>
+                <div class="cw-lb-avatar">{{ entry.nom.charAt(0).toUpperCase() }}</div>
+                <div class="cw-lb-info">
+                  <div class="cw-lb-name">{{ entry.nom }}</div>
+                  <div class="cw-lb-grade" [style.color]="gradeColor(entry.grade)">
+                    {{ gradeIcon(entry.grade) }} {{ entry.grade }}
+                  </div>
+                </div>
+                <div class="cw-lb-pts">{{ entry.pointsTotal }} pts</div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Grade Roadmap -->
+        @if (gradeConfigs.length > 0) {
+          <div class="gd-roadmap-wrap">
+            <div class="gd-roadmap-header">
+              <span class="gd-roadmap-title">🗺️ Parcours des grades</span>
+              <span class="gd-roadmap-sub">Seuils configurés par l'admin</span>
+            </div>
+            <div class="gd-roadmap">
+              @for (cfg of gradeConfigs; track cfg.grade; let first = $first; let last = $last) {
+                <div class="gd-step"
+                     [class.gd-step-current]="mesPoints.grade === cfg.grade"
+                     [class.gd-step-done]="isGradeDone(cfg)"
+                     [class.gd-step-locked]="isGradeLocked(cfg)">
+                  <div class="gd-step-connector">
+                    <div class="gd-conn"
+                         [class.gd-conn-invisible]="first"
+                         [class.gd-conn-done]="!first && (isGradeDone(cfg) || mesPoints.grade === cfg.grade)"></div>
+                    <div class="gd-step-badge" [ngClass]="'gd-badge-' + cfg.grade.toLowerCase()"
+                         [class.gd-step-badge-locked]="isGradeLocked(cfg)">
+                      <span>{{ gradeSymbol(cfg.grade) }}</span>
+                      @if (mesPoints.grade === cfg.grade) { <div class="gd-step-pulse"></div> }
+                    </div>
+                    <div class="gd-conn"
+                         [class.gd-conn-invisible]="last"
+                         [class.gd-conn-done]="!last && isGradeDone(cfg)"></div>
+                  </div>
+                  <div class="gd-step-name" [ngClass]="'gd-name-' + cfg.grade.toLowerCase()"
+                       [class.gd-step-name-locked]="isGradeLocked(cfg)">{{ cfg.grade }}</div>
+                  <div class="gd-step-pts" [class.gd-step-pts-locked]="isGradeLocked(cfg)">{{ cfg.pointsMin }} pts</div>
+                  @if (mesPoints.grade === cfg.grade) {
+                    <div class="gd-step-you">📍 Vous êtes ici</div>
+                  }
+                  @if (cfg.rewardDescription && !isGradeLocked(cfg)) {
+                    <div class="gd-step-reward">🎁 {{ cfg.rewardDescription }}</div>
+                  }
+                  @if (isGradeLocked(cfg)) {
+                    <div class="gd-step-lock-txt">🔒 encore {{ cfg.pointsMin - mesPoints.pointsTotal }} pts</div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+      </div>
+    }
+
+    <!-- ═══════════ UPGRADE PACK ═══════════ -->
+    <div class="section-content upg-section" *ngIf="activeSection === 'upgrade'">
+
+      <!-- Pack actuel -->
+      <div class="upg-current-card">
+        <div class="upg-current-label">Votre pack actuel</div>
+        <div class="upg-current-name">{{ partenaire.packEmoji }} Pack {{ partenaire.pack }}</div>
+        <div class="upg-current-meta">
+          <span>Commission directe : <strong>{{ partenaire.tauxCommission }}%</strong></span>
+          <span>Réduction boutique : <strong>{{ partenaire.tauxReduction }}%</strong></span>
+          <span>Solde disponible : <strong>{{ partenaire.solde | number:'1.2-2' }} DT</strong></span>
+        </div>
+      </div>
+
+      <!-- Aucun pack supérieur -->
+      <div class="upg-empty" *ngIf="packsDisponibles.length === 0">
+        <i class="fas fa-check-double"></i>
+        <p>Vous avez déjà le pack le plus élevé. Félicitations !</p>
+      </div>
+
+      <!-- Grille des packs disponibles -->
+      <div class="upg-grid" *ngIf="packsDisponibles.length > 0">
+        <div class="upg-card" *ngFor="let pack of packsDisponibles">
+          <div class="upg-card-header">
+            <span class="upg-emoji">{{ pack.emoji }}</span>
+            <div>
+              <div class="upg-card-nom">Pack {{ pack.nom }}</div>
+              <div class="upg-card-tagline">{{ pack.taglineFr }}</div>
+            </div>
+          </div>
+          <div class="upg-card-stats">
+            <div class="upg-stat">
+              <span class="upg-stat-val">{{ pack.tauxCommissionDirect }}%</span>
+              <span class="upg-stat-lbl">Commission N1</span>
+            </div>
+            <div class="upg-stat">
+              <span class="upg-stat-val">{{ pack.tauxCommissionNiveau2 }}%</span>
+              <span class="upg-stat-lbl">Commission N2</span>
+            </div>
+            <div class="upg-stat">
+              <span class="upg-stat-val">{{ pack.tauxReduction }}%</span>
+              <span class="upg-stat-lbl">Réduction</span>
+            </div>
+          </div>
+          <div class="upg-card-footer">
+            <div class="upg-price-info">
+              <span class="upg-price-label">Prix du pack</span>
+              <span class="upg-price-val">{{ pack.prix | number:'1.2-2' }} DT</span>
+            </div>
+            <button class="upg-btn" (click)="goToPack(pack.id)">
+              <i class="fas fa-shopping-bag"></i> Commander
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historique -->
+      <div class="upg-history" *ngIf="upgradeHistorique.length > 0">
+        <div class="upg-history-title"><i class="fas fa-history"></i> Historique des upgrades</div>
+        <div class="upg-history-list">
+          <div class="upg-history-item" *ngFor="let h of upgradeHistorique">
+            <div class="upg-history-packs">
+              <span class="upg-history-old">{{ h.ancienPack }}</span>
+              <i class="fas fa-long-arrow-alt-right"></i>
+              <span class="upg-history-new">{{ h.nouveauPack }}</span>
+            </div>
+            <div class="upg-history-meta">
+              <span>{{ h.montantPaye | number:'1.2-2' }} DT</span>
+              <span>{{ h.date | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- ═══════════ PROFIL ═══════════ -->
+    <div class="section-content" *ngIf="activeSection === 'profil'">
+      <div class="profil-card">
+        <div class="profil-avatar">{{ partenaire.nom[0] }}</div>
+        <div class="profil-name">{{ partenaire.nom }}</div>
+        <div class="profil-email">{{ partenaire.email }}</div>
+        <div class="profil-pack-badge">{{ partenaire.packEmoji }} Pack {{ partenaire.pack }}</div>
+      </div>
+
+      <div class="profil-info-grid">
+        <div class="pi-card">
+          <div class="pi-label"><i class="fas fa-percent"></i> Taux commission</div>
+          <div class="pi-val">{{ partenaire.tauxCommission }}%</div>
+        </div>
+        <div class="pi-card">
+          <div class="pi-label"><i class="fas fa-layer-group"></i> Niveaux MLM</div>
+          <div class="pi-val">{{ partenaire.niveaux }} niveaux</div>
+        </div>
+        <div class="pi-card">
+          <div class="pi-label"><i class="fas fa-calendar"></i> Membre depuis</div>
+          <div class="pi-val">{{ partenaire.dateInscription }}</div>
+        </div>
+        <div class="pi-card">
+          <div class="pi-label"><i class="fas fa-wallet"></i> Solde actuel</div>
+          <div class="pi-val coral">{{ kpis.solde | number: '1.2-2' }} DT</div>
+        </div>
+      </div>
+
+      <div class="code-share">
+        <div class="cs-title"><i class="fas fa-qrcode"></i> Mon code parrainage</div>
+        <div class="cs-code-row">
+          <div class="cs-code">{{ partenaire.codeParrainage }}</div>
+          <button class="cs-copy" (click)="copierCode()"><i class="fas fa-copy"></i> Copier</button>
+        </div>
+      </div>
+
+
+    </div>
+
+    <!-- ═══════════ VIREMENTS ═══════════ -->
+    <div class="section-content" *ngIf="activeSection === 'virements'">
+
+      <!-- Bannière solde disponible -->
+      @if (partenaire.solde > 0) {
+        <div style="background:linear-gradient(135deg,#059669,#4ECBA0); border-radius:14px; padding:16px 20px; display:flex; align-items:center; gap:14px; flex-shrink:0; margin-bottom:4px;">
+          <div style="font-size:32px;">💰</div>
+          <div style="flex:1;">
+            <div style="color:#fff; font-size:12px; font-weight:600; opacity:.85; text-transform:uppercase; letter-spacing:.5px;">Solde disponible — en attente de virement</div>
+            <div style="color:#fff; font-size:24px; font-weight:900; margin-top:2px;">{{ partenaire.solde | number:'1.2-2' }} DT</div>
+          </div>
+          <div style="background:rgba(255,255,255,.2); border-radius:10px; padding:8px 14px; color:#fff; font-size:12px; font-weight:700; white-space:nowrap;">
+            <i class="fas fa-clock"></i> En cours de traitement
+          </div>
+        </div>
+      }
+
+      <!-- KPI cards -->
+      <div class="kpi-grid" style="flex-shrink:0;">
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:#EDFAF4;">💸</div>
+          <div class="kpi-info">
+            <div class="kpi-val">{{ virementsTotalRecu | number:'1.2-2' }} DT</div>
+            <div class="kpi-label">Total reçu</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:#EEF8FF;">📋</div>
+          <div class="kpi-info">
+            <div class="kpi-val">{{ virements.length }}</div>
+            <div class="kpi-label">Total virements</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:#FFFBE8;">⏳</div>
+          <div class="kpi-info">
+            <div class="kpi-val">{{ virementsEnAttente }}</div>
+            <div class="kpi-label">En attente</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:#F0FFF4;">✅</div>
+          <div class="kpi-info">
+            <div class="kpi-val">{{ virementsEffectues }}</div>
+            <div class="kpi-label">Effectués</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtres -->
+      <div class="home-section" style="flex-shrink:0;">
+        <div class="hs-header">
+          <div class="hs-title">💸 Historique des virements</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+            <button (click)="loadVirements()" style="background:none; border:1.5px solid #e2e8f0; border-radius:20px; padding:5px 12px; cursor:pointer; font-size:12px; color:#64748b; display:flex; align-items:center; gap:5px;" title="Rafraîchir">
+              <i class="fas fa-sync-alt" [class.fa-spin]="virementsLoading"></i> Actualiser
+            </button>
+            @for (f of [['TOUS','Tous'],['EN_ATTENTE','En attente'],['EFFECTUE','Effectués'],['ECHEC','Échoués']]; track f[0]) {
+              <button
+                class="chip"
+                [class.active]="filtreVirement === f[0]"
+                (click)="filtreVirement = $any(f[0])"
+                style="padding:5px 14px; border-radius:20px; border:1.5px solid #e2e8f0; background:#fff; cursor:pointer; font-size:12px; font-weight:600; transition:.15s;"
+                [style.background]="filtreVirement === f[0] ? 'var(--coral)' : '#fff'"
+                [style.color]="filtreVirement === f[0] ? '#fff' : '#64748b'"
+                [style.border-color]="filtreVirement === f[0] ? 'var(--coral)' : '#e2e8f0'">
+                {{ f[1] }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Loading -->
+        @if (virementsLoading) {
+          <div style="text-align:center; padding:40px; color:#94a3b8;">
+            <i class="fas fa-spinner fa-spin" style="font-size:24px;"></i>
+            <div style="margin-top:8px; font-size:13px;">Chargement des virements…</div>
+          </div>
+        } @else if (virementsFiltered.length === 0) {
+          <div style="text-align:center; padding:48px 20px; color:#94a3b8;">
+            <div style="font-size:40px; margin-bottom:12px;">💸</div>
+            <div style="font-size:14px; font-weight:600; color:#64748b;">Aucun virement trouvé</div>
+            @if (partenaire.solde > 0) {
+              <div style="font-size:12px; margin-top:6px; color:#059669; font-weight:600;">
+                Votre solde de <strong>{{ partenaire.solde | number:'1.2-2' }} DT</strong> sera viré prochainement par le comptable.
+              </div>
+            } @else {
+              <div style="font-size:12px; margin-top:6px;">Les virements apparaîtront ici une fois traités par le comptable.</div>
+            }
+          </div>
+        } @else {
+          <div class="table-wrap" style="overflow-x:auto;">
+            <table class="cmd-table" style="width:100%; border-collapse:collapse; font-size:13px;">
+              <thead>
+                <tr style="background:#f8fafc; border-bottom:2px solid #e2e8f0;">
+                  <th style="padding:10px 14px; text-align:left; font-weight:700; color:#475569;">Référence</th>
+                  <th style="padding:10px 14px; text-align:left; font-weight:700; color:#475569;">Montant</th>
+                  <th style="padding:10px 14px; text-align:left; font-weight:700; color:#475569;">Mode</th>
+                  <th style="padding:10px 14px; text-align:left; font-weight:700; color:#475569;">Semaine</th>
+                  <th style="padding:10px 14px; text-align:left; font-weight:700; color:#475569;">Date</th>
+                  <th style="padding:10px 14px; text-align:left; font-weight:700; color:#475569;">Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (v of virementsFiltered; track v.id) {
+                  <tr style="border-bottom:1px solid #f1f5f9; transition:.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+                    <td style="padding:12px 14px;">
+                      <span style="font-weight:700; color:var(--coral); font-family:monospace; font-size:13px;">{{ v.id }}</span>
+                    </td>
+                    <td style="padding:12px 14px;">
+                      <span style="font-weight:800; color:#1e293b; font-size:14px;">{{ v.montant | number:'1.2-2' }} DT</span>
+                    </td>
+                    <td style="padding:12px 14px;">
+                      <span style="display:flex; align-items:center; gap:6px; color:#475569;">
+                        @if (v.typePayment === 'RIB' || v.typePayment === 'VIREMENT') {
+                          <i class="fas fa-university" style="color:#3AAFDA;"></i>
+                        } @else if (v.typePayment === 'CCP') {
+                          <i class="fas fa-envelope" style="color:#F59E0B;"></i>
+                        } @else {
+                          <i class="fas fa-money-bill" style="color:#4ECBA0;"></i>
+                        }
+                        {{ v.typePayment || 'RIB' }}
+                      </span>
+                    </td>
+                    <td style="padding:12px 14px; color:#64748b; font-size:12px;">{{ v.semaine || '—' }}</td>
+                    <td style="padding:12px 14px; color:#64748b; font-size:12px;">
+                      {{ v.date ? (v.date | date:'dd/MM/yyyy') : '—' }}
+                    </td>
+                    <td style="padding:12px 14px;">
+                      @if (v.statut === 'EFFECTUE') {
+                        <span style="background:#EDFAF4; color:#059669; border-radius:20px; padding:4px 10px; font-size:11px; font-weight:700;">✅ Effectué</span>
+                      } @else if (v.statut === 'EN_ATTENTE') {
+                        <span style="background:#FFFBE8; color:#B45309; border-radius:20px; padding:4px 10px; font-size:11px; font-weight:700;">⏳ En attente</span>
+                      } @else {
+                        <span style="background:#FFF0EE; color:#DC2626; border-radius:20px; padding:4px 10px; font-size:11px; font-weight:700;">❌ Échoué</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ═══════════ SIGNALEMENT MODAL ═══════════ -->
+  <div class="sig-overlay" *ngIf="showSignalementModal" (click)="closeSignalementModal()">
+    <div class="sig-modal" (click)="$event.stopPropagation()">
+      <div class="sig-modal-header">
+        <div class="sig-modal-title"><i class="fas fa-flag"></i> Signaler un problème</div>
+        <button class="sig-modal-close" (click)="closeSignalementModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="sig-modal-body">
+        <!-- Success -->
+        <div class="sig-success" *ngIf="sigSuccess">
+          <i class="fas fa-check-circle"></i> {{ sigSuccess }}
+        </div>
+
+        <!-- Error -->
+        <div class="sig-error" *ngIf="sigError">
+          <i class="fas fa-exclamation-circle"></i> {{ sigError }}
+        </div>
+
+        <ng-container *ngIf="!sigSuccess">
+          <!-- Type -->
+          <div class="sig-field">
+            <label class="sig-label">Type de problème</label>
+            <div class="sig-type-grid">
+              <label class="sig-type-opt" [class.active]="sigType === 'COMMANDE'">
+                <input type="radio" [(ngModel)]="sigType" value="COMMANDE" />
+                <i class="fas fa-shopping-cart"></i>
+                <span>Commande</span>
+              </label>
+              <label class="sig-type-opt" [class.active]="sigType === 'PAIEMENT'">
+                <input type="radio" [(ngModel)]="sigType" value="PAIEMENT" />
+                <i class="fas fa-credit-card"></i>
+                <span>Paiement</span>
+              </label>
+              <label class="sig-type-opt" [class.active]="sigType === 'COMMISSION'">
+                <input type="radio" [(ngModel)]="sigType" value="COMMISSION" />
+                <i class="fas fa-coins"></i>
+                <span>Commission</span>
+              </label>
+              <label class="sig-type-opt" [class.active]="sigType === 'TECHNIQUE'">
+                <input type="radio" [(ngModel)]="sigType" value="TECHNIQUE" />
+                <i class="fas fa-wrench"></i>
+                <span>Technique</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Priorité -->
+          <div class="sig-field">
+            <label class="sig-label">Priorité</label>
+            <select [(ngModel)]="sigPriorite" class="sig-select">
+              <option value="BASSE">🟢 Basse</option>
+              <option value="MOYENNE">🟡 Moyenne</option>
+              <option value="HAUTE">🔴 Haute</option>
+            </select>
+          </div>
+
+          <!-- Description -->
+          <div class="sig-field">
+            <label class="sig-label">Description <span class="sig-required">*</span></label>
+            <textarea
+              [(ngModel)]="sigDesc"
+              class="sig-textarea"
+              rows="4"
+              placeholder="Décrivez votre problème en détail…">
+            </textarea>
+          </div>
+
+          <!-- Fichier -->
+          <div class="sig-field">
+            <label class="sig-label">Pièce jointe <span class="sig-optional">(optionnel)</span></label>
+            <label class="sig-file-label">
+              <input type="file" (change)="onSigFileChange($event)" accept="image/*,.pdf,.doc,.docx" />
+              <i class="fas fa-paperclip"></i>
+              {{ sigFile ? sigFile.name : 'Choisir un fichier…' }}
+            </label>
+          </div>
+        </ng-container>
+      </div>
+
+      <div class="sig-modal-footer" *ngIf="!sigSuccess">
+        <button class="sig-btn-cancel" (click)="closeSignalementModal()">Annuler</button>
+        <button class="sig-btn-send" (click)="envoyerSignalement()" [disabled]="sigLoading">
+          <span *ngIf="sigLoading"><i class="fas fa-spinner fa-spin"></i> Envoi…</span>
+          <span *ngIf="!sigLoading"><i class="fas fa-paper-plane"></i> Envoyer</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat IA -->
+  <app-chat-ia [dashboardContext]="chatContext"></app-chat-ia>
+
+</div>

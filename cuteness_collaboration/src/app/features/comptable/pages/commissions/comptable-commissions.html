@@ -1,0 +1,86 @@
+<div class="section-content">
+
+  <!-- HEADER -->
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:18px;">
+    <div>
+      <div style="font-size:16px; font-weight:800; color:#1A1A2E;">💰 Commissions MLM</div>
+      @if (lastRefresh) {
+        <div style="font-size:11px; color:#8A92B2; margin-top:2px;">
+          Mis à jour : {{ lastRefresh | date:'HH:mm:ss' }}
+        </div>
+      }
+    </div>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <button class="btn-valider" style="font-size:12px; padding:6px 14px;"
+        [style.background]="autoRefresh ? '#EDFAF4' : ''"
+        [style.color]="autoRefresh ? '#059669' : ''"
+        [style.border-color]="autoRefresh ? '#4ECBA0' : ''"
+        (click)="toggleAutoRefresh()">
+        <i class="fas" [class.fa-pause]="autoRefresh" [class.fa-sync-alt]="!autoRefresh"></i>
+        {{ autoRefresh ? 'Auto 30s' : 'Auto-refresh' }}
+      </button>
+      <button class="btn-valider" style="font-size:12px; padding:6px 14px;" (click)="refresh()">
+        <i class="fas fa-sync-alt"></i> Actualiser
+      </button>
+    </div>
+  </div>
+
+  <div class="section-actions">
+    <div class="filter-tabs">
+      <button [class.active]="filtre === 'EN_ATTENTE'" (click)="filtre = 'EN_ATTENTE'">
+        À créditer <span class="ft-count">{{ commissionsEnAttente.length }}</span>
+      </button>
+      <button [class.active]="filtre === 'VALIDEE_ADMIN'" (click)="filtre = 'VALIDEE_ADMIN'">
+        Pré-approuvées <span class="ft-count">{{ commissionsValideeAdmin.length }}</span>
+      </button>
+      <button [class.active]="filtre === 'VALIDEE'" (click)="filtre = 'VALIDEE'">Créditées</button>
+      <button [class.active]="filtre === 'REFUSEE'" (click)="filtre = 'REFUSEE'">Refusées</button>
+      <button [class.active]="filtre === 'TOUS'" (click)="filtre = 'TOUS'">Toutes</button>
+    </div>
+  </div>
+
+  <div class="data-table">
+    <div class="dt-head comm-head">
+      <div>ID</div><div>Bénéficiaire</div><div>Source</div>
+      <div>Pack</div><div>Niv.</div><div>Montant</div>
+      <div>Date</div><div>Statut</div><div>Actions</div>
+    </div>
+
+    @for (c of commissionsFiltered; track c.id) {
+      <div class="dt-row comm-row">
+        <div class="dt-ref">{{ c.id }}</div>
+        <div class="dt-name"><i class="fas fa-user"></i> {{ c.partenaire }}</div>
+        <div class="dt-name">{{ c.source }}</div>
+        <div><span class="pack-badge" [ngClass]="'pack-' + c.pack.toLowerCase()">{{ c.pack }}</span></div>
+        <div><span class="niveau-badge">N{{ c.niveau }}</span></div>
+        <div class="dt-amount">{{ c.montant | number:'1.2-2' }} DT</div>
+        <div class="dt-date">{{ c.date }}</div>
+        <div><span class="statut-badge" [ngClass]="'st-' + c.statut">{{ statutLabel(c.statut) }}</span></div>
+        <div class="dt-actions" style="display:flex; gap:6px; align-items:center;">
+          @if (c.statut === 'EN_ATTENTE' || c.statut === 'VALIDEE_ADMIN') {
+            <button class="btn-valider" (click)="payer(c.id)" [disabled]="payingId === c.id"
+              [style.opacity]="payingId === c.id ? '0.6' : '1'">
+              <i [class]="payingId === c.id ? 'fas fa-spinner fa-spin' : 'fas fa-money-bill-wave'"></i>
+              {{ payingId === c.id ? '...' : 'Créditer' }}
+            </button>
+          }
+          <button
+            style="background:#FFF0F0; color:#d43c3c; border:1px solid #F87171; border-radius:7px;
+              padding:4px 8px; cursor:pointer; font-size:12px; transition:.15s;"
+            [style.opacity]="deletingId === c.id ? '0.5' : '1'"
+            [disabled]="!!deletingId"
+            (click)="supprimer(c.id)"
+            title="Supprimer cette commission">
+            <i [class]="deletingId === c.id ? 'fas fa-spinner fa-spin' : 'fas fa-trash-alt'"></i>
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (commissionsFiltered.length === 0) {
+      <div class="dt-empty">
+        <i class="fas fa-inbox"></i> Aucune commission trouvée
+      </div>
+    }
+  </div>
+</div>

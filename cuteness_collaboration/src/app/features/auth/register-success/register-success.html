@@ -1,0 +1,80 @@
+<div class="success-page">
+  <div class="success-card animate-fadeInUp">
+
+    <!-- Logo -->
+    <div class="success-logo">
+      <img src="cute_logo.png" alt="Cuteness Collaboration" class="company-logo" />
+    </div>
+
+    <!-- Icône succès -->
+    <div class="success-icon">
+      <div class="icon-circle">
+        <i class="fas fa-check"></i>
+      </div>
+    </div>
+
+    <h2 class="success-title">Inscription réussie ! 🎉</h2>
+    <p class="success-desc">
+      Votre compte partenaire a été créé avec succès.
+      Il est actuellement <strong>en attente de validation</strong>
+      par l'administrateur.
+    </p>
+
+    <!-- Étapes -->
+    <div class="steps-wrap">
+      <div class="step done">
+        <div class="step-icon"><i class="fas fa-user-plus"></i></div>
+        <div class="step-info">
+          <div class="step-title">Compte créé</div>
+          <div class="step-desc">Vos informations ont été enregistrées</div>
+        </div>
+        <div class="step-check"><i class="fas fa-check-circle"></i></div>
+      </div>
+
+      <div class="step-line"></div>
+
+      <div class="step pending">
+        <div class="step-icon"><i class="fas fa-clock"></i></div>
+        <div class="step-info">
+          <div class="step-title">Validation admin</div>
+          <div class="step-desc">L'administrateur vérifie votre dossier</div>
+        </div>
+        <div class="step-badge">En cours</div>
+      </div>
+
+      <div class="step-line"></div>
+
+      <div class="step waiting">
+        <div class="step-icon"><i class="fas fa-box-open"></i></div>
+        <div class="step-info">
+          <div class="step-title">Livraison du pack</div>
+          <div class="step-desc">Votre pack sera livré après validation</div>
+        </div>
+        <div class="step-badge waiting">En attente</div>
+      </div>
+
+      <div class="step-line"></div>
+
+      <div class="step waiting">
+        <div class="step-icon"><i class="fas fa-rocket"></i></div>
+        <div class="step-info">
+          <div class="step-title">Compte activé</div>
+          <div class="step-desc">Accès complet à votre espace partenaire</div>
+        </div>
+        <div class="step-badge waiting">À venir</div>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="info-banner">
+      <i class="fas fa-envelope"></i>
+      Un email de confirmation vous sera envoyé dès que votre compte sera activé.
+    </div>
+
+    <!-- Bouton retour login -->
+    <button class="cc-btn primary submit-btn" (click)="router.navigate(['/auth/login'])">
+      <i class="fas fa-sign-in-alt"></i> Aller à la connexion
+    </button>
+
+  </div>
+</div>

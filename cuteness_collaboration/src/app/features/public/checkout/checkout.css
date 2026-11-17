@@ -1,0 +1,204 @@
+/* ── PAGE ── */
+.ck-page {
+  min-height: 100vh;
+  background: #fdf6f3;
+  font-family: inherit;
+}
+
+/* ── NAVBAR ── */
+.ck-navbar {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0 2rem; height: 64px;
+  background: #fff; border-bottom: 2px solid #fde8df;
+}
+.ck-brand { display: flex; align-items: center; text-decoration: none; }
+.ck-logo  { height: 36px; }
+.ck-title { font-size: 1rem; font-weight: 700; color: #1a1a1a; }
+.btn-ghost {
+  margin-left: auto;
+  padding: .45rem 1rem;
+  border: 1.5px solid #e5e5e5; border-radius: 8px;
+  background: none; color: #333; font-size: .9rem;
+  text-decoration: none; cursor: pointer;
+  transition: border-color .2s, color .2s;
+}
+.btn-ghost:hover { border-color: #e8734a; color: #e8734a; }
+
+/* ── LAYOUT ── */
+.ck-layout {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* ── CARD ── */
+.ck-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 2px solid #f5ebe7;
+  padding: 1.4rem;
+  margin-bottom: 1.2rem;
+}
+.ck-card-title {
+  font-size: .95rem; font-weight: 800; color: #1a1a1a;
+  margin-bottom: 1rem;
+  display: flex; align-items: center; gap: .5rem;
+}
+.ck-card-title i { color: #e8734a; }
+
+/* ── COORDONNÉES ── */
+.ck-partner-info { border-color: #e0f2fe; background: #f0f9ff; }
+.ck-partner-info .ck-card-title { color: #0369a1; }
+.ck-partner-info .ck-card-title i { color: #0369a1; }
+.ck-coord-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 1rem;
+}
+.ck-partner-info .ck-label { color: #0369a1; }
+.ck-partner-info .ck-label i { margin-right: .3rem; }
+.ck-input-info {
+  border-color: #bae6fd !important;
+  background: #fff;
+}
+.ck-input-info:focus { border-color: #0369a1 !important; }
+@media (max-width: 520px) {
+  .ck-coord-grid { grid-template-columns: 1fr; }
+}
+
+/* ── FORM FIELDS ── */
+.ck-field-group {
+  margin-bottom: .85rem;
+}
+.ck-label {
+  display: block;
+  font-size: .83rem; font-weight: 700; color: #555;
+  margin-bottom: .3rem;
+}
+.ck-required { color: #e8734a; }
+.ck-select, .ck-input {
+  width: 100%; box-sizing: border-box;
+  border: 2px solid #fde8df; border-radius: 10px;
+  padding: .65rem 1rem; font-size: .93rem; color: #1a1a1a;
+  background: #fff; outline: none; font-family: inherit;
+  transition: border-color .2s;
+  appearance: none;
+}
+.ck-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23aaa' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; padding-right: 2.5rem; }
+.ck-select:focus, .ck-input:focus { border-color: #e8734a; }
+
+/* ── TEXTAREA ── */
+.ck-textarea {
+  width: 100%; box-sizing: border-box;
+  border: 2px solid #fde8df; border-radius: 10px;
+  padding: .7rem 1rem; font-size: .95rem; color: #1a1a1a;
+  resize: vertical; outline: none; font-family: inherit;
+  transition: border-color .2s;
+}
+.ck-textarea:focus { border-color: #e8734a; }
+
+/* ── RADIO OPTIONS ── */
+.ck-radio-group {
+  display: flex; gap: .75rem;
+}
+.ck-radio-col { flex-direction: column; }
+.ck-radio-opt {
+  flex: 1;
+  display: flex; align-items: center; gap: .7rem;
+  padding: .75rem 1rem;
+  border: 2px solid #f0e8e4; border-radius: 12px;
+  cursor: pointer; transition: all .2s;
+}
+.ck-radio-opt input[type="radio"] { display: none; }
+.ck-radio-opt i { font-size: 1.1rem; color: #bbb; transition: color .2s; }
+.ck-radio-opt span { font-size: .9rem; font-weight: 600; color: #555; }
+.ck-radio-opt.active {
+  border-color: #e8734a;
+  background: #fff8f5;
+}
+.ck-radio-opt.active i { color: #e8734a; }
+.ck-radio-opt.active span { color: #e8734a; }
+.ck-opt-label { display: block; font-size: .9rem; font-weight: 700; color: #1a1a1a; }
+.ck-opt-desc  { display: block; font-size: .78rem; color: #999; margin-top: .15rem; }
+.ck-radio-opt.active .ck-opt-label { color: #e8734a; }
+
+/* ── ERROR ── */
+.ck-error {
+  background: #fef2f2; border: 1.5px solid #fca5a5;
+  color: #dc2626; border-radius: 10px;
+  padding: .75rem 1rem; font-size: .9rem;
+  display: flex; align-items: center; gap: .5rem;
+}
+
+/* ── SUMMARY ── */
+.ck-summary { margin-bottom: 0; }
+.ck-items { display: flex; flex-direction: column; gap: .6rem; margin-bottom: 1rem; }
+.ck-item {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: .88rem;
+}
+.ck-item-info { display: flex; flex-direction: column; }
+.ck-item-name { font-weight: 600; color: #1a1a1a; }
+.ck-item-qty  { font-size: .78rem; color: #aaa; }
+.ck-item-price { font-weight: 700; color: #e8734a; white-space: nowrap; }
+.ck-item-right { display: flex; align-items: center; gap: .6rem; }
+.ck-item-remove {
+  background: none; border: none; cursor: pointer;
+  color: #ccc; font-size: .85rem; padding: .2rem .3rem;
+  border-radius: 6px; transition: color .2s, background .2s;
+  line-height: 1;
+}
+.ck-item-remove:hover { color: #dc2626; background: #fef2f2; }
+
+.ck-totals {
+  border-top: 2px solid #f5ebe7;
+  padding-top: .9rem;
+  display: flex; flex-direction: column; gap: .4rem;
+}
+.ck-total-row {
+  display: flex; justify-content: space-between;
+  font-size: .88rem; color: #555;
+}
+.ck-discount { color: #16a34a; font-weight: 600; }
+.ck-rebours  { color: #2563eb; font-weight: 600; }
+.ck-grand {
+  font-size: 1.1rem; font-weight: 900; color: #1a1a1a;
+  border-top: 2px solid #f5ebe7; padding-top: .6rem; margin-top: .2rem;
+}
+.ck-grand span:last-child { color: #e8734a; }
+
+/* ── ORDER BUTTON ── */
+.ck-btn-order {
+  width: 100%; margin-top: 1.2rem;
+  padding: .85rem;
+  border-radius: 12px;
+  background: #e8734a; color: #fff;
+  font-size: 1rem; font-weight: 800;
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: .5rem;
+  transition: opacity .2s;
+}
+.ck-btn-order:hover:not(:disabled) { opacity: .88; }
+.ck-btn-order:disabled { opacity: .55; cursor: not-allowed; }
+
+.ck-spinner {
+  width: 18px; height: 18px;
+  border: 2.5px solid rgba(255,255,255,.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 720px) {
+  .ck-layout { grid-template-columns: 1fr; padding: 1rem; }
+  .ck-navbar { padding: 0 1rem; }
+  .ck-title  { display: none; }
+}

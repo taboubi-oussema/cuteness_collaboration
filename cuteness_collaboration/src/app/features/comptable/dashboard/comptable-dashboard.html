@@ -1,0 +1,88 @@
+<div class="cd-shell" [class.sidebar-open]="sidebarOpen">
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" [class.open]="sidebarOpen">
+    <div class="sb-brand">
+      <img src="cute_logo.png" alt="Cuteness" class="sb-logo" />
+      <button class="sb-close" (click)="toggleSidebar()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="sb-user">
+      <div class="sb-avatar">{{ comptableName[0] }}</div>
+      <div class="sb-info">
+        <div class="sb-name">{{ comptableName }}</div>
+        <div class="sb-role"><i class="fas fa-calculator"></i> Comptable</div>
+      </div>
+    </div>
+
+    <nav class="sb-nav">
+      <a class="sb-item" routerLink="accueil" routerLinkActive="active">
+        <i class="fas fa-chart-pie"></i><span>Vue globale</span>
+      </a>
+      <a class="sb-item" routerLink="commissions" routerLinkActive="active">
+        <i class="fas fa-coins"></i><span>Commissions</span>
+        @if (state.kpis$ | async; as kpis) {
+          @if (kpis.commissionsAValider > 0) {
+            <span class="sb-badge">{{ kpis.commissionsAValider }}</span>
+          }
+        }
+      </a>
+      <a class="sb-item" routerLink="transactions" routerLinkActive="active">
+        <i class="fas fa-exchange-alt"></i><span>Flux financiers</span>
+        @if (state.partenaires$ | async) {
+          @if (state.partenairesAvecSolde.length > 0) {
+            <span class="sb-badge sb-gold">{{ state.partenairesAvecSolde.length }}</span>
+          }
+        }
+      </a>
+      <a class="sb-item" routerLink="reseau" routerLinkActive="active">
+        <i class="fas fa-sitemap"></i><span>Réseau MLM</span>
+      </a>
+      <a class="sb-item" routerLink="bi" routerLinkActive="active">
+        <i class="fas fa-chart-bar"></i><span>Analyse BI</span>
+      </a>
+      <a class="sb-item" routerLink="rapports" routerLinkActive="active">
+        <i class="fas fa-file-invoice-dollar"></i><span>Rapports</span>
+      </a>
+      <a class="sb-item" routerLink="commandes" routerLinkActive="active">
+        <i class="fas fa-box"></i><span>Commandes</span>
+      </a>
+      <a class="sb-item" routerLink="signalement" routerLinkActive="active">
+        <i class="fas fa-flag"></i><span>Signalement</span>
+        @if (signalementCount > 0) {
+          <span class="sb-badge sb-red">{{ signalementCount }}</span>
+        }
+      </a>
+    </nav>
+
+    <div class="sb-footer">
+      <button class="sb-logout" (click)="logout()">
+        <i class="fas fa-sign-out-alt"></i><span>Déconnexion</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="cd-main">
+    <div class="topbar">
+      <button class="topbar-menu" (click)="toggleSidebar()"><i class="fas fa-bars"></i></button>
+      <div class="topbar-title">  Comptable · Cuteness Collaboration</div>
+      <div class="topbar-right">
+        @if (state.kpis$ | async; as kpis) {
+          @if (kpis.commissionsAValider > 0) {
+            <a class="topbar-badge" routerLink="commissions" style="cursor:pointer; text-decoration:none;">
+              <i class="fas fa-clock"></i> {{ kpis.commissionsAValider }} à valider
+            </a>
+          }
+        }
+        @if (state.partenaires$ | async) {
+          @if (state.partenairesAvecSolde.length > 0) {
+            <a class="topbar-badge tb-gold" routerLink="transactions" [queryParams]="{tab:'virements'}"
+              style="cursor:pointer; text-decoration:none;">
+              <i class="fas fa-paper-plane"></i> {{ state.partenairesAvecSolde.length }} virements en attente
+            </a>
+          }
+        }
+      </div>
+    </div>
+    <router-outlet></router-outlet>
+  </main>
+</div>

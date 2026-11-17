@@ -1,0 +1,454 @@
+<div class="section-content">
+
+  <!-- HEADER -->
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:20px;">
+    <div>
+      <div style="font-size:18px; font-weight:800; color:#1A1A2E;">🚚 Suivi des Commandes</div>
+      <div style="font-size:12px; color:#8A92B2; margin-top:2px;">
+        @if (lastRefresh) { Dernière mise à jour : {{ lastRefresh | date:'HH:mm:ss' }} }
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+      <button class="btn-valider" style="font-size:12px; padding:6px 14px;"
+        [style.background]="autoRefresh ? '#EDFAF4' : ''"
+        [style.color]="autoRefresh ? '#059669' : ''"
+        [style.border-color]="autoRefresh ? '#4ECBA0' : ''"
+        (click)="toggleAutoRefresh()">
+        <i class="fas" [class.fa-pause]="autoRefresh" [class.fa-sync-alt]="!autoRefresh"></i>
+        {{ autoRefresh ? 'Auto-refresh ON (30s)' : 'Auto-refresh OFF' }}
+      </button>
+      <button class="btn-valider" style="font-size:12px; padding:7px 16px;" (click)="loadAll()">
+        <i class="fas fa-sync-alt"></i> Actualiser
+      </button>
+    </div>
+  </div>
+
+  <!-- ALERTS -->
+  @if (successMsg) {
+    <div style="background:#EDFAF4; border:1px solid #4ECBA0; color:#1e9b6b; border-radius:10px;
+      padding:10px 14px; margin-bottom:12px; font-size:13px; font-weight:600;">
+      <i class="fas fa-check-circle"></i> {{ successMsg }}
+    </div>
+  }
+  @if (errorMsg) {
+    <div style="background:#FFF0F0; border:1px solid #F87171; color:#d43c3c; border-radius:10px;
+      padding:10px 14px; margin-bottom:12px; font-size:13px; font-weight:600;">
+      <i class="fas fa-exclamation-triangle"></i> {{ errorMsg }}
+    </div>
+  }
+
+  <!-- TABS -->
+  <div style="display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;">
+    <button class="tab-btn" [class.active]="activeTab === 'produits'" (click)="activeTab = 'produits'">
+      <i class="fas fa-shopping-bag"></i> Commandes Produits
+      <span class="tab-count">{{ commandes.length }}</span>
+      @if (pendingNavexConfirm > 0) {
+        <span class="tab-count tab-count-alert" style="margin-left:4px;">{{ pendingNavexConfirm }} à confirmer</span>
+      }
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'packs'" (click)="activeTab = 'packs'">
+      <i class="fas fa-box-open"></i> Commandes Packs
+      <span class="tab-count">{{ inscriptions.length }}</span>
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- TAB : COMMANDES PRODUITS               -->
+  <!-- ══════════════════════════════════════ -->
+  @if (activeTab === 'produits') {
+
+    <!-- Stats rapides -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; margin-bottom:18px;">
+      @for (s of ['EN_ATTENTE','EN_PREPARATION','LIVREE','RETOURNEE','ANNULEE']; track s) {
+        <div style="background:#fff; border:1px solid #EAEDF5; border-radius:12px; padding:12px 14px;
+          cursor:pointer; transition:.15s;" [style.border-color]="filtreStatut === s ? '#7C3AED' : '#EAEDF5'"
+          (click)="filtreStatut = filtreStatut === s ? 'TOUS' : s">
+          <div style="font-size:22px; font-weight:800; color:#1A1A2E;">{{ countCommandes(s) }}</div>
+          <div style="font-size:11px; color:#8A92B2; margin-top:2px;">{{ statutLabel(s) }}</div>
+        </div>
+      }
+    </div>
+
+    <!-- Filtres -->
+    <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; align-items:center;">
+      <input type="text" [(ngModel)]="searchTerm" placeholder="🔍 Nom, ID, région…"
+        style="flex:1; min-width:200px; padding:8px 12px; border:1.5px solid #EAEDF5; border-radius:8px; font-size:13px;" />
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        @for (s of STATUTS; track s) {
+          <button class="filter-chip" [class.active]="filtreStatut === s" (click)="filtreStatut = s"
+            style="font-size:11px; padding:4px 10px;">
+            {{ s === 'TOUS' ? 'Tous' : statutLabel(s) }}
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (loadingCommandes) {
+      <div class="dt-empty"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
+    } @else if (filteredCommandes.length === 0) {
+      <div class="dt-empty"><i class="fas fa-inbox"></i> Aucune commande trouvée.</div>
+    } @else {
+      <div class="cmd-list">
+        @for (c of filteredCommandes; track c.id) {
+          <div class="cmd-card">
+            <!-- ROW HEADER -->
+            <div class="cmd-header" (click)="toggleCommande(c.id)" style="cursor:pointer;">
+              <div class="cmd-left">
+                <div class="cmd-id">#{{ c.id }}</div>
+                <div class="cmd-info">
+                  <div class="cmd-name">{{ c.nomPartenaire }}</div>
+                  <div class="cmd-meta">
+                    {{ c.regionPartenaire }}
+                    @if (c.navexRef) { · <i class="fas fa-shipping-fast" style="color:#3AAFDA;"></i> {{ c.navexRef }} }
+                    @if (c.confirmationComptableRequise) {
+                      · <span style="color:#D97706; font-weight:700;">⏳ À confirmer</span>
+                    }
+                  </div>
+                </div>
+              </div>
+              <div class="cmd-right">
+                <span class="statut-badge" [ngClass]="statutClass(c.statut)">{{ statutLabel(c.statut) }}</span>
+                @if (c.optionRemise === 'REMBOURSEMENT') {
+                  <span style="font-size:10px; background:#F5F3FF; color:#7C3AED; border:1px solid #DDD6FE;
+                    padding:2px 7px; border-radius:10px; font-weight:700;">
+                    {{ c.remboursementApprouve ? '✅ Rembours.' : '⏳ Rembours.' }}
+                  </span>
+                }
+                <div class="cmd-amount">{{ c.montantTotal | number:'1.2-2' }} DT</div>
+                <div class="cmd-date">{{ c.dateCommande | date:'dd/MM/yyyy' }}</div>
+                <i class="fas" [class.fa-chevron-down]="expandedCommandeId !== c.id"
+                  [class.fa-chevron-up]="expandedCommandeId === c.id"
+                  style="color:#9090A8; font-size:12px;"></i>
+              </div>
+            </div>
+
+            <!-- DETAIL EXPAND -->
+            @if (expandedCommandeId === c.id) {
+              <div class="cmd-detail">
+
+                <!-- Progression -->
+                <div style="display:flex; align-items:center; gap:0; margin-bottom:16px; flex-wrap:wrap;">
+                  @for (step of ['EN_ATTENTE','EN_PREPARATION','LIVREE']; track step) {
+                    <div style="display:flex; align-items:center; gap:0;">
+                      <div style="display:flex; flex-direction:column; align-items:center; gap:3px;">
+                        <div style="width:28px; height:28px; border-radius:50%; display:flex; align-items:center;
+                          justify-content:center; font-size:12px; font-weight:700; transition:.2s;"
+                          [style.background]="c.statut === step || (step === 'EN_ATTENTE' && (c.statut === 'EN_PREPARATION' || c.statut === 'LIVREE' || c.statut === 'RETOURNEE')) || (step === 'EN_PREPARATION' && (c.statut === 'LIVREE' || c.statut === 'RETOURNEE')) ? '#7C3AED' : '#EAEDF5'"
+                          [style.color]="c.statut === step || (step === 'EN_ATTENTE' && (c.statut === 'EN_PREPARATION' || c.statut === 'LIVREE' || c.statut === 'RETOURNEE')) || (step === 'EN_PREPARATION' && (c.statut === 'LIVREE' || c.statut === 'RETOURNEE')) ? '#fff' : '#9090A8'">
+                          @if (step === 'EN_ATTENTE') { 1 }
+                          @if (step === 'EN_PREPARATION') { 2 }
+                          @if (step === 'LIVREE') { 3 }
+                        </div>
+                        <div style="font-size:9px; color:#8A92B2; white-space:nowrap;">{{ statutLabel(step) }}</div>
+                      </div>
+                      @if (step !== 'LIVREE') {
+                        <div style="width:40px; height:2px; background:#EAEDF5; margin:0 4px; margin-bottom:14px;"
+                          [style.background]="(step === 'EN_ATTENTE' && (c.statut === 'EN_PREPARATION' || c.statut === 'LIVREE' || c.statut === 'RETOURNEE')) || (step === 'EN_PREPARATION' && (c.statut === 'LIVREE' || c.statut === 'RETOURNEE')) ? '#7C3AED' : '#EAEDF5'">
+                        </div>
+                      }
+                    </div>
+                  }
+                  @if (c.statut === 'RETOURNEE') {
+                    <div style="margin-left:12px; font-size:11px; background:#FFF0F0; color:#d43c3c;
+                      border:1px solid #F87171; padding:3px 10px; border-radius:10px; font-weight:700;">
+                      🔄 Retournée
+                    </div>
+                  }
+                  @if (c.statut === 'ANNULEE') {
+                    <div style="margin-left:12px; font-size:11px; background:#F1F1F1; color:#888;
+                      border:1px solid #DDD; padding:3px 10px; border-radius:10px; font-weight:700;">
+                      ✗ Annulée
+                    </div>
+                  }
+                </div>
+
+                <!-- Info grid -->
+                <div class="cmd-detail-grid">
+                  <div><div class="det-lbl">Email</div><div class="det-val">{{ c.emailPartenaire }}</div></div>
+                  <div><div class="det-lbl">Téléphone</div><div class="det-val">{{ c.telephonePartenaire }}</div></div>
+                  <div><div class="det-lbl">Adresse</div><div class="det-val">{{ c.adresse }}</div></div>
+                  <div><div class="det-lbl">Mode paiement</div><div class="det-val">{{ c.modePaiement }}</div></div>
+                  @if (c.statut === 'EN_PREPARATION' || c.statut === 'LIVREE' || c.statut === 'RETOURNEE') {
+                    <div>
+                      <div class="det-lbl">Superviseur traitant</div>
+                      @if (c.nomSuperviseur) {
+                        <div class="det-val" style="color:#7C3AED; font-weight:700;">
+                          <i class="fas fa-user-tie" style="font-size:11px;"></i>
+                          {{ c.nomSuperviseur }}
+                          @if (c.emailSuperviseur) {
+                            <span style="font-weight:400; color:#8A92B2; font-size:11px; margin-left:4px;">({{ c.emailSuperviseur }})</span>
+                          }
+                        </div>
+                      } @else {
+                        <div class="det-val" style="color:#94a3b8; font-style:italic; font-size:12px;">
+                          <i class="fas fa-user-slash" style="font-size:11px;"></i> Non enregistré
+                        </div>
+                      }
+                    </div>
+                  }
+                  <div><div class="det-lbl">Montant original</div><div class="det-val">{{ c.montantOriginal | number:'1.2-2' }} DT</div></div>
+                  <div><div class="det-lbl">Réduction ({{ c.tauxReduction }}%)</div><div class="det-val">- {{ c.montantReduction | number:'1.2-2' }} DT</div></div>
+                  <div><div class="det-lbl">Frais livraison</div><div class="det-val">{{ c.fraisLivraison | number:'1.2-2' }} DT</div></div>
+                  <div><div class="det-lbl">Total TTC</div><div class="det-val" style="font-weight:800; color:#1A1A2E;">{{ c.montantTotal | number:'1.2-2' }} DT</div></div>
+                  @if (c.navexRef) {
+                    <div>
+                      <div class="det-lbl">Navex réf.</div>
+                      <div class="det-val">
+                        <a [href]="navexUrl(c.navexRef)" target="_blank"
+                          style="color:#3AAFDA; font-weight:700; text-decoration:none;">
+                          {{ c.navexRef }} <i class="fas fa-external-link-alt" style="font-size:10px;"></i>
+                        </a>
+                      </div>
+                    </div>
+                    <div><div class="det-lbl">Statut Navex</div><div class="det-val">{{ c.navexStatut || '—' }}</div></div>
+                  }
+                  @if (c.optionRemise === 'REMBOURSEMENT') {
+                    <div>
+                      <div class="det-lbl">Remboursement</div>
+                      <div class="det-val">
+                        @if (c.remboursementApprouve) { <span style="color:#059669; font-weight:700;">✅ Approuvé</span> }
+                        @else { <span style="color:#D97706; font-weight:700;">⏳ En attente</span> }
+                      </div>
+                    </div>
+                  }
+                </div>
+
+                <!-- Lignes -->
+                @if (c.lignes && c.lignes.length > 0) {
+                  <div style="margin-top:12px;">
+                    <div class="det-lbl" style="margin-bottom:6px;">Produits commandés</div>
+                    <table style="width:100%; border-collapse:collapse; font-size:12.5px;">
+                      <thead>
+                        <tr style="background:#F9F7F5;">
+                          <th style="padding:6px 10px; text-align:left; color:#555570; font-weight:700;">Produit</th>
+                          <th style="padding:6px 10px; text-align:center; color:#555570; font-weight:700;">Qté</th>
+                          <th style="padding:6px 10px; text-align:right; color:#555570; font-weight:700;">Prix unit.</th>
+                          <th style="padding:6px 10px; text-align:right; color:#555570; font-weight:700;">Sous-total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (l of c.lignes; track l.id) {
+                          <tr style="border-top:1px solid #EAEAEF;">
+                            <td style="padding:6px 10px;">{{ l.nomProduit }}</td>
+                            <td style="padding:6px 10px; text-align:center;">{{ l.quantite }}</td>
+                            <td style="padding:6px 10px; text-align:right;">{{ l.prixUnitaire | number:'1.2-2' }} DT</td>
+                            <td style="padding:6px 10px; text-align:right; font-weight:600;">{{ l.sousTotal | number:'1.2-2' }} DT</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                }
+
+                <!-- Actions -->
+                <div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; align-items:center;">
+                  @if (!c.navexRef && c.statut === 'EN_ATTENTE') {
+                    <button class="btn-valider" style="font-size:11px; padding:5px 12px; background:#3AAFDA; border-color:#3AAFDA;"
+                      [disabled]="navexLoadingId === c.id" (click)="creerColisNavex(c); $event.stopPropagation()">
+                      <i class="fas fa-box"></i>
+                      {{ navexLoadingId === c.id ? 'Création...' : 'Créer livraison Navex' }}
+                    </button>
+                  }
+                  @if (c.navexRef && c.statut !== 'LIVREE' && c.statut !== 'RETOURNEE' && c.statut !== 'ANNULEE') {
+                    <a [href]="navexUrl(c.navexRef)" target="_blank" class="btn-valider"
+                      style="font-size:11px; padding:5px 12px; background:#EFF9FF; color:#3AAFDA;
+                        border-color:#BAE6FD; text-decoration:none; display:flex; align-items:center; gap:4px;"
+                      (click)="$event.stopPropagation()">
+                      <i class="fas fa-external-link-alt"></i> Suivi Navex
+                    </a>
+                  }
+                  @if (c.confirmationComptableRequise) {
+                    <button class="btn-valider" style="font-size:11px; padding:5px 12px;"
+                      (click)="confirmerCommande(c.id); $event.stopPropagation()">
+                      <i class="fas fa-check"></i>
+                      {{ c.typeConfirmation === 'RETOUR' ? 'Confirmer retour' : 'Confirmer livraison' }}
+                    </button>
+                  }
+                  @if (c.statut !== 'LIVREE' && c.statut !== 'RETOURNEE' && c.statut !== 'ANNULEE' && !c.confirmationComptableRequise) {
+                    <button class="btn-marquer-livre" (click)="marquerLivre(c); $event.stopPropagation()">
+                      <i class="fas fa-check-double"></i> Marquer livré
+                      @if (c.optionRemise === 'REMBOURSEMENT') {
+                        <span class="btn-remb-badge">+ rembourser</span>
+                      }
+                    </button>
+                  }
+                  @if (c.statut === 'LIVREE' && c.optionRemise === 'REMBOURSEMENT' && !c.remboursementApprouve) {
+                    <button class="btn-valider" style="font-size:11px; padding:5px 12px; background:#8B5CF6; border-color:#8B5CF6;"
+                      (click)="approuverRemboursement(c.id); $event.stopPropagation()">
+                      <i class="fas fa-undo"></i> Approuver remboursement
+                    </button>
+                  }
+                  @if (c.statut !== 'RETOURNEE' && c.statut !== 'ANNULEE') {
+                    <button style="font-size:11px; padding:5px 12px; background:#FFF0F0; color:#d43c3c;
+                      border:1px solid #F87171; border-radius:8px; cursor:pointer; font-weight:600;
+                      display:flex; align-items:center; gap:5px;"
+                      (click)="marquerRetour(c.id); $event.stopPropagation()">
+                      <i class="fas fa-undo-alt"></i> Retour
+                    </button>
+                  }
+                  @if (c.statut === 'EN_ATTENTE' || c.statut === 'EN_PREPARATION') {
+                    <button style="font-size:11px; padding:5px 12px; background:#F1F1F1; color:#888;
+                      border:1px solid #DDD; border-radius:8px; cursor:pointer; font-weight:600;
+                      display:flex; align-items:center; gap:5px;"
+                      (click)="annulerCommande(c.id); $event.stopPropagation()">
+                      <i class="fas fa-times"></i> Annuler
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- TAB : COMMANDES PACKS                  -->
+  <!-- ══════════════════════════════════════ -->
+  @if (activeTab === 'packs') {
+
+    <!-- Stats rapides -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; margin-bottom:18px;">
+      @for (s of ['NOUVELLE','EN_COURS','TRAITEE','LIVREE']; track s) {
+        <div style="background:#fff; border:1px solid #EAEDF5; border-radius:12px; padding:12px 14px;
+          cursor:pointer; transition:.15s;" [style.border-color]="filtreStatutInsc === s ? '#7C3AED' : '#EAEDF5'"
+          (click)="filtreStatutInsc = filtreStatutInsc === s ? 'TOUS' : s">
+          <div style="font-size:22px; font-weight:800; color:#1A1A2E;">{{ countInsc(s) }}</div>
+          <div style="font-size:11px; color:#8A92B2; margin-top:2px;">{{ statutLabelInsc(s) }}</div>
+        </div>
+      }
+    </div>
+
+    <!-- Filtres -->
+    <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; align-items:center;">
+      <input type="text" [(ngModel)]="searchInsc" placeholder="🔍 Nom, ID, région…"
+        style="flex:1; min-width:200px; padding:8px 12px; border:1.5px solid #EAEDF5; border-radius:8px; font-size:13px;" />
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        @for (s of STATUTS_INSC; track s) {
+          <button class="filter-chip" [class.active]="filtreStatutInsc === s" (click)="filtreStatutInsc = s"
+            style="font-size:11px; padding:4px 10px;">
+            {{ s === 'TOUS' ? 'Tous' : statutLabelInsc(s) }}
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (loadingInscriptions) {
+      <div class="dt-empty"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
+    } @else if (filteredInscriptions.length === 0) {
+      <div class="dt-empty"><i class="fas fa-inbox"></i> Aucune inscription trouvée.</div>
+    } @else {
+      <div class="cmd-list">
+        @for (i of filteredInscriptions; track i.id) {
+          <div class="cmd-card">
+            <div class="cmd-header" (click)="toggleInscription(i.id)" style="cursor:pointer;">
+              <div class="cmd-left">
+                <div class="cmd-id">#{{ i.id }}</div>
+                <div class="cmd-info">
+                  <div class="cmd-name">{{ i.nomClient }}</div>
+                  <div class="cmd-meta">
+                    {{ i.region }} · {{ i.nomPack }}
+                    @if (i.navexRef) { · <i class="fas fa-shipping-fast" style="color:#3AAFDA;"></i> {{ i.navexRef }} }
+                  </div>
+                </div>
+              </div>
+              <div class="cmd-right">
+                <span class="statut-badge" [ngClass]="statutClassInsc(i.statut)">{{ statutLabelInsc(i.statut) }}</span>
+                <div class="cmd-amount">{{ i.prixPack | number:'1.0-0' }} DT</div>
+                <div class="cmd-date">{{ i.dateCreation }}</div>
+                <i class="fas" [class.fa-chevron-down]="expandedInscriptionId !== i.id"
+                  [class.fa-chevron-up]="expandedInscriptionId === i.id"
+                  style="color:#9090A8; font-size:12px;"></i>
+              </div>
+            </div>
+
+            @if (expandedInscriptionId === i.id) {
+              <div class="cmd-detail">
+
+                <!-- Progression inscription -->
+                <div style="display:flex; align-items:center; gap:0; margin-bottom:16px; flex-wrap:wrap;">
+                  @for (step of ['NOUVELLE','EN_COURS','TRAITEE','LIVREE']; track step) {
+                    <div style="display:flex; align-items:center; gap:0;">
+                      <div style="display:flex; flex-direction:column; align-items:center; gap:3px;">
+                        <div style="width:28px; height:28px; border-radius:50%; display:flex; align-items:center;
+                          justify-content:center; font-size:11px; font-weight:700; transition:.2s;"
+                          [style.background]="i.statut === step ||
+                            (step === 'NOUVELLE' && (i.statut === 'EN_COURS' || i.statut === 'TRAITEE' || i.statut === 'LIVREE')) ||
+                            (step === 'EN_COURS' && (i.statut === 'TRAITEE' || i.statut === 'LIVREE')) ||
+                            (step === 'TRAITEE' && i.statut === 'LIVREE') ? '#7C3AED' : '#EAEDF5'"
+                          [style.color]="i.statut === step ||
+                            (step === 'NOUVELLE' && (i.statut === 'EN_COURS' || i.statut === 'TRAITEE' || i.statut === 'LIVREE')) ||
+                            (step === 'EN_COURS' && (i.statut === 'TRAITEE' || i.statut === 'LIVREE')) ||
+                            (step === 'TRAITEE' && i.statut === 'LIVREE') ? '#fff' : '#9090A8'">
+                          {{ step === 'NOUVELLE' ? '1' : step === 'EN_COURS' ? '2' : step === 'TRAITEE' ? '3' : '4' }}
+                        </div>
+                        <div style="font-size:9px; color:#8A92B2; white-space:nowrap;">{{ statutLabelInsc(step) }}</div>
+                      </div>
+                      @if (step !== 'LIVREE') {
+                        <div style="width:36px; height:2px; margin:0 4px; margin-bottom:14px;"
+                          [style.background]="(step === 'NOUVELLE' && (i.statut === 'EN_COURS' || i.statut === 'TRAITEE' || i.statut === 'LIVREE')) ||
+                            (step === 'EN_COURS' && (i.statut === 'TRAITEE' || i.statut === 'LIVREE')) ||
+                            (step === 'TRAITEE' && i.statut === 'LIVREE') ? '#7C3AED' : '#EAEDF5'">
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <!-- Info grid -->
+                <div class="cmd-detail-grid">
+                  <div><div class="det-lbl">Email</div><div class="det-val">{{ i.emailClient }}</div></div>
+                  <div><div class="det-lbl">Téléphone</div><div class="det-val">{{ i.telephone || '—' }}</div></div>
+                  <div><div class="det-lbl">Région</div><div class="det-val">{{ i.region || '—' }}</div></div>
+                  <div><div class="det-lbl">Mode paiement</div><div class="det-val">{{ i.modePaiement }}</div></div>
+                  <div><div class="det-lbl">Pack</div><div class="det-val" style="font-weight:700;">{{ i.nomPack }} — {{ i.prixPack | number:'1.0-0' }} DT</div></div>
+                  <div><div class="det-lbl">Parrain</div><div class="det-val">{{ i.nomParrain }}</div></div>
+                  @if (i.nomSuperviseur) {
+                    <div><div class="det-lbl">Superviseur</div><div class="det-val" style="color:#7C3AED; font-weight:600;">{{ i.nomSuperviseur }}</div></div>
+                  }
+                  @if (i.navexRef) {
+                    <div>
+                      <div class="det-lbl">Navex réf.</div>
+                      <div class="det-val">
+                        <a [href]="navexUrl(i.navexRef)" target="_blank"
+                          style="color:#3AAFDA; font-weight:700; text-decoration:none;">
+                          {{ i.navexRef }} <i class="fas fa-external-link-alt" style="font-size:10px;"></i>
+                        </a>
+                      </div>
+                    </div>
+                  }
+                </div>
+
+                <!-- Actions inscription -->
+                <div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;">
+                  @if (i.statut === 'TRAITEE' && !i.navexRef) {
+                    <button class="btn-valider" style="font-size:11px; padding:5px 12px; background:#3AAFDA; border-color:#3AAFDA;"
+                      (click)="creerColisNavexInsc(i.id); $event.stopPropagation()">
+                      <i class="fas fa-box"></i> Créer livraison Navex
+                    </button>
+                  }
+                  @if (i.navexRef) {
+                    <a [href]="navexUrl(i.navexRef)" target="_blank" class="btn-valider"
+                      style="font-size:11px; padding:5px 12px; background:#EFF9FF; color:#3AAFDA;
+                        border-color:#BAE6FD; text-decoration:none; display:flex; align-items:center; gap:4px;"
+                      (click)="$event.stopPropagation()">
+                      <i class="fas fa-external-link-alt"></i> Suivi Navex
+                    </a>
+                  }
+                  @if (i.statut === 'TRAITEE') {
+                    <button class="btn-valider" style="font-size:11px; padding:5px 12px;"
+                      (click)="marquerLivreeInsc(i.id); $event.stopPropagation()">
+                      <i class="fas fa-check-double"></i> Marquer livrée
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+
+</div>

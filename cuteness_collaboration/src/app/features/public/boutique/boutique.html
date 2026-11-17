@@ -1,0 +1,157 @@
+<div class="bq-page">
+
+  <!-- ── NAVBAR ── -->
+  <nav class="bq-navbar">
+    <a routerLink="/" class="bq-brand">
+      <img src="cute_logo.png" alt="Cuteness" class="bq-logo" />
+    </a>
+    <div class="bq-nav-links">
+      <a routerLink="/">Accueil</a>
+      <a routerLink="/packs">Packs</a>
+      <a routerLink="/formations">Formations</a>
+      <a routerLink="/boutique" class="active">Boutique</a>
+    </div>
+    <div class="bq-nav-actions">
+      @if (isAuthenticated) {
+        <a routerLink="/checkout" class="bq-cart-btn">
+          <i class="fas fa-shopping-bag"></i>
+          @if (cartService.count > 0) {
+            <span class="bq-cart-badge">{{ cartService.count }}</span>
+          }
+        </a>
+        <a routerLink="/partner/dashboard" class="btn-ghost">Mon espace</a>
+      } @else {
+        <a routerLink="/auth/login" class="btn-ghost">Se connecter</a>
+        <a routerLink="/packs" class="btn-primary">Rejoindre</a>
+      }
+    </div>
+  </nav>
+
+  <!-- ── TOOLBAR ── -->
+  <div class="bq-toolbar">
+    <div class="bq-toolbar-top">
+      <div class="bq-search">
+        <i class="fas fa-search"></i>
+        <input type="text" [(ngModel)]="recherche" placeholder="Rechercher un produit…" />
+      </div>
+      @if (!isLoading) {
+        <div class="bq-results-hint">
+          {{ filtered.length }} produit{{ filtered.length !== 1 ? 's' : '' }}
+        </div>
+      }
+    </div>
+
+    <!-- ── FILTERS ROW ── -->
+    <div class="bq-filters-row">
+
+      <!-- Segmented cible -->
+      <div class="bq-segment">
+        @for (c of cibles; track c.value) {
+          <button class="bq-seg-btn"
+                  [class.active]="cibleFilter === c.value"
+                  (click)="cibleFilter = c.value">
+            <i [class]="c.icon"></i>
+            <span>{{ c.label }}</span>
+          </button>
+        }
+      </div>
+
+      <!-- Category chips -->
+      @if (categories.length > 0) {
+        <div class="bq-cats">
+          <button class="bq-cat-btn" [class.active]="categorieId === null" (click)="selectCategorie(null)">
+            Tous
+          </button>
+          @for (c of categories; track c.id) {
+            <button class="bq-cat-btn"
+                    [class.active]="categorieId === c.id"
+                    [style.--cat]="c.couleur"
+                    (click)="selectCategorie(c.id)">
+              {{ c.nom }}
+            </button>
+          }
+        </div>
+      }
+
+    </div>
+  </div>
+
+  <!-- ── LOADING ── -->
+  @if (isLoading) {
+    <div class="bq-loading">
+      <div class="bq-spinner"></div>
+      <p>Chargement…</p>
+    </div>
+  }
+
+  <!-- ── GRID ── -->
+  @if (!isLoading) {
+    @if (filtered.length === 0) {
+      <div class="bq-empty">
+        <i class="fas fa-box-open"></i>
+        <p>Aucun produit trouvé.</p>
+      </div>
+    }
+    <div class="bq-grid">
+      @for (p of filtered; track p.id) {
+        <div class="bq-card" (click)="goToDetail(p.id)"
+             [style.--accent]="p.categorie?.couleur || '#e8734a'">
+
+          <!-- Image -->
+          <div class="bq-card-img">
+            @if (p.imageUrl) {
+              <img [src]="getImageUrl(p.imageUrl)" [alt]="p.nom" />
+            } @else {
+              <div class="bq-card-img-placeholder">
+                <i class="fas fa-spa"></i>
+              </div>
+            }
+            <div class="bq-card-badges">
+              @if (p.bestSeller) {
+                <span class="badge-best">⭐ Best Seller</span>
+              }
+              @if (p.enPromo) {
+                <span class="badge-promo">🔥 {{ ((p.prix - p.prixPromo!) / p.prix * 100) | number:'1.0-0' }}%</span>
+              }
+            </div>
+          </div>
+
+          <!-- Body -->
+          <div class="bq-card-body">
+            @if (p.categorie) {
+              <div class="bq-card-cat"
+                   [style.color]="p.categorie.couleur"
+                   [style.background]="p.categorie.couleur + '18'">
+                {{ p.categorie.nom }}
+              </div>
+            }
+            <div class="bq-card-name">{{ p.nom }}</div>
+            @if (p.stock <= 15) {
+              <div class="bq-stock-low">
+                <span class="bq-stock-dot"></span>
+                Moins de {{ p.stock + 1 }} en stock — Profitez-en !
+              </div>
+            }
+            <div class="bq-card-desc">{{ p.description }}</div>
+
+            <div class="bq-card-footer">
+              <div class="bq-price-block">
+                @if (p.enPromo && p.prixPromo != null) {
+                  <span class="bq-price-old">{{ p.prix | number:'1.2-2' }} DT</span>
+                  <span class="bq-price-new">{{ p.prixPromo | number:'1.2-2' }} DT</span>
+                } @else {
+                  <span class="bq-price-new">{{ p.prix | number:'1.2-2' }} DT</span>
+                }
+              </div>
+              <button class="bq-btn-voir">
+                Voir <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      }
+    </div>
+  }
+
+</div>

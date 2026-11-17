@@ -1,0 +1,119 @@
+<div class="gc-page">
+
+  <!-- Header -->
+  <div class="gc-header">
+    <div>
+      <h1 class="gc-title">⚙️ Configuration Grades & Points</h1>
+      <p class="gc-subtitle">Définissez les seuils de grades, les récompenses et les points par action</p>
+    </div>
+  </div>
+
+  <!-- Points par action -->
+  <section class="gc-section">
+    <div class="gc-section-title">🎯 Points par action</div>
+    <p class="gc-section-desc">Modifiez le nombre de points attribués automatiquement à chaque action partenaire.</p>
+
+    <div class="sources-grid">
+      @for (s of sources; track s.id) {
+        <div class="source-card">
+          <div class="source-label">{{ SOURCE_LABELS[s.sourceType] ?? s.sourceType }}</div>
+          <div class="source-row">
+            <div class="source-pts-input">
+              <input type="number" [(ngModel)]="s.pointsParAction" min="0" />
+              <span class="pts-unit">pts</span>
+            </div>
+            <label class="toggle" title="{{ s.actif ? 'Actif' : 'Désactivé' }}">
+              <input type="checkbox" [(ngModel)]="s.actif" />
+              <span class="toggle-slider"></span>
+            </label>
+            <button class="btn-save-source"
+                    (click)="saveSource(s)"
+                    [disabled]="savingSource[s.id]">
+              {{ savingSource[s.id] ? '...' : '✓' }}
+            </button>
+          </div>
+          <div class="source-desc">{{ s.description }}</div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Grade configs -->
+  <section class="gc-section">
+    <div class="gc-section-title">🏅 Configuration des grades</div>
+    <p class="gc-section-desc">Définissez les seuils de points et les récompenses pour chaque grade.</p>
+
+    @if (loading) {
+      <div class="gc-loading">Chargement...</div>
+    } @else {
+      <div class="grades-list">
+        @for (g of grades; track g.id) {
+          <div class="grade-card">
+            <div class="grade-card-left">
+              <div class="gc-badge-wrap">
+                <div class="gc-grade-badge" [ngClass]="'gc-badge-' + g.grade.toLowerCase()">
+                  <span class="gc-badge-sym">{{ gradeIcon(g.grade) }}</span>
+                  <div class="gc-badge-shine"></div>
+                </div>
+                <div class="gc-grade-name" [ngClass]="'gc-gname-' + g.grade.toLowerCase()">{{ g.grade }}</div>
+              </div>
+            </div>
+
+            <div class="grade-card-body">
+              <div class="form-row-3">
+                <div class="form-group">
+                  <label>Seuil minimum (pts)</label>
+                  <input type="number" [(ngModel)]="g.pointsMin" min="0"
+                         [disabled]="g.grade === 'STARTER'" />
+                </div>
+                <div class="form-group">
+                  <label>Type de récompense</label>
+                  <select [(ngModel)]="g.rewardType">
+                    @for (r of REWARD_TYPES; track r.value) {
+                      <option [value]="r.value">{{ r.label }}</option>
+                    }
+                  </select>
+                </div>
+                @if (g.rewardType && g.rewardType !== 'BADGE' && g.rewardType !== 'TIRAGE_SORT') {
+                  <div class="form-group">
+                    <label>
+                      @if (g.rewardType === 'COMMISSION_BOOST') { Boost commission (%) }
+                      @else { Réduction (%) }
+                    </label>
+                    <input type="number" [(ngModel)]="g.rewardValeur" min="0" step="0.1" />
+                  </div>
+                }
+              </div>
+
+              @if (g.rewardType && g.rewardType !== 'BADGE') {
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label>Durée récompense (jours)</label>
+                    <input type="number" [(ngModel)]="g.rewardDureeJours" min="0" />
+                  </div>
+                  <div class="form-group">
+                    <label>Description récompense</label>
+                    <input [(ngModel)]="g.rewardDescription"
+                           placeholder="Ex: +0.5% de commission pendant 7 jours" />
+                  </div>
+                </div>
+              } @else if (g.rewardType === 'BADGE') {
+                <div class="form-group">
+                  <label>Description récompense</label>
+                  <input [(ngModel)]="g.rewardDescription" placeholder="Ex: Badge Bronze débloqué !" />
+                </div>
+              }
+            </div>
+
+            <div class="grade-card-action">
+              <button class="btn-save-grade" (click)="saveGrade(g)" [disabled]="saving[g.id]">
+                {{ saving[g.id] ? 'Sauvegarde...' : 'Sauvegarder' }}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </section>
+
+</div>

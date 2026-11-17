@@ -1,0 +1,297 @@
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a routerLink="/" class="nav-brand">
+    <img src="cute_logo.png" alt="Cuteness" class="nav-logo-img" />
+  </a>
+  <div class="nav-links">
+    <a routerLink="/">Accueil</a>
+    <a routerLink="/packs">Packs</a>
+    <a routerLink="/auth/login">Se connecter</a>
+  </div>
+  <div class="nav-actions">
+    <button class="btn-ghost" routerLink="/auth/login">Se connecter</button>
+    <button class="btn-primary" (click)="register()">
+      <i class="fas fa-user-plus"></i> S'inscrire
+    </button>
+  </div>
+</nav>
+
+<!-- LOADING -->
+@if (isLoading) {
+  <div class="loading-state">
+    <i class="fas fa-spinner fa-spin"></i>
+    <div>Chargement...</div>
+  </div>
+}
+
+@if (!isLoading && pack) {
+
+<!-- HERO HEADER -->
+<section class="pdp-hero" [ngClass]="colorClass()">
+  <button class="btn-back" routerLink="/packs">
+    <i class="fas fa-arrow-left"></i>
+    {{ lang === 'ar' ? 'العودة إلى الباقات' : 'Retour aux packs' }}
+  </button>
+  <div class="pdp-hero-inner">
+    <div class="pdp-emoji">{{ pack.emoji || '📦' }}</div>
+    <h1 class="pdp-name">Pack {{ pack.nom }}</h1>
+    @if (pack.nomAr) {
+      <div class="pdp-name-ar" dir="rtl">باقة {{ pack.nomAr }}</div>
+    }
+    <div class="pdp-price">{{ pack.prix }} DT</div>
+    <div class="pdp-badge">
+      <i class="fas fa-layer-group"></i>
+      {{ pack.niveaux }} niveau{{ pack.niveaux > 1 ? 'x' : '' }} MLM
+      &nbsp;·&nbsp;
+      <i class="fas fa-percent"></i> {{ pack.tauxCommissionDirect }}% commission
+    </div>
+    @if (selectedSp) {
+      <div class="pdp-subpack-chip">
+        {{ selectedSp.emoji }} {{ lang === 'ar' ? (selectedSp.nomAr || selectedSp.nom) : selectedSp.nom }}
+      </div>
+    }
+  </div>
+</section>
+
+<!-- LANG TABS -->
+<div class="lang-tabs">
+  <button class="lang-tab" [class.active]="lang === 'fr'" (click)="lang = 'fr'">🇫🇷 Français</button>
+  <button class="lang-tab" [class.active]="lang === 'ar'" (click)="lang = 'ar'">🇸🇦 العربية</button>
+</div>
+
+<div class="pdp-body" [dir]="lang === 'ar' ? 'rtl' : 'ltr'">
+
+  <!-- TOP CTA -->
+  <section class="pdp-cta-section">
+    <button class="btn-register" (click)="register()">
+      <i class="fas fa-user-plus"></i>
+      @if (lang === 'fr') {
+        S'inscrire avec Pack {{ pack.nom }}
+        @if (selectedSp) { — {{ selectedSp.nom }} }
+        — {{ pack.prix }} DT
+      } @else {
+        التسجيل مع باقة {{ pack.nomAr }}
+        @if (selectedSp) { — {{ selectedSp.nomAr || selectedSp.nom }} }
+        — {{ pack.prix }} دت
+      }
+    </button>
+    <div class="cta-note">
+      <i class="fas fa-shield-halved"></i>
+      {{ lang === 'ar' ? 'دفع مرة واحدة · تفعيل فوري · بدون التزام' : 'Paiement unique · Activation immédiate · Sans engagement' }}
+    </div>
+  </section>
+
+  <!-- PHOTO GALLERY -->
+  @if (allImages.length > 0) {
+    <section class="pdp-gallery-wrap">
+      <div class="gallery-main-container">
+        <img [src]="getImageUrl(allImages[currentImgIndex])" alt="{{ pack.nom }}" class="gallery-main-img" />
+        @if (allImages.length > 1) {
+          <button class="gallery-nav gallery-prev" (click)="prevImg()">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <button class="gallery-nav gallery-next" (click)="nextImg()">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+          <div class="gallery-counter">{{ currentImgIndex + 1 }} / {{ allImages.length }}</div>
+        }
+      </div>
+      @if (allImages.length > 1) {
+        <div class="gallery-thumbs">
+          @for (img of allImages; track img; let i = $index) {
+            <img [src]="getImageUrl(img)" alt="" class="gallery-thumb"
+                 [class.active]="i === currentImgIndex"
+                 (click)="currentImgIndex = i" />
+          }
+        </div>
+      }
+    </section>
+  }
+
+  <div class="pdp-content">
+
+    <!-- TAGLINE -->
+    @if (pack.taglineFr || pack.taglineAr) {
+      <div class="pdp-tagline">
+        {{ lang === 'ar' ? (pack.taglineAr || pack.taglineFr) : pack.taglineFr }}
+      </div>
+    }
+
+    <!-- SELECTED SOUS-PACK DETAIL -->
+    @if (selectedSp) {
+      <div class="pdp-section">
+        <h2 class="pdp-section-title">
+          <i class="fas fa-box-open"></i>
+          {{ lang === 'ar' ? 'محتوى الباقة المختارة' : 'Contenu du sous-pack choisi' }}
+        </h2>
+        <div class="sp-detail-card" [ngClass]="'sp-' + (selectedSp.theme || 'coral')">
+          <div class="sp-detail-header">
+            <span class="sp-detail-emoji">{{ selectedSp.emoji }}</span>
+            <div class="sp-detail-name">{{ lang === 'ar' ? (selectedSp.nomAr || selectedSp.nom) : selectedSp.nom }}</div>
+          </div>
+          @if (selectedSp.imageUrl) {
+            <div class="sp-detail-img">
+              <img [src]="getImageUrl(selectedSp.imageUrl)" alt="{{ selectedSp.nom }}" />
+            </div>
+          }
+          <div class="sp-detail-body">
+            <div class="sp-products-title">
+              <i class="fas fa-box"></i>
+              {{ lang === 'ar' ? 'المنتجات المضمّنة' : 'Produits inclus' }}
+            </div>
+            <ul class="sp-products">
+              @for (prod of (lang === 'ar' ? (selectedSp.produitsAr.length ? selectedSp.produitsAr : selectedSp.produitsFr) : selectedSp.produitsFr); track prod) {
+                <li><i class="fas fa-check-circle"></i> {{ prod }}</li>
+              }
+            </ul>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- FEATURES -->
+    @if (features().length) {
+      <div class="pdp-section">
+        <h2 class="pdp-section-title">
+          <i class="fas fa-list-check"></i>
+          {{ lang === 'ar' ? 'ما يتضمنه الباقة' : 'Ce qui est inclus' }}
+        </h2>
+        <div class="features-list">
+          @for (f of features(); track f) {
+            <div class="feat-item"><i class="fas fa-check-circle"></i> {{ f }}</div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- MLM TABLE -->
+    @if (mlmTable().length) {
+      <div class="pdp-section">
+        <h2 class="pdp-section-title">
+          <i class="fas fa-table"></i>
+          {{ lang === 'ar' ? 'جدول عمولات التسويق الشبكي' : 'Tableau des commissions MLM' }}
+        </h2>
+        <div class="mlm-table">
+          <div class="mlm-row mlm-head">
+            @if (lang === 'ar') {
+              <div>المستوى</div><div>الوصف</div><div>النسبة</div>
+            } @else {
+              <div>Niveau</div><div>Description</div><div>Taux</div>
+            }
+          </div>
+          @for (row of mlmTable(); track row.level) {
+            <div class="mlm-row">
+              <div class="mlm-lvl">{{ lang === 'ar' ? 'م' : 'N' }}{{ row.level }}</div>
+              <div>{{ row.label }}</div>
+              <div class="mlm-rate">{{ row.rate }}</div>
+            </div>
+          }
+        </div>
+        <div class="mlm-note">
+          <i class="fas fa-info-circle"></i>
+          {{ lang === 'ar' ? 'تُحسب العمولات تلقائياً بعد كل تسليم مؤكد.' : 'Les commissions sont calculées automatiquement après chaque livraison validée.' }}
+        </div>
+      </div>
+    }
+
+    <!-- ADVANTAGES -->
+    @if (advantages().length) {
+      <div class="pdp-section">
+        <h2 class="pdp-section-title">
+          <i class="fas fa-gift"></i>
+          {{ lang === 'ar' ? 'المزايا الحصرية' : 'Avantages exclusifs' }}
+        </h2>
+        <div class="adv-grid">
+          @for (adv of advantages(); track adv.title) {
+            <div class="adv-card">
+              <div class="adv-icon"><i [class]="adv.icon"></i></div>
+              <div class="adv-title">{{ adv.title }}</div>
+              <div class="adv-desc">{{ adv.desc }}</div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- SOUS-PACKS GRID -->
+    @if (pack.sousPacks.length) {
+      <div class="pdp-section">
+        <h2 class="pdp-section-title">
+          <i class="fas fa-boxes-stacked"></i>
+          {{ lang === 'ar' ? 'اختر مجموعتك' : 'Choisissez votre sous-pack' }}
+        </h2>
+        <div class="sp-grid">
+          @for (sp of pack.sousPacks; track sp.id) {
+            <div class="sp-grid-card" [attr.data-theme]="sp.theme">
+              @if (sp.imageUrl) {
+                <div class="sp-grid-img-wrap">
+                  <img [src]="getImageUrl(sp.imageUrl)" alt="{{ sp.nom }}" class="sp-grid-img" />
+                </div>
+              } @else {
+                <div class="sp-grid-no-img">{{ sp.emoji }}</div>
+              }
+              <div class="sp-grid-body">
+                <div class="sp-grid-top">
+                  <span class="sp-grid-emoji">{{ sp.emoji }}</span>
+                  <div>
+                    <div class="sp-grid-name">{{ lang === 'ar' ? (sp.nomAr || sp.nom) : sp.nom }}</div>
+                    @if (sp.produitsFr.length) {
+                      <div class="sp-grid-count">
+                        <i class="fas fa-box"></i>
+                        {{ sp.produitsFr.length }}
+                        {{ lang === 'ar' ? 'منتج' : (sp.produitsFr.length > 1 ? 'produits' : 'produit') }}
+                      </div>
+                    }
+                  </div>
+                </div>
+                @if (sp.produitsFr.length) {
+                  <ul class="sp-grid-preview">
+                    @for (pr of (lang === 'ar' ? (sp.produitsAr.length ? sp.produitsAr : sp.produitsFr) : sp.produitsFr).slice(0, 3); track pr) {
+                      <li>{{ pr }}</li>
+                    }
+                    @if (sp.produitsFr.length > 3) {
+                      <li class="sp-grid-more">
+                        + {{ sp.produitsFr.length - 3 }}
+                        {{ lang === 'ar' ? 'منتج آخر' : 'autre(s)' }}...
+                      </li>
+                    }
+                  </ul>
+                }
+                <a [routerLink]="['/packs', pack.id, 'sous-packs', sp.id]" class="sp-grid-btn">
+                  <i class="fas fa-hand-pointer"></i>
+                  {{ lang === 'ar' ? 'اختر ' + (sp.nomAr || sp.nom) : 'Choisir ' + sp.nom }}
+                </a>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+  </div>
+
+  <!-- BOTTOM CTA -->
+  <section class="pdp-cta-bottom">
+    <div class="cta-bottom-inner">
+      <h3>{{ lang === 'ar' ? 'مستعد للانضمام؟' : 'Prêt à rejoindre ?' }}</h3>
+      <p>{{ lang === 'ar' ? 'سجّل الآن وابدأ رحلتك مع Cuteness Collaboration.' : 'Inscrivez-vous maintenant et commencez à développer votre réseau.' }}</p>
+      <button class="btn-register" (click)="register()">
+        <i class="fas fa-user-plus"></i>
+        @if (lang === 'fr') { S'inscrire avec Pack {{ pack.nom }} — {{ pack.prix }} DT }
+        @else { التسجيل مع باقة {{ pack.nomAr }} — {{ pack.prix }} دت }
+      </button>
+      <div class="cta-bottom-links">
+        <button class="btn-back-packs" routerLink="/packs">
+          <i class="fas fa-arrow-left"></i>
+          {{ lang === 'ar' ? 'تغيير الباقة' : 'Changer de pack' }}
+        </button>
+        <button class="btn-back-packs" routerLink="/auth/login">
+          <i class="fas fa-sign-in-alt"></i>
+          {{ lang === 'ar' ? 'لديّ حساب بالفعل' : 'J\'ai déjà un compte' }}
+        </button>
+      </div>
+    </div>
+  </section>
+
+</div>
+}

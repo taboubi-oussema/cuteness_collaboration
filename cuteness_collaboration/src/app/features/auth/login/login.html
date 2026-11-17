@@ -1,0 +1,171 @@
+<div class="login-page">
+
+  <!-- PANEL GAUCHE -->
+  <div class="login-brand">
+    <div class="brand-content">
+
+      <h1 class="brand-title">
+        <span id="collab">cuteness</span><br>
+        <span id="mlm">_collaboration MLM</span><br><br>
+        Développez votre<br>
+        réseau, <span class="highlight">ensemble.</span>
+      </h1>
+      <p class="brand-desc">
+        Gérez vos partenaires, suivez vos commissions
+        et boostez votre réseau MLM depuis une seule plateforme.
+      </p>
+
+      <div class="brand-stats">
+        <div class="bs-item">
+          <div class="bs-row">
+            <div class="bs-lbl">Partenaires actifs</div>
+            <div class="bs-val">248</div>
+          </div>
+        </div>
+        <div class="bs-item">
+          <div class="bs-row">
+            <div class="bs-lbl">Commissions ce mois</div>
+            <div class="bs-val">4 712 DT</div>
+          </div>
+        </div>
+        <div class="bs-item">
+          <div class="bs-row">
+            <div class="bs-lbl">Taux de livraison</div>
+            <div class="bs-val">97 %</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="deco deco-1"></div>
+      <div class="deco deco-2"></div>
+    </div>
+  </div>
+
+  <!-- PANEL DROIT -->
+  <div class="login-form-panel">
+    <div class="login-card animate-fadeInUp">
+
+      <!-- Logo grand au dessus du formulaire -->
+      <div class="card-logo-top">
+        <img src="cute_logo.png" alt="Cuteness" class="company-logo-top" />
+      </div>
+
+      <div class="login-link">
+        <a routerLink="/"><i class="fas fa-arrow-left"></i> Retour à l'accueil</a>
+      </div>
+
+      <p class="card-subtitle">Bienvenue ! Entrez vos identifiants.</p>
+
+      @if (sessionExpired) {
+        <div class="alert-banner warning">
+          <i class="fas fa-clock"></i>
+          Votre session a expiré. Reconnectez-vous.
+        </div>
+      }
+
+      @if (errorMessage) {
+        <div class="alert-banner danger">
+          <i class="fas fa-exclamation-circle"></i>
+          {{ errorMessage }}
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+        <div class="cc-form-group">
+          <label for="email">Adresse email</label>
+          <div class="cc-input-wrap">
+            <i class="fas fa-envelope input-icon"></i>
+            <input
+              id="email" type="email"
+              class="cc-input"
+              [class.has-error]="emailCtrl.invalid && emailCtrl.touched"
+              formControlName="email"
+              placeholder="votre@email.com"
+              autocomplete="email"
+            />
+          </div>
+          @if (emailCtrl.invalid && emailCtrl.touched) {
+            <div class="cc-error">
+              <i class="fas fa-times-circle"></i> {{ emailError }}
+            </div>
+          }
+        </div>
+
+        <div class="cc-form-group">
+          <div class="label-row">
+            <label for="password">Mot de passe</label>
+        
+          </div>
+          <div class="cc-input-wrap">
+            <i class="fas fa-lock input-icon"></i>
+            <input
+              id="password"
+              [type]="showPassword ? 'text' : 'password'"
+              class="cc-input"
+              [class.has-error]="passwordCtrl.invalid && passwordCtrl.touched"
+              formControlName="motDePasse"
+              placeholder="••••••••"
+              autocomplete="current-password"
+            />
+            <button type="button" class="input-action" (click)="togglePassword()">
+              <i [class]="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+            </button>
+          </div>
+          <a routerLink="/auth/reset-password" class="forgot-link">
+            Mot de passe oublié ?
+          </a>
+          @if (passwordCtrl.invalid && passwordCtrl.touched) {
+            <div class="cc-error">
+              <i class="fas fa-times-circle"></i> {{ passwordError }}
+            </div>
+          }
+        </div>
+
+        <div class="remember-row">
+          <label class="checkbox-label">
+            <input type="checkbox" class="cc-checkbox" formControlName="rememberMe" />
+            <span class="checkbox-custom"></span>
+            Se souvenir de moi
+          </label>
+        </div>
+
+        <button type="submit" class="cc-btn primary submit-btn" [disabled]="isLoading">
+          @if (!isLoading) {
+            <i class="fas fa-sign-in-alt"></i> Se connecter
+          } @else {
+            <span class="spinner"></span> Connexion…
+          }
+        </button>
+
+      </form>
+
+      @if (!isProduction) {
+        <div class="cc-divider">Comptes de démonstration</div>
+        <div class="demo-accounts">
+          <div class="demo-chip" (click)="fillDemo('admin@cuteness.com','amal1234')">
+            <span class="role-dot admin"></span> Admin
+          </div>
+          <div class="demo-chip" (click)="fillDemo('sup@cuteness.tn','amal1234')">
+            <span class="role-dot sup"></span> Superviseur
+          </div>
+          <div class="demo-chip" (click)="fillDemo('compta@cuteness.tn','amal1234')">
+            <span class="role-dot cpt"></span> Comptable
+          </div>
+          <div class="demo-chip" (click)="fillDemo('partenaire@cuteness.com','amal1234')">
+            <span class="role-dot prt"></span> Partenaire
+          </div>
+        </div>
+      }
+
+      <!-- ✅ AJOUT : lien S'inscrire -->
+      <div class="login-link">
+        Pas encore de compte ?
+        <a routerLink="/auth/register">S'inscrire</a>
+      </div>
+
+      <p class="footer-note">© 2026 Cuteness Collaboration</p>
+    </div>
+  </div>
+
+</div>

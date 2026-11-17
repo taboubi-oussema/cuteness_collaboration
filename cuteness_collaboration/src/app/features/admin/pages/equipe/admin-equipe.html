@@ -1,0 +1,271 @@
+<div class="section-content">
+
+  <!-- ── FEEDBACK ── -->
+  @if (successMsg) {
+    <div class="error-banner" style="background:#EDFAF4; border-color:#4ECBA0; color:#1e9b6b; margin-bottom:12px;">
+      <i class="fas fa-check-circle"></i> {{ successMsg }}
+    </div>
+  }
+  @if (errorMsg && !showModal) {
+    <div class="error-banner" style="margin-bottom:12px;">
+      <i class="fas fa-exclamation-triangle"></i> {{ errorMsg }}
+      <button class="btn-sm" (click)="load()">Réessayer</button>
+    </div>
+  }
+
+  <!-- ── MODAL EDIT ── -->
+  @if (showModal && editTarget) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal-box" (click)="$event.stopPropagation()" style="max-width:480px;">
+
+        <!-- Header modal -->
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+          <div style="width:44px; height:44px; border-radius:50%;
+            background:linear-gradient(135deg,#3AAFDA,#4ECBA0);
+            display:flex; align-items:center; justify-content:center;
+            font-size:15px; font-weight:800; color:#fff; flex-shrink:0;">
+            {{ initiales(editTarget.nom) }}
+          </div>
+          <div>
+            <div class="modal-title" style="margin-bottom:2px;">Modifier le membre</div>
+            <div style="font-size:12px; color:var(--text-soft);">{{ editTarget.email }}</div>
+          </div>
+        </div>
+
+        <div class="modal-body" style="display:flex; flex-direction:column; gap:14px;">
+
+          @if (errorMsg) {
+            <div style="background:#FFF0F0; border:1px solid #F87171; color:#d43c3c;
+              padding:8px 12px; border-radius:8px; font-size:13px;">
+              <i class="fas fa-exclamation-triangle"></i> {{ errorMsg }}
+            </div>
+          }
+
+          <!-- Nom -->
+          <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-2); margin-bottom:5px;">
+              <i class="fas fa-user" style="margin-right:5px;"></i> Nom complet
+            </label>
+            <input type="text" [(ngModel)]="editNom"
+              style="width:100%; border:1.5px solid var(--border); border-radius:9px;
+                padding:9px 12px; font-size:13px; box-sizing:border-box;"
+              placeholder="Nom complet" />
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-2); margin-bottom:5px;">
+              <i class="fas fa-envelope" style="margin-right:5px;"></i> Email
+            </label>
+            <input type="email" [(ngModel)]="editEmail"
+              style="width:100%; border:1.5px solid var(--border); border-radius:9px;
+                padding:9px 12px; font-size:13px; box-sizing:border-box;"
+              placeholder="Email" />
+          </div>
+
+          <!-- Rôle -->
+          <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-2); margin-bottom:8px;">
+              <i class="fas fa-shield-alt" style="margin-right:5px;"></i> Rôle
+            </label>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              @for (r of [['SUPERVISEUR','fa-user-tie','#3AAFDA','#EFF9FF','#BAE6FD'],
+                          ['COMPTABLE','fa-calculator','#059669','#EDFAF4','#4ECBA0'],
+                          ['PARTENAIRE','fa-handshake','#FF6B5B','#FFF0EE','#FFCFC9']]; track r[0]) {
+                <button
+                  [style]="editRole === r[0]
+                    ? 'border:2px solid ' + r[2] + '; background:' + r[3] + '; color:' + r[2] + '; padding:8px 16px; border-radius:9px; cursor:pointer; font-size:13px; font-weight:700; display:flex; align-items:center; gap:6px;'
+                    : 'border:1.5px solid var(--border); background:#fff; color:var(--text-2); padding:8px 16px; border-radius:9px; cursor:pointer; font-size:13px; font-weight:600; display:flex; align-items:center; gap:6px;'"
+                  (click)="editRole = r[0]">
+                  <i [class]="'fas ' + r[1]"></i> {{ r[0] | titlecase }}
+                </button>
+              }
+            </div>
+            @if (editRole === 'PARTENAIRE') {
+              <div style="margin-top:8px; background:#FFF7ED; border:1px solid #FBD38D;
+                color:#D97706; padding:8px 12px; border-radius:8px; font-size:12px;">
+                <i class="fas fa-exclamation-triangle"></i>
+                Ce membre perdra ses droits de gestion et deviendra un simple partenaire.
+              </div>
+            }
+          </div>
+
+        </div>
+
+        <div class="modal-actions" style="margin-top:20px;">
+          <button class="btn-sm" (click)="closeModal()" [disabled]="saving">Annuler</button>
+          <button class="btn-valider" [disabled]="saving || !editNom.trim() || !editEmail.trim()"
+            (click)="saveEdit()">
+            @if (saving) {
+              <i class="fas fa-spinner fa-spin"></i> Enregistrement…
+            } @else {
+              <i class="fas fa-save"></i> Enregistrer
+            }
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- ── HEADER ── -->
+  <div class="welcome-banner">
+    <div class="wb-left">
+      <div class="wb-title">🛡️ Gestion de l'équipe</div>
+      <div class="wb-sub">
+        Superviseurs et comptables — modification des rôles et informations
+        @if (!isLoading) {
+          · <span style="color:#8A92B2; font-size:11px;">{{ membres.length }} membre{{ membres.length !== 1 ? 's' : '' }}</span>
+        }
+      </div>
+    </div>
+    <button class="btn-valider" style="font-size:12px; padding:7px 16px;" (click)="load()">
+      <i class="fas fa-sync-alt"></i> Actualiser
+    </button>
+  </div>
+
+  <!-- ── LOADING ── -->
+  @if (isLoading) {
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Chargement des membres…</div>
+    </div>
+  }
+
+  @if (!isLoading) {
+
+    <!-- ── TABS + SEARCH ── -->
+    <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
+
+      <!-- Tabs rôle -->
+      <div style="display:flex; gap:6px;">
+        @for (tab of [['TOUS','Tous'],['SUPERVISEUR','Superviseurs'],['COMPTABLE','Comptables']] ; track tab[0]) {
+          <button class="filter-chip" [class.active]="filtreRole === tab[0]"
+            (click)="filtreRole = $any(tab[0])">
+            {{ tab[1] }}
+            <span style="margin-left:5px; background:rgba(0,0,0,0.08); border-radius:10px;
+              padding:1px 7px; font-size:11px; font-weight:700;">
+              {{ countByRole(tab[0]) }}
+            </span>
+          </button>
+        }
+      </div>
+
+      <input class="search-input" type="text" [(ngModel)]="searchTerm"
+        placeholder="🔍 Rechercher par nom, email, ID…" style="flex:1; min-width:200px;" />
+    </div>
+
+    <!-- ── EMPTY STATE ── -->
+    @if (membres.length === 0) {
+      <div style="text-align:center; padding:60px 20px;">
+        <div style="font-size:56px; margin-bottom:16px;">👥</div>
+        <div style="font-size:18px; font-weight:700; color:var(--text); margin-bottom:8px;">
+          Aucun membre dans l'équipe
+        </div>
+        <div style="font-size:13px; color:var(--text-soft);">
+          Promouvez un partenaire depuis la page Réseau MLM.
+        </div>
+      </div>
+    }
+
+    @if (membres.length > 0 && membresFiltres.length === 0) {
+      <div class="dt-empty">
+        <i class="fas fa-search"></i> Aucun résultat pour cette recherche.
+      </div>
+    }
+
+    <!-- ── MEMBRE CARDS ── -->
+    @if (membresFiltres.length > 0) {
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        @for (m of membresFiltres; track m.id) {
+          <div class="cmd-card"
+            [style.border-left]="m.role === 'SUPERVISEUR' ? '4px solid #3AAFDA' : '4px solid #4ECBA0'">
+
+            <div style="display:flex; align-items:center; gap:16px; padding:4px 0; flex-wrap:wrap;">
+
+              <!-- Avatar -->
+              <div [style]="'width:46px; height:46px; border-radius:50%; flex-shrink:0;' +
+                'display:flex; align-items:center; justify-content:center;' +
+                'font-size:16px; font-weight:800; color:#fff; letter-spacing:0.5px;' +
+                (m.role === 'SUPERVISEUR'
+                  ? 'background:linear-gradient(135deg,#3AAFDA,#60C9F0);'
+                  : 'background:linear-gradient(135deg,#4ECBA0,#34D399);')">
+                {{ initiales(m.nom) }}
+              </div>
+
+              <!-- Identité -->
+              <div style="flex:1; min-width:160px;">
+                <div style="font-size:15px; font-weight:800; color:var(--text); margin-bottom:2px;">
+                  {{ m.nom }}
+                  <span style="font-size:11px; font-weight:500; color:var(--text-soft); margin-left:6px;">#{{ m.id }}</span>
+                </div>
+                <div style="font-size:12px; color:var(--text-2);">
+                  <i class="fas fa-envelope" style="color:#8A92B2; margin-right:4px;"></i>{{ m.email }}
+                </div>
+              </div>
+
+              <!-- Rôle + Statut -->
+              <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+                <span [style]="'padding:5px 14px; border-radius:20px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:6px;' + roleColor(m.role)">
+                  <i [class]="'fas ' + roleIcon(m.role)"></i> {{ m.role | titlecase }}
+                </span>
+                <span [style]="m.statut
+                  ? 'background:#EDFAF4; color:#059669; border:1px solid #4ECBA0; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:700;'
+                  : 'background:#FFF0F0; color:#d43c3c; border:1px solid #F87171; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:700;'">
+                  <i [class]="m.statut ? 'fas fa-circle' : 'fas fa-circle'" style="font-size:7px; margin-right:4px;"></i>
+                  {{ m.statut ? 'Actif' : 'Inactif' }}
+                </span>
+              </div>
+
+              <!-- Date création -->
+              <div style="text-align:right; min-width:90px; flex-shrink:0;">
+                @if (m.dateCreation) {
+                  <div style="font-size:11px; color:var(--text-soft);">Depuis le</div>
+                  <div style="font-size:12px; font-weight:700; color:var(--text-2);">
+                    {{ m.dateCreation | date:'dd/MM/yyyy' }}
+                  </div>
+                }
+              </div>
+
+              <!-- Actions -->
+              <div style="display:flex; gap:8px; flex-shrink:0;">
+                <!-- Toggle statut -->
+                <button
+                  [style]="m.statut
+                    ? 'font-size:12px; padding:7px 12px; background:#FFF0F0; color:#d43c3c; border:1.5px solid #F87171; border-radius:9px; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:5px;'
+                    : 'font-size:12px; padding:7px 12px; background:#EDFAF4; color:#059669; border:1.5px solid #4ECBA0; border-radius:9px; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:5px;'"
+                  [disabled]="processingId === m.id"
+                  (click)="toggleStatut(m)"
+                  [title]="m.statut ? 'Désactiver le compte' : 'Activer le compte'">
+                  @if (processingId === m.id) {
+                    <i class="fas fa-spinner fa-spin"></i>
+                  } @else {
+                    <i [class]="m.statut ? 'fas fa-ban' : 'fas fa-check'"></i>
+                  }
+                  {{ m.statut ? 'Désactiver' : 'Activer' }}
+                </button>
+
+                <!-- Modifier -->
+                <button class="btn-valider"
+                  style="font-size:12px; padding:7px 14px;"
+                  (click)="openEdit(m)">
+                  <i class="fas fa-pen"></i> Modifier
+                </button>
+              </div>
+
+            </div>
+          </div>
+        }
+      </div>
+
+      <div style="text-align:center; margin-top:16px; font-size:12px; color:var(--text-soft);">
+        {{ membresFiltres.length }} membre{{ membresFiltres.length !== 1 ? 's' : '' }}
+        @if (membresFiltres.length !== membres.length) {
+          sur {{ membres.length }}
+        }
+      </div>
+    }
+
+  }
+
+</div>

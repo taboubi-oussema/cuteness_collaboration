@@ -1,0 +1,78 @@
+<div class="section-content">
+  <div class="rapport-header">
+    <div class="rh-title"><i class="fas fa-calendar-alt"></i> Période</div>
+    <select class="rh-select" [(ngModel)]="periode">
+      <option value="mars-2026">Mars 2026</option>
+      <option value="fevrier-2026">Février 2026</option>
+      <option value="janvier-2026">Janvier 2026</option>
+      <option value="q1-2026">Q1 2026</option>
+    </select>
+  </div>
+
+  <div class="rapport-summary">
+    <div class="rs-card rs-coral">
+      <div class="rs-icon"><i class="fas fa-coins"></i></div>
+      <div class="rs-val">{{ kpis.totalCommissionsValidees }} DT</div>
+      <div class="rs-lbl">Commissions validées</div>
+    </div>
+    <div class="rs-card rs-gold">
+      <div class="rs-icon"><i class="fas fa-clock"></i></div>
+      <div class="rs-val">{{ totalEnAttente | number:'1.2-2' }} DT</div>
+      <div class="rs-lbl">En attente</div>
+    </div>
+    <div class="rs-card rs-blue">
+      <div class="rs-icon"><i class="fas fa-box"></i></div>
+      <div class="rs-val">{{ kpis.totalTransactionsPacks }} DT</div>
+      <div class="rs-lbl">Revenus packs</div>
+    </div>
+    <div class="rs-card rs-mint">
+      <div class="rs-icon"><i class="fas fa-store"></i></div>
+      <div class="rs-val">{{ kpis.totalTransactionsBoutique }} DT</div>
+      <div class="rs-lbl">Revenus boutique</div>
+    </div>
+  </div>
+
+  <div class="export-section">
+    <div class="es-title"><i class="fas fa-download"></i> Exporter</div>
+    <div class="export-grid">
+      <div class="export-card">
+        <div class="ec-icon ec-green"><i class="fas fa-file-csv"></i></div>
+        <div class="ec-title">Commissions CSV</div>
+        <div class="ec-desc">Toutes les commissions avec statuts</div>
+        <button class="ec-btn ec-btn-green" (click)="exporterCSV('commissions')">
+          <i class="fas fa-download"></i> Exporter
+        </button>
+      </div>
+      <div class="export-card">
+        <div class="ec-icon ec-blue"><i class="fas fa-file-csv"></i></div>
+        <div class="ec-title">Transactions CSV</div>
+        <div class="ec-desc">Packs et boutique</div>
+        <button class="ec-btn ec-btn-blue" (click)="exporterCSV('transactions')">
+          <i class="fas fa-download"></i> Exporter
+        </button>
+      </div>
+      <div class="export-card">
+        <div class="ec-icon ec-purple"><i class="fas fa-file-csv"></i></div>
+        <div class="ec-title">Virements CSV</div>
+        <div class="ec-desc">Historique complet des virements</div>
+        <button class="ec-btn ec-btn-purple" (click)="exporterCSV('virements')">
+          <i class="fas fa-download"></i> Exporter
+        </button>
+      </div>
+      <div class="export-card">
+        <div class="ec-icon ec-coral"><i class="fas fa-file-pdf"></i></div>
+        <div class="ec-title">Rapport PDF</div>
+        <div class="ec-desc">Rapport financier complet</div>
+        <button class="ec-btn ec-btn-coral" (click)="exporterPDF()">
+          <i class="fas fa-print"></i> Imprimer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (rapportGenere) {
+    <div class="success-banner">
+      <i class="fas fa-check-circle"></i> Rapport généré pour {{ periode }} !
+    </div>
+  }
+</div>

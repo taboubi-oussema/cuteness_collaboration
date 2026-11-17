@@ -1,0 +1,225 @@
+<div class="section-content">
+
+  <!-- ── Onglets ── -->
+  <div style="display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;">
+    <button class="tab-btn" [class.active]="activeReport === 'synthese'" (click)="activeReport = 'synthese'">
+      <i class="fas fa-chart-pie"></i> Synthèse financière
+    </button>
+    <button class="tab-btn" [class.active]="activeReport === 'commandes'" (click)="activeReport = 'commandes'">
+      <i class="fas fa-shopping-bag"></i> Historique commandes
+      <span class="tab-count">{{ commandes.length }}</span>
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       ONGLET : SYNTHÈSE FINANCIÈRE (existant)
+  ══════════════════════════════════════════ -->
+  @if (activeReport === 'synthese') {
+
+    <div class="rapport-header">
+      <div class="rh-title"><i class="fas fa-calendar-alt"></i> Période</div>
+      <select class="rh-select" [(ngModel)]="periode">
+        <option value="mars-2026">Mars 2026</option>
+        <option value="fevrier-2026">Février 2026</option>
+        <option value="janvier-2026">Janvier 2026</option>
+        <option value="q1-2026">Q1 2026</option>
+      </select>
+    </div>
+
+    <div class="rapport-summary">
+      <div class="rs-card rs-coral">
+        <div class="rs-icon"><i class="fas fa-coins"></i></div>
+        <div class="rs-val">{{ kpis.totalCommissionsValidees }} DT</div>
+        <div class="rs-lbl">Commissions validées</div>
+      </div>
+      <div class="rs-card rs-gold">
+        <div class="rs-icon"><i class="fas fa-clock"></i></div>
+        <div class="rs-val">{{ totalEnAttente | number:'1.2-2' }} DT</div>
+        <div class="rs-lbl">En attente</div>
+      </div>
+      <div class="rs-card rs-blue">
+        <div class="rs-icon"><i class="fas fa-box"></i></div>
+        <div class="rs-val">{{ kpis.totalTransactionsPacks }} DT</div>
+        <div class="rs-lbl">Revenus packs</div>
+      </div>
+      <div class="rs-card rs-mint">
+        <div class="rs-icon"><i class="fas fa-store"></i></div>
+        <div class="rs-val">{{ kpis.totalTransactionsBoutique }} DT</div>
+        <div class="rs-lbl">Revenus boutique</div>
+      </div>
+    </div>
+
+    <div class="export-section">
+      <div class="es-title"><i class="fas fa-download"></i> Exporter</div>
+      <div class="export-grid">
+        <div class="export-card">
+          <div class="ec-icon ec-green"><i class="fas fa-file-csv"></i></div>
+          <div class="ec-title">Commissions CSV</div>
+          <div class="ec-desc">Toutes les commissions avec statuts</div>
+          <button class="ec-btn ec-btn-green" (click)="exporterCSV('commissions')">
+            <i class="fas fa-download"></i> Exporter
+          </button>
+        </div>
+        <div class="export-card">
+          <div class="ec-icon ec-blue"><i class="fas fa-file-csv"></i></div>
+          <div class="ec-title">Transactions CSV</div>
+          <div class="ec-desc">Packs et boutique</div>
+          <button class="ec-btn ec-btn-blue" (click)="exporterCSV('transactions')">
+            <i class="fas fa-download"></i> Exporter
+          </button>
+        </div>
+        <div class="export-card">
+          <div class="ec-icon ec-purple"><i class="fas fa-file-csv"></i></div>
+          <div class="ec-title">Virements CSV</div>
+          <div class="ec-desc">Historique complet des virements</div>
+          <button class="ec-btn ec-btn-purple" (click)="exporterCSV('virements')">
+            <i class="fas fa-download"></i> Exporter
+          </button>
+        </div>
+        <div class="export-card">
+          <div class="ec-icon ec-coral"><i class="fas fa-file-pdf"></i></div>
+          <div class="ec-title">Rapport PDF</div>
+          <div class="ec-desc">Rapport financier complet</div>
+          <button class="ec-btn ec-btn-coral" (click)="exporterPDF()">
+            <i class="fas fa-print"></i> Imprimer
+          </button>
+        </div>
+      </div>
+    </div>
+
+    @if (rapportGenere) {
+      <div class="success-banner">
+        <i class="fas fa-check-circle"></i> Rapport généré pour {{ periode }} !
+      </div>
+    }
+
+  } <!-- fin synthese -->
+
+  <!-- ══════════════════════════════════════════
+       ONGLET : HISTORIQUE COMMANDES
+  ══════════════════════════════════════════ -->
+  @if (activeReport === 'commandes') {
+
+    <!-- KPIs -->
+    <div class="rapport-summary" style="margin-bottom:20px;">
+      <div class="rs-card rs-blue">
+        <div class="rs-icon"><i class="fas fa-shopping-bag"></i></div>
+        <div class="rs-val">{{ totalCommandes }}</div>
+        <div class="rs-lbl">Total commandes</div>
+      </div>
+      <div class="rs-card rs-mint">
+        <div class="rs-icon"><i class="fas fa-check-circle"></i></div>
+        <div class="rs-val">{{ commandesLivrees }}</div>
+        <div class="rs-lbl">Livrées</div>
+      </div>
+      <div class="rs-card rs-gold">
+        <div class="rs-icon"><i class="fas fa-clock"></i></div>
+        <div class="rs-val">{{ commandesEnCours }}</div>
+        <div class="rs-lbl">En cours</div>
+      </div>
+      <div class="rs-card rs-coral">
+        <div class="rs-icon"><i class="fas fa-coins"></i></div>
+        <div class="rs-val">{{ totalNet | number:'1.2-2' }} DT</div>
+        <div class="rs-lbl">Montant net total</div>
+      </div>
+    </div>
+
+    <!-- Barre totaux -->
+    <div class="totaux-bar" style="margin-bottom:16px;">
+      <div class="tb-item">
+        <div class="tb-val">{{ totalBrut | number:'1.2-2' }} DT</div>
+        <div class="tb-lbl">Montant brut</div>
+      </div>
+      <div class="tb-item tb-green">
+        <div class="tb-val">{{ totalReduction | number:'1.2-2' }} DT</div>
+        <div class="tb-lbl">Total réductions</div>
+      </div>
+      <div class="tb-item tb-coral">
+        <div class="tb-val">{{ totalNet | number:'1.2-2' }} DT</div>
+        <div class="tb-lbl">Net TTC</div>
+      </div>
+    </div>
+
+    <!-- Filtres -->
+    <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; align-items:center;">
+      <input class="search-input" type="text" [(ngModel)]="searchCmd"
+        placeholder="🔍 Rechercher par nom, ID, région…" style="flex:1; min-width:180px;" />
+      <input type="date" class="date-picker-input" [(ngModel)]="filtreDateDebut"
+        title="Date début" style="width:140px;" />
+      <input type="date" class="date-picker-input" [(ngModel)]="filtreDateFin"
+        title="Date fin" style="width:140px;" />
+      <button class="ec-btn ec-btn-green" style="padding:6px 14px; font-size:12px; white-space:nowrap;"
+        (click)="exporterCommandesCSV()">
+        <i class="fas fa-file-csv"></i> Exporter CSV
+      </button>
+    </div>
+
+    <!-- Filtre statuts -->
+    <div style="display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;">
+      @for (s of statutsCmd; track s) {
+        <button class="filter-chip" [class.active]="filtreStatutCmd === s" (click)="filtreStatutCmd = s">
+          {{ s === 'TOUS' ? 'Tous' : s.replace('_', ' ') }}
+        </button>
+      }
+    </div>
+
+    <!-- Tableau -->
+    @if (isLoadingCmd) {
+      <div class="dt-empty"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
+    } @else if (filteredCommandes.length === 0) {
+      <div class="dt-empty"><i class="fas fa-inbox"></i> Aucune commande trouvée.</div>
+    } @else {
+      <div class="data-table">
+        <div class="dt-head" style="grid-template-columns: 80px 1fr 120px 110px 100px 110px 90px 110px 110px;">
+          <div>ID</div>
+          <div>Partenaire</div>
+          <div>Région</div>
+          <div>Date</div>
+          <div>Statut</div>
+          <div>Brut</div>
+          <div>Réduction</div>
+          <div>Net TTC</div>
+          <div>Option remise</div>
+        </div>
+        @for (c of filteredCommandes; track c.id) {
+          <div class="dt-row" style="grid-template-columns: 80px 1fr 120px 110px 100px 110px 90px 110px 110px;">
+            <div class="dt-ref">CMD-{{ padId(c.id) }}</div>
+            <div class="dt-name">{{ c.nomPartenaire }}</div>
+            <div style="font-size:12px; color:#555570;">{{ c.regionPartenaire }}</div>
+            <div class="dt-date">{{ c.dateCommande | date:'dd/MM/yyyy' }}</div>
+            <div>
+              <span class="statut-badge" [ngClass]="statutClass(c.statut)">
+                {{ c.statut.replace('_', ' ') }}
+              </span>
+            </div>
+            <div class="dt-montant">{{ c.montantOriginal | number:'1.2-2' }} DT</div>
+            <div class="dt-reduction" [style.color]="(c.montantReduction > 0 || c.tauxReduction > 0) ? '#d43c3c' : '#aaa'">
+              @if (c.montantReduction > 0) {
+                -{{ c.montantReduction | number:'1.2-2' }} DT
+              } @else if (c.tauxReduction > 0) {
+                -{{ (c.montantOriginal * c.tauxReduction / 100) | number:'1.2-2' }} DT
+              } @else {
+                —
+              }
+            </div>
+            <div class="dt-amount">{{ c.montantTotal | number:'1.2-2' }} DT</div>
+            <div style="font-size:11px;">
+              @if (c.optionRemise === 'REMBOURSEMENT') {
+                <span style="background:#EDE9FE; color:#7C3AED; border:1px solid #DDD6FE;
+                  padding:2px 7px; border-radius:8px; font-weight:600; font-size:10px;">
+                  REMB {{ c.remboursementApprouve ? '✓' : '…' }}
+                </span>
+              } @else {
+                <span style="background:#EDFAF4; color:#059669; border:1px solid #6EE7B7;
+                  padding:2px 7px; border-radius:8px; font-weight:600; font-size:10px;">
+                  IMMÉDIAT
+                </span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+
+</div>

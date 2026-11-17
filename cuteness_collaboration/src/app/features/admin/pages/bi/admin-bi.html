@@ -1,0 +1,256 @@
+<div class="section-content">
+  @if (biData) {
+    <!-- Revenus hebdomadaires -->
+    <div class="bi-card">
+      <div class="bi-title"><i class="fas fa-chart-bar"></i> Revenus semaine par semaine</div>
+      <div class="bi-chart-bars">
+        @for (r of biData.revenusHebdo; track r.semaine) {
+          <div class="bcb-wrap">
+            <div class="bcb-bar-container">
+              <div class="bcb-value">{{ r.montant }}</div>
+              <div class="bcb-bar" [style.height.%]="(r.montant / maxRevenu) * 100"></div>
+            </div>
+            <div class="bcb-label">{{ r.semaine }}</div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="bi-row">
+      <!-- Répartition packs -->
+      <div class="bi-card bi-card-half">
+        <div class="bi-title"><i class="fas fa-chart-pie"></i> Répartition des packs</div>
+        <div class="bi-packs">
+          @for (p of biData.repartitionPacks; track p.pack) {
+            <div class="bp-item">
+              <div class="bp-header">
+                <span class="bp-name">{{ p.pack }}</span>
+                <span class="bp-count">{{ p.count }} partenaires ({{ p.pourcentage }}%)</span>
+              </div>
+              <div class="bp-track">
+                <div class="bp-fill" [style.width.%]="p.pourcentage" [style.background]="p.color"></div>
+              </div>
+            </div>
+          }
+        </div>
+        <div class="donut-wrap">
+          <div class="donut" [style.background]="donutGradient">
+            <div class="donut-hole">
+              <div class="dh-val">{{ totalPartenaires }}</div>
+              <div class="dh-lbl">Total</div>
+            </div>
+          </div>
+          <div class="donut-legend">
+            @for (p of biData.repartitionPacks; track p.pack) {
+              <div class="dl-item">
+                <div class="dl-dot" [style.background]="p.color"></div>
+                <span>{{ p.pack }} {{ p.pourcentage }}%</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Top partenaires -->
+      <div class="bi-card bi-card-half">
+        <div class="bi-title"><i class="fas fa-trophy"></i> Top partenaires par gains</div>
+        <div class="bi-top">
+          @for (p of biData.topPartenaires; track $index; let i = $index) {
+            <div class="bt-item">
+              <div class="bt-rank" [ngClass]="i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-n'">
+                {{ i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1 }}
+              </div>
+              <div class="bt-info">
+                <div class="bt-nom">{{ p.nom }}</div>
+                <div class="bt-bar-wrap">
+                  <div class="bt-bar" [style.width.%]="(p.gains / maxTopGain) * 100"></div>
+                </div>
+              </div>
+              <div class="bt-gains">{{ p.gains }} DT</div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Commissions stats -->
+    <div class="bi-card">
+      <div class="bi-title"><i class="fas fa-chart-line"></i> Commissions validées vs refusées</div>
+      <div class="bi-comm-stats">
+        @for (s of biData.commissionsStats; track s.semaine) {
+          <div class="bcs-row">
+            <div class="bcs-label">{{ s.semaine }}</div>
+            <div class="bcs-bars">
+              <div class="bcs-bar-wrap">
+                <div class="bcs-bar bcs-validee"
+                  [style.width.%]="(s.validees / (s.validees + s.refusees || 1)) * 100"></div>
+                <span class="bcs-num bcs-num-v">{{ s.validees }} validées</span>
+              </div>
+              @if (s.refusees > 0) {
+                <div class="bcs-bar-wrap">
+                  <div class="bcs-bar bcs-refusee"
+                    [style.width.%]="(s.refusees / (s.validees + s.refusees)) * 100"></div>
+                  <span class="bcs-num bcs-num-r">{{ s.refusees }} refusées</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Évolution gains partenaires -->
+  <div class="sec-hdr">
+    <div class="sec-title">Évolution des Gains Partenaires</div>
+  </div>
+
+  <div class="card" style="margin-bottom:18px;">
+    <div class="cpd" style="padding-bottom:6px;">
+      <div class="card-title">Gains cumulés par partenaire</div>
+      <div class="card-sub">Évolution mensuelle sur {{ monthLabels.length }} mois — commissions validées</div>
+    </div>
+
+    @if (partnerSeries.length > 0) {
+      <div style="padding:5px 18px 2px; display:flex; gap:6px; flex-wrap:wrap;">
+        @for (p of partnerChips; track p.key) {
+          <div class="chip" [class.on]="activeSoldesChip === p.key" [class.off]="activeSoldesChip !== p.key"
+               (click)="filterSoldes(p.key)">
+            {{ p.label }}
+          </div>
+        }
+      </div>
+      <div style="padding:6px 18px 16px; overflow-x:auto;">
+        <svg width="100%" height="290" viewBox="0 0 860 290" preserveAspectRatio="xMidYMid meet">
+          <!-- Grid lines -->
+          <line x1="60" x2="840" y1="20"  y2="20"  stroke="#EAEDF5" stroke-width="1" />
+          <line x1="60" x2="840" y1="75"  y2="75"  stroke="#EAEDF5" stroke-width="1" />
+          <line x1="60" x2="840" y1="130" y2="130" stroke="#EAEDF5" stroke-width="1" />
+          <line x1="60" x2="840" y1="185" y2="185" stroke="#EAEDF5" stroke-width="1" />
+          <line x1="60" x2="840" y1="240" y2="240" stroke="#EAEDF5" stroke-width="1" />
+          <line x1="60" x2="60"  y1="20"  y2="240" stroke="#EAEDF5" stroke-width="1" />
+          <!-- Y-axis labels -->
+          @for (lbl of partnerYAxis; track lbl.y) {
+            <text x="54" [attr.y]="lbl.y + 4" text-anchor="end" fill="#8A92B2" font-size="11">{{ lbl.label }}</text>
+          }
+          <!-- X-axis month labels -->
+          @for (label of monthLabels; track $index; let i = $index) {
+            <text [attr.x]="getMonthXPos(i)" y="262" text-anchor="middle" fill="#8A92B2" font-size="11">{{ label }}</text>
+          }
+          <!-- Partner series -->
+          @for (s of partnerSeries; track s.key) {
+            <g [style.opacity]="getOpacity(s.key)">
+              <polyline [attr.points]="s.pointsStr" fill="none"
+                        [attr.stroke]="s.color"
+                        [attr.stroke-width]="getWidth(s.key)"
+                        stroke-linecap="round" stroke-linejoin="round"
+                        [attr.stroke-dasharray]="s.strokeDash || null" />
+              <circle [attr.cx]="s.lastX" [attr.cy]="s.lastY" r="5" [attr.fill]="s.color" stroke="white" stroke-width="2" />
+              @if (getOpacity(s.key) === 1 && s.lastValue > 0) {
+                <rect [attr.x]="s.lastX - 25" [attr.y]="s.lastY - 15" width="60" height="16" rx="6" [attr.fill]="s.color" />
+                <text [attr.x]="s.lastX + 5" [attr.y]="s.lastY - 4" text-anchor="middle" fill="white" font-size="9" font-weight="700">{{ s.lastValue }} DT</text>
+              }
+            </g>
+          }
+        </svg>
+      </div>
+      <div class="chart-legend">
+        @for (s of partnerSeries; track s.key; let i = $index) {
+          <span class="leg-item">
+            @if (i === 0) {
+              <span class="leg-solid" [style.background]="s.color"></span>
+            } @else {
+              <span class="leg-dashed" [style.border-top-color]="s.color"></span>
+            }
+            {{ s.label.replace('● ', '') }}
+          </span>
+        }
+      </div>
+    } @else {
+      <div style="padding:24px; text-align:center; color:#8A92B2;">Aucune donnée de gains disponible</div>
+    }
+  </div>
+
+  <!-- Croissance réseau -->
+  <div class="sec-hdr">
+    <div class="sec-title">Croissance du Réseau — Nouveaux Partenaires</div>
+  </div>
+
+  <div class="g2" style="margin-bottom:18px;">
+    <div class="card">
+      <div class="cpd" style="padding-bottom:6px;">
+        <div class="card-title">Nouveaux partenaires par mois</div>
+        <div class="card-sub">Objectif mensuel : 30 partenaires</div>
+      </div>
+      <div style="padding:0 18px 4px; overflow-x:auto;">
+        <svg width="100%" height="200" viewBox="0 0 430 200" preserveAspectRatio="xMidYMid meet">
+          <!-- Target line -->
+          <line x1="38" x2="422" [attr.y1]="networkTargetY" [attr.y2]="networkTargetY"
+                stroke="#FF6B5B" stroke-width="1.5" stroke-dasharray="6,4" />
+          <text x="424" [attr.y]="networkTargetY + 4" fill="#FF6B5B" font-size="9" font-weight="700">30</text>
+          <!-- Grid -->
+          <line x1="38" x2="422" y1="93"  y2="93"  stroke="#EAEDF5" stroke-width="1" />
+          <line x1="38" x2="422" y1="140" y2="140" stroke="#EAEDF5" stroke-width="1" />
+          <line x1="38" x2="422" y1="187" y2="187" stroke="#EAEDF5" stroke-width="1" />
+          <text x="34" [attr.y]="networkTargetY + 4" text-anchor="end" fill="#8A92B2" font-size="9">30</text>
+          <text x="34" y="97"  text-anchor="end" fill="#8A92B2" font-size="9">20</text>
+          <text x="34" y="144" text-anchor="end" fill="#8A92B2" font-size="9">10</text>
+          <!-- Bars -->
+          @for (bar of networkBars; track bar.label) {
+            <rect [attr.x]="bar.x" [attr.y]="bar.barY" width="32" [attr.height]="bar.barHeight"
+                  rx="7" [attr.fill]="bar.color" opacity="0.9" />
+            <text [attr.x]="bar.labelX" [attr.y]="bar.barY - 4" text-anchor="middle"
+                  [attr.fill]="bar.color" font-size="9" font-weight="700">{{ bar.count }}</text>
+            <text [attr.x]="bar.labelX" y="197" text-anchor="middle" fill="#8A92B2" font-size="9">{{ bar.label }}</text>
+          }
+        </svg>
+      </div>
+      <div class="mini-stats">
+        <div class="mstat"><div class="mstat-v" style="color:#3aafda">{{ networkStats.total }}</div><div class="mstat-l">Total {{ monthLabels.length }} mois</div></div>
+        <div class="mstat"><div class="mstat-v" style="color:#ff6b5b">{{ networkStats.avg }}</div><div class="mstat-l">Moy/mois</div></div>
+        <div class="mstat"><div class="mstat-v" style="color:#4ecba0">{{ networkStats.best }}</div><div class="mstat-l">Meilleur mois</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="cpd" style="padding-bottom:8px;">
+        <div class="card-title">Croissance cumulée</div>
+        <div class="card-sub">{{ cumulativeStats.start }} → {{ cumulativeStats.end }} partenaires (+{{ cumulativeStats.pct }}%)</div>
+      </div>
+      <div style="padding:0 18px; overflow-x:auto;">
+        <svg width="100%" height="168" viewBox="0 0 340 168" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <linearGradient id="gGrow" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="#4ECBA0" stop-opacity="0.22" />
+              <stop offset="100%" stop-color="#4ECBA0" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <line x1="36" x2="330" y1="22"  y2="22"  stroke="#EAEDF5" stroke-width="1" />
+          <line x1="36" x2="330" y1="72"  y2="72"  stroke="#EAEDF5" stroke-width="1" />
+          <line x1="36" x2="330" y1="122" y2="122" stroke="#EAEDF5" stroke-width="1" />
+          <text x="32" y="26"  text-anchor="end" fill="#8A92B2" font-size="9.5">{{ cumulativeStats.end }}</text>
+          <text x="32" y="76"  text-anchor="end" fill="#8A92B2" font-size="9.5">{{ midCumulativeLabel }}</text>
+          <text x="32" y="126" text-anchor="end" fill="#8A92B2" font-size="9.5">{{ cumulativeStats.start }}</text>
+          @if (cumulativeFillPath) {
+            <path [attr.d]="cumulativeFillPath" fill="url(#gGrow)" />
+            <polyline [attr.points]="cumulativePointsStr" fill="none" stroke="#4ECBA0"
+                      stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+            <circle [attr.cx]="cumLastX" [attr.cy]="cumLastY" r="5.5" fill="#4ECBA0" stroke="white" stroke-width="2.5" />
+            <rect [attr.x]="cumLastX - 24" [attr.y]="cumLastY - 14" width="52" height="16" rx="6" fill="#4ECBA0" />
+            <text [attr.x]="cumLastX + 2" [attr.y]="cumLastY - 3" text-anchor="middle" fill="white" font-size="9.5" font-weight="700">+{{ cumulativeStats.pct }}%</text>
+          }
+          <!-- X labels: first and last month -->
+          @if (monthLabels.length > 0) {
+            <text [attr.x]="getCumXPos(0)" y="164" text-anchor="middle" fill="#8A92B2" font-size="9">{{ monthLabels[0] }}</text>
+            <text [attr.x]="getCumXPos(monthLabels.length - 1)" y="164" text-anchor="middle" fill="#8A92B2" font-size="9">{{ monthLabels[monthLabels.length - 1] }}</text>
+          }
+        </svg>
+      </div>
+      <div class="mini-stats" style="padding-top:8px;">
+        <div class="mstat"><div class="mstat-v" style="color:#8a92b2">{{ cumulativeStats.start }}</div><div class="mstat-l">Départ</div></div>
+        <div style="display:flex; align-items:center; font-size:17px; color:#8a92b2">→</div>
+        <div class="mstat"><div class="mstat-v" style="color:#4ecba0">{{ cumulativeStats.end }}</div><div class="mstat-l">Aujourd'hui</div></div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,63 @@
+<div class="section-content">
+  @if (activationSuccess) {
+    <div style="background:#EDFAF4; border:1px solid #4ECBA0; border-radius:10px; padding:10px 16px;
+                color:#1e9b6b; font-size:13px; font-weight:600; margin-bottom:12px;">
+      ✅ {{ activationSuccess }}
+    </div>
+  }
+  @if (activationError) {
+    <div style="background:#FFF0F0; border:1px solid #F87171; border-radius:10px; padding:10px 16px;
+                color:#d43c3c; font-size:13px; font-weight:600; margin-bottom:12px;">
+      ⚠️ {{ activationError }}
+    </div>
+  }
+  <div class="section-actions" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span style="font-weight:600; font-size:15px;"><i class="fas fa-bell"></i> Notifications</span>
+      @if (nonLues > 0) {
+        <span class="nav-badge coral">{{ nonLues }} non lue(s)</span>
+      }
+    </div>
+    @if (nonLues > 0) {
+      <button class="btn-valider-tout" (click)="marquerToutLu()">
+        <i class="fas fa-check-double"></i> Tout marquer comme lu
+      </button>
+    }
+  </div>
+
+  <div class="signalement-list">
+    @for (n of notifications; track n.id) {
+      <div class="signalement-item" [class.notif-unread]="!n.lu" (click)="marquerLu(n)" style="cursor:pointer;">
+        <div class="si-left" style="display:flex; gap:14px; align-items:flex-start;">
+          <div class="notif-icon-wrap" [ngClass]="typeColor(n.type)">
+            <i [class]="typeIcon(n.type)"></i>
+          </div>
+          <div>
+            <div class="si-sujet" style="font-weight: {{ n.lu ? '500' : '700' }};">{{ n.titre }}</div>
+            <div class="si-desc">{{ n.message }}</div>
+            <div class="si-meta">{{ n.date | date:'dd/MM/yyyy HH:mm' }}</div>
+          </div>
+        </div>
+        <div class="si-right" style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+          @if (n.type === 'COMPTE_A_APPROUVER' && n.referenceId) {
+            <button (click)="activerCompte(n); $event.stopPropagation()"
+              style="background:#4ECBA0; color:#fff; border:none; border-radius:8px;
+                     padding:6px 14px; font-size:12px; font-weight:700; cursor:pointer;">
+              <i class="fas fa-user-check"></i> Activer le compte
+            </button>
+          }
+          @if (!n.lu) {
+            <span class="statut-badge st-EN_ATTENTE">Nouveau</span>
+          } @else {
+            <span class="statut-badge st-VALIDEE">Lu</span>
+          }
+        </div>
+      </div>
+    }
+    @if (notifications.length === 0) {
+      <div class="dt-empty">
+        <i class="fas fa-bell-slash"></i> Aucune notification
+      </div>
+    }
+  </div>
+</div>

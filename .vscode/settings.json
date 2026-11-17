@@ -1,0 +1,24 @@
+{
+    "java.debug.settings.onBuildFailureProceed": true,
+    "java.jdt.ls.java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.18.8-hotspot",
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-17",
+            "path": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.18.8-hotspot",
+            "default": true
+        }
+    ],
+    "java.project.excludePaths": [
+        "**/node_modules"
+    ],
+    "java.import.exclusions": [
+        "**/node_modules/**"
+    ],
+    "files.exclude": {
+        "**/node_modules": true
+    },
+    "code-runner.runInTerminal": true,
+    "code-runner.executorMap": {
+        "java": "Set-Location 'c:\\Users\\tabou\\OneDrive\\Desktop\\cuteness_collaboration-main\\cuteness_collaboration-main\\cuteness-backend'; $env:JAVA_HOME = 'C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.18.8-hotspot'; .\\mvnw.cmd spring-boot:run #"
+    }
+}

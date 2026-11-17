@@ -1,0 +1,60 @@
+<div class="section-content">
+  <div class="section-actions">
+    <div class="filter-tabs">
+      <button [class.active]="filtre === 'EN_ATTENTE'" (click)="filtre = 'EN_ATTENTE'">
+        En attente <span class="ft-count">{{ commissionsEnAttente.length }}</span>
+      </button>
+      <button [class.active]="filtre === 'VALIDEE'" (click)="filtre = 'VALIDEE'">
+        Validées <span class="ft-count">{{ commissionsValidees.length }}</span>
+      </button>
+      <button [class.active]="filtre === 'REFUSEE'" (click)="filtre = 'REFUSEE'">
+        Refusées <span class="ft-count">{{ commissionsRefusees.length }}</span>
+      </button>
+      <button [class.active]="filtre === 'TOUS'" (click)="filtre = 'TOUS'">
+        Toutes <span class="ft-count">{{ state.commissions$.value.length }}</span>
+      </button>
+    </div>
+    @if (filtre === 'EN_ATTENTE' && commissionsEnAttente.length > 0) {
+      <button class="btn-valider-tout" (click)="validerTout()">
+        <i class="fas fa-check-double"></i> Valider tout ({{ commissionsEnAttente.length }})
+      </button>
+    }
+  </div>
+
+  @if (state.isLoading$ | async) {
+    <div class="dt-empty"><i class="fas fa-spinner fa-spin"></i> Chargement…</div>
+  } @else {
+    <div class="data-table">
+      <div class="dt-head comm-head">
+        <div>ID</div><div>Bénéficiaire</div><div>Source</div>
+        <div>Pack</div><div>Niv.</div><div>Montant</div>
+        <div>Date</div><div>Statut</div><div>Actions</div>
+      </div>
+      @for (c of commissionsFiltered; track c.id) {
+        <div class="dt-row comm-row">
+          <div class="dt-ref">{{ c.id }}</div>
+          <div class="dt-name"><i class="fas fa-user"></i> {{ c.partenaire }}</div>
+          <div class="dt-name">{{ c.source }}</div>
+          <div><span class="pack-badge" [ngClass]="'pack-' + c.pack.toLowerCase()">{{ c.pack }}</span></div>
+          <div><span class="niveau-badge">N{{ c.niveau }}</span></div>
+          <div class="dt-amount">{{ c.montant }} DT</div>
+          <div class="dt-date">{{ c.date }}</div>
+          <div><span class="statut-badge" [ngClass]="'st-' + c.statut">{{ c.statut }}</span></div>
+          @if (c.statut === 'EN_ATTENTE') {
+            <div class="dt-actions">
+              <button class="btn-valider" (click)="valider(c.id)"><i class="fas fa-check"></i> Valider</button>
+              <button class="btn-refuser" (click)="refuser(c.id)"><i class="fas fa-times"></i> Refuser</button>
+            </div>
+          } @else {
+            <div class="dt-actions"><span class="dt-done">—</span></div>
+          }
+        </div>
+      }
+      @if (commissionsFiltered.length === 0) {
+        <div class="dt-empty">
+          <i class="fas fa-inbox"></i> Aucune commission trouvée
+        </div>
+      }
+    </div>
+  }
+</div>

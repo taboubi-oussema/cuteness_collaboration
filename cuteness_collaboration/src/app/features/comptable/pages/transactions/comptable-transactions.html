@@ -1,0 +1,221 @@
+<div class="section-content">
+
+  <!-- ── Tab switcher ── -->
+  <div class="flux-tabs">
+    <button class="flux-tab" [class.active]="activeTab === 'transactions'" (click)="activeTab = 'transactions'">
+      <i class="fas fa-exchange-alt"></i>
+      Transactions
+      <span class="flux-count">{{ state.transactions$.value.length }}</span>
+    </button>
+    <button class="flux-tab" [class.active]="activeTab === 'virements'" (click)="activeTab = 'virements'">
+      <i class="fas fa-paper-plane"></i>
+      Virements
+      @if (partenairesAvecSolde.length > 0) {
+        <span class="flux-count flux-count-alert">{{ partenairesAvecSolde.length }}</span>
+      }
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       ONGLET TRANSACTIONS
+  ══════════════════════════════════════════ -->
+  @if (activeTab === 'transactions') {
+    <div class="section-actions">
+      <div class="filter-tabs">
+        <button [class.active]="filtreType === 'TOUS'" (click)="filtreType = 'TOUS'">Toutes</button>
+        <button [class.active]="filtreType === 'PACK'" (click)="filtreType = 'PACK'">Packs</button>
+        <button [class.active]="filtreType === 'BOUTIQUE'" (click)="filtreType = 'BOUTIQUE'">Boutique</button>
+      </div>
+      <div class="filter-tabs">
+        <button [class.active]="filtreStatut === 'TOUS'" (click)="filtreStatut = 'TOUS'">Tous</button>
+        <button [class.active]="filtreStatut === 'PAYEE'" (click)="filtreStatut = 'PAYEE'">Payées</button>
+        <button [class.active]="filtreStatut === 'EN_ATTENTE'" (click)="filtreStatut = 'EN_ATTENTE'">En attente</button>
+        <button [class.active]="filtreStatut === 'ANNULEE'" (click)="filtreStatut = 'ANNULEE'">Annulées</button>
+      </div>
+    </div>
+
+    <div class="totaux-bar">
+      <div class="tb-item"><div class="tb-val">{{ filtered.length }}</div><div class="tb-lbl">Transactions</div></div>
+      <div class="tb-item"><div class="tb-val">{{ totalBrut | number:'1.2-2' }} DT</div><div class="tb-lbl">Montant brut</div></div>
+      <div class="tb-item tb-green"><div class="tb-val">{{ totalReduction | number:'1.2-2' }} DT</div><div class="tb-lbl">Total réductions</div></div>
+      <div class="tb-item tb-coral"><div class="tb-val">{{ totalNet | number:'1.2-2' }} DT</div><div class="tb-lbl">Montant net</div></div>
+    </div>
+
+    <div class="data-table">
+      <div class="dt-head trans-head">
+        <div>ID</div><div>Partenaire</div><div>Type</div><div>Description</div>
+        <div>Brut</div><div>Réduction</div><div>Net</div><div>Date</div><div>Statut</div>
+      </div>
+      <div class="dt-row trans-row" *ngFor="let t of filtered">
+        <div class="dt-ref">{{ t.id }}</div>
+        <div class="dt-name">{{ t.partenaire }}</div>
+        <div><span class="type-badge" [ngClass]="t.type === 'PACK' ? 'tb-pack' : 'tb-boutique'">{{ t.type }}</span></div>
+        <div class="dt-desc">{{ t.description }}</div>
+        <div class="dt-montant">{{ t.montant }} DT</div>
+        <div class="dt-reduction" *ngIf="t.reduction > 0">-{{ t.reduction }} DT</div>
+        <div class="dt-reduction" *ngIf="t.reduction === 0">—</div>
+        <div class="dt-amount">{{ t.montantFinal }} DT</div>
+        <div class="dt-date">{{ t.date }}</div>
+        <div><span class="statut-badge" [ngClass]="'st-' + t.statut">{{ t.statut }}</span></div>
+      </div>
+      <div class="dt-empty" *ngIf="filtered.length === 0">
+        <i class="fas fa-inbox"></i> Aucune transaction trouvée
+      </div>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════
+       ONGLET VIREMENTS
+  ══════════════════════════════════════════ -->
+  @if (activeTab === 'virements') {
+
+    <!-- Config date virement -->
+    <div class="config-card">
+      <div class="cc-title"><i class="fas fa-calendar-alt"></i> Planification du prochain virement</div>
+      <div class="cc-body">
+        <div class="cc-field">
+          <label>Date du prochain virement</label>
+          <div class="date-picker-wrap">
+            <input type="date" class="date-picker-input" [(ngModel)]="dateVirement" />
+            <div class="date-preview" *ngIf="formattedDate">
+              <i class="fas fa-calendar-check"></i>
+              <span>{{ formattedDate }}</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn-save-config" (click)="sauvegarderConfig()">
+          <i class="fas fa-save"></i> Sauvegarder la date
+        </button>
+        <div class="success-banner" *ngIf="configSauvegardee">
+          <i class="fas fa-check-circle"></i> Date enregistrée : <strong>{{ formattedDate }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Partenaires à virer -->
+    <div class="home-section">
+      <div class="hs-header">
+        <div class="hs-title"><i class="fas fa-paper-plane"></i> Partenaires avec solde à virer</div>
+        <button class="btn-virer-tout" (click)="virerTout()" *ngIf="partenairesAvecSolde.length > 0">
+          <i class="fas fa-paper-plane"></i> Virer tout ({{ totalAVirer | number:'1.2-2' }} DT)
+        </button>
+      </div>
+      <div class="virement-list">
+        <div class="virement-item" *ngFor="let p of partenairesAvecSolde">
+          <div class="vi-left">
+            <div class="vi-avatar">{{ p.nom[0] }}</div>
+            <div>
+              <div class="vi-nom">{{ p.nom }}</div>
+              <div class="vi-info">
+                <span class="pm-badge pm-sm" [ngClass]="paymentColor(p.typePayment)">
+                  <i [class]="paymentIcon(p.typePayment)"></i> {{ p.typePayment }}
+                </span>
+                @if (p.banque) {<span style="font-weight:600; color:#1E2340;">{{ p.banque }}</span>}
+                <span style="font-family:monospace;">{{ p.infoBancaire }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="vi-right">
+            <div class="vi-montant">{{ p.solde | number:'1.2-2' }} DT</div>
+            <button class="btn-virer" (click)="ouvrirModal(p)">
+              <i class="fas fa-paper-plane"></i> Virer
+            </button>
+          </div>
+        </div>
+        <div class="dt-empty" *ngIf="partenairesAvecSolde.length === 0">
+          <i class="fas fa-check-circle" style="color: var(--mint)"></i> Tous les virements ont été effectués !
+        </div>
+      </div>
+    </div>
+
+    <!-- Historique virements -->
+    <div class="home-section">
+      <div class="hs-header">
+        <div class="hs-title"><i class="fas fa-history"></i> Historique des virements</div>
+        <div class="filter-tabs">
+          <button [class.active]="filtreVirement === 'TOUS'" (click)="filtreVirement = 'TOUS'">Tous</button>
+          <button [class.active]="filtreVirement === 'EFFECTUE'" (click)="filtreVirement = 'EFFECTUE'">Effectués</button>
+          <button [class.active]="filtreVirement === 'EN_ATTENTE'" (click)="filtreVirement = 'EN_ATTENTE'">En attente</button>
+          <button [class.active]="filtreVirement === 'ECHEC'" (click)="filtreVirement = 'ECHEC'">Échecs</button>
+        </div>
+      </div>
+      <div class="data-table">
+        <div class="dt-head vir-head">
+          <div>ID</div><div>Partenaire</div><div>Montant</div><div>Moyen</div>
+          <div>Info bancaire</div><div>Semaine</div><div>Date</div><div>Statut</div>
+        </div>
+        <div class="dt-row vir-row" *ngFor="let v of virementsFiltered">
+          <div class="dt-ref">{{ v.id }}</div>
+          <div class="dt-name">{{ v.partenaire }}</div>
+          <div class="dt-amount">{{ v.montant | number:'1.2-2' }} DT</div>
+          <div>
+            <span class="pm-badge pm-sm" [ngClass]="paymentColor(v.typePayment)">
+              <i [class]="paymentIcon(v.typePayment)"></i> {{ v.typePayment }}
+            </span>
+          </div>
+          <div class="dt-iban">{{ v.infoBancaire }}</div>
+          <div class="dt-date">{{ v.semaine }}</div>
+          <div class="dt-date">{{ v.date }}</div>
+          <div><span class="statut-badge" [ngClass]="virementStatutClass(v.statut)">{{ v.statut }}</span></div>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>
+
+<!-- ── Modal virement ── -->
+<div class="modal-overlay" *ngIf="showModal" (click)="showModal = false">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-paper-plane"></i> Confirmer le virement</div>
+      <button class="modal-close" (click)="showModal = false"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" *ngIf="partenaireSelectionne && !virementTermine">
+      <div class="modal-info-row">
+        <div class="mir-label">Partenaire</div>
+        <div class="mir-val">{{ partenaireSelectionne.nom }}</div>
+      </div>
+      <div class="modal-info-row">
+        <div class="mir-label">Montant à virer</div>
+        <div class="mir-val mir-amount">{{ partenaireSelectionne.solde | number:'1.2-2' }} DT</div>
+      </div>
+      <div class="modal-info-row">
+        <div class="mir-label">Moyen de paiement</div>
+        <div class="mir-val">
+          <span class="pm-badge" [ngClass]="paymentColor(partenaireSelectionne.typePayment)">
+            <i [class]="paymentIcon(partenaireSelectionne.typePayment)"></i>
+            {{ partenaireSelectionne.typePayment }}
+          </span>
+        </div>
+      </div>
+      @if (partenaireSelectionne.banque) {
+        <div class="modal-info-row">
+          <div class="mir-label">Banque</div>
+          <div class="mir-val" style="font-weight:700;">{{ partenaireSelectionne.banque }}</div>
+        </div>
+      }
+      <div class="modal-info-row">
+        <div class="mir-label">Numéro de compte</div>
+        <div class="mir-val" style="font-family:monospace; letter-spacing:.06em; font-weight:600;">{{ partenaireSelectionne.infoBancaire }}</div>
+      </div>
+      <div class="modal-warning">
+        <i class="fas fa-info-circle"></i> Après confirmation, le solde sera remis à 0.
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="showModal = false">Annuler</button>
+        <button class="btn-confirm" (click)="confirmerVirement()" [class.loading]="virementEnCours">
+          <i [class]="virementEnCours ? 'fas fa-spinner fa-spin' : 'fas fa-paper-plane'"></i>
+          {{ virementEnCours ? 'Virement en cours...' : 'Confirmer le virement' }}
+        </button>
+      </div>
+    </div>
+    @if (virementTermine) {
+      <div class="modal-success">
+        <i class="fas fa-check-circle"></i>
+        <div>Virement effectué avec succès !</div>
+        <div class="modal-success-sub">Le solde a été remis à 0.</div>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,14 @@
+.tache-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: 8px;
+  border: 1.5px solid #EAEDF5; cursor: pointer;
+  transition: all 0.18s; background: #F7F8FC;
+  font-size: 13px; font-weight: 600; color: #1E2340;
+}
+.tache-item:hover { border-color: #7C3AED; background: #F3F0FF; }
+.tache-item.done {
+  border-color: #4ECBA0; background: #EDFAF4;
+  color: #1e9b6b; text-decoration: line-through; opacity: 0.75;
+}
+.tache-ico { font-size: 17px; flex-shrink: 0; }
+.tache-txt { flex: 1; }

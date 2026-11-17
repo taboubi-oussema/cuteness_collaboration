@@ -1,0 +1,107 @@
+<div class="dashboard-layout" [class.sidebar-collapsed]="!sidebarOpen">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" style="--sidebar-accent:#7C3AED;">
+
+    <div class="sb-brand" style="padding:18px 16px 12px; display:flex; align-items:center; justify-content:space-between;">
+      <img src="cute_logo.png" alt="Cuteness" class="sb-logo" />
+    </div>
+
+    <!-- Superviseur user -->
+    <div style="padding:0 12px 10px;">
+      <div class="admin-row">
+        <div class="admin-ava" style="background:linear-gradient(135deg,#7C3AED,#A78BFA);">{{ superviseurName[0] }}</div>
+        <div>
+          <div class="admin-name">{{ superviseurName }}</div>
+          <div class="admin-role">Superviseur · En ligne</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+      <div class="nav-sec">Principal</div>
+
+      <a class="nav-item" routerLink="accueil" routerLinkActive="active">
+        <span class="nav-ico">📊</span> Tableau de bord
+      </a>
+
+      <a class="nav-item" routerLink="reseau" routerLinkActive="active">
+        <span class="nav-ico">🌳</span> Réseau MLM
+      </a>
+
+      <div class="nav-sec">Gestion Commandes</div>
+
+      <a class="nav-item" routerLink="commandes" routerLinkActive="active">
+        <span class="nav-ico">📦</span> Commandes
+        @if (stats.commandesEnAttente > 0) {
+          <span class="nav-badge coral">{{ stats.commandesEnAttente }}</span>
+        }
+      </a>
+
+      <a class="nav-item" routerLink="packs" routerLinkActive="active">
+        <span class="nav-ico">🗂️</span> Packs
+      </a>
+
+      <a class="nav-item" routerLink="boutique" routerLinkActive="active">
+        <span class="nav-ico">🛍️</span> Boutique
+      </a>
+
+      <div class="nav-sec">Rapports & Suivi</div>
+
+      <a class="nav-item" routerLink="rapports" routerLinkActive="active">
+        <span class="nav-ico">📋</span> Rapports
+      </a>
+
+      <div class="nav-sec">Système</div>
+
+      <a class="nav-item" routerLink="signalements" routerLinkActive="active">
+        <span class="nav-ico">⚠️</span> Signalements
+        @if (stats.signalements > 0) {
+          <span class="nav-badge amber">{{ stats.signalements }}</span>
+        }
+      </a>
+
+      <a class="nav-item" routerLink="notifications" routerLinkActive="active">
+        <span class="nav-ico">🔔</span> Notifications
+        @if (notifCount > 0) {
+          <span class="nav-badge coral">{{ notifCount }}</span>
+        }
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn-logout" (click)="logout()">
+        <span>🚪</span> Déconnexion
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <button class="tb-btn" (click)="toggleSidebar()" style="border:none; cursor:pointer;">☰</button>
+      <div>
+        <div class="topbar-title">Superviseur · Cuteness Collaboration</div>
+        <div class="topbar-date">{{ today | date:'EEEE d MMMM yyyy' }}</div>
+      </div>
+      <div class="topbar-right" style="display:flex; align-items:center; gap:14px; position:relative;">
+
+        <!-- Cloche notifications -->
+        <button (click)="goToNotifications()"
+          style="position:relative; background:none; border:none; cursor:pointer; font-size:20px; padding:4px;">
+          🔔
+          @if (notifCount > 0) {
+            <span style="position:absolute; top:-4px; right:-4px; background:#ef4444; color:#fff;
+              border-radius:50%; width:18px; height:18px; font-size:10px; font-weight:800;
+              display:flex; align-items:center; justify-content:center; line-height:1;">
+              {{ notifCount > 9 ? '9+' : notifCount }}
+            </span>
+          }
+        </button>
+
+        <div class="tb-avatar" style="background:linear-gradient(135deg,#7C3AED,#A78BFA);">{{ superviseurName[0] }}</div>
+      </div>
+    </div>
+    <router-outlet></router-outlet>
+  </main>
+</div>

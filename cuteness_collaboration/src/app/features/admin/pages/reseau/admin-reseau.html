@@ -1,0 +1,314 @@
+<div class="section-content">
+
+  <!-- Barre de recherche -->
+  <div class="search-bar">
+    <i class="fas fa-search"></i>
+    <input type="text" [(ngModel)]="recherche" placeholder="Rechercher par nom, email, pack…" class="search-input" />
+  </div>
+
+  <!-- Tableau partenaires -->
+  <div class="home-section">
+    <div class="hs-header">
+      <div class="hs-title"><i class="fas fa-users"></i> Réseau des partenaires</div>
+      <span class="reseau-count">{{ partenairesFiltered.length }} partenaire(s)</span>
+    </div>
+
+    <div class="data-table">
+      <div class="dt-head rn-head">
+        <div>Partenaire</div>
+        <div>Pack</div>
+        <div>Parrain</div>
+        <div>Filleuls</div>
+        <div>Solde</div>
+        <div>Paiement</div>
+        <div>Info bancaire</div>
+        <div>Statut</div>
+        <div>Actions</div>
+      </div>
+
+      @for (p of partenairesFiltered; track p.id) {
+        <div class="dt-row rn-row">
+          <div class="dt-name">
+            <div class="part-avatar">{{ p.nom[0] }}</div>
+            <div>
+              <div class="part-nom">{{ p.nom }}</div>
+              <div class="part-email">{{ p.email }}</div>
+            </div>
+          </div>
+          <div>
+            <span class="pack-badge" [ngClass]="packBadgeClass(p.pack)">{{ p.pack || 'Aucun' }}</span>
+          </div>
+          <div class="text-muted">{{ p.parrain || '— Racine —' }}</div>
+          <div class="dt-filleuls">{{ p.filleuls }} <i class="fas fa-users"></i></div>
+          <div class="dt-amount">{{ p.solde | number:'1.2-2' }} DT</div>
+          <div>
+            <span class="pm-badge" [ngClass]="p.typePayment === 'CARTE' ? 'pm-carte' : p.typePayment === 'EDINAR' ? 'pm-edinar' : 'pm-rib'">
+              {{ p.typePayment }}
+            </span>
+          </div>
+          <!-- Info bancaire COMPLÈTE (admin) -->
+          <div class="dt-iban full">{{ p.infoBancaire || 'N/A' }}</div>
+          <div>
+            <span class="statut-badge" [ngClass]="p.actif ? 'st-VALIDEE' : 'st-REFUSEE'">
+              {{ p.actif ? 'Actif' : 'Inactif' }}
+            </span>
+          </div>
+          <div>
+            <button class="btn-edit" (click)="openEdit(p)">
+              <i class="fas fa-pen"></i> Modifier
+            </button>
+          </div>
+        </div>
+      }
+
+      @if (partenairesFiltered.length === 0) {
+        <div class="dt-empty"><i class="fas fa-inbox"></i> Aucun partenaire trouvé</div>
+      }
+    </div>
+  </div>
+
+  <!-- ══════════ ARBRE RÉSEAU MLM ══════════ -->
+  <div class="home-section">
+    <div class="hs-header">
+      <div class="hs-title">
+        <i class="fas fa-sitemap"></i>
+        {{ recherche ? 'Arbre du partenaire : ' + recherche : 'Arbre réseau MLM complet' }}
+      </div>
+      @if (currentTree) {
+        <span class="reseau-count">{{ countTotalNodes(currentTree) }} nœud(s)</span>
+      }
+    </div>
+
+    <ng-template #nodeTemplate let-node="node" let-level="level">
+      <div class="tree-branch-wrap">
+        <div class="tree-node-card"
+             [class.tree-node-sm]="level >= 2"
+             [class.tree-node-xs]="level >= 3"
+             [class.inactive-node]="!node.actif">
+          <div class="tnc-avatar" [class.tnc-sm]="level >= 2"
+               [ngClass]="'av-' + (node.pack || 'starter').toLowerCase()">
+            {{ node.nom ? node.nom[0] : '?' }}
+          </div>
+          <div class="tnc-name" [class.tnc-name-sm]="level >= 2">{{ node.nom || 'Partenaire' }}</div>
+          <div class="tnc-pack" [class.tnc-pack-sm]="level >= 2">{{ node.pack || 'Aucun' }}</div>
+          <div class="tnc-solde" [class.tnc-solde-sm]="level >= 2">{{ node.solde || 0 | number:'1.0-0' }} DT</div>
+        </div>
+        @if (node.filleuls && node.filleuls.length > 0) {
+          <div [ngClass]="level === 1 ? 'tree-level-2' : 'tree-level-3'">
+            @for (child of node.filleuls; track child.id) {
+              <ng-container *ngTemplateOutlet="nodeTemplate; context: { node: child, level: level + 1 }"></ng-container>
+            }
+          </div>
+        }
+      </div>
+    </ng-template>
+
+    @if (currentTree; as reseau) {
+      <div class="reseau-tree-wrap">
+        @if (!recherche) {
+          <div class="tree-root-node">
+            <div class="trn-avatar" style="background:white url('cute_logo.png') no-repeat left center; background-size:auto 88%; overflow:hidden; padding:0;"></div>
+            <div class="trn-name">{{ reseau.nom || 'Cuteness Collaboration' }}</div>
+            <div class="trn-sub">Racine du réseau</div>
+          </div>
+          <div class="tree-connector-v"></div>
+        } @else {
+          <div class="tree-root-node">
+            <div class="trn-avatar" [ngClass]="'av-' + (reseau.pack || 'starter').toLowerCase()">
+              {{ reseau.nom ? reseau.nom[0] : '?' }}
+            </div>
+            <div class="trn-name">{{ reseau.nom || 'Partenaire' }}</div>
+            <div class="trn-sub">{{ reseau.pack || 'Aucun' }} — {{ reseau.solde || 0 | number:'1.0-0' }} DT</div>
+          </div>
+          @if (reseau.filleuls && reseau.filleuls.length > 0) {
+            <div class="tree-connector-v"></div>
+          }
+        }
+
+        @if (reseau.filleuls && reseau.filleuls.length > 0) {
+          <div class="tree-level-1">
+            @for (n1 of reseau.filleuls; track n1.id) {
+              <ng-container *ngTemplateOutlet="nodeTemplate; context: { node: n1, level: 1 }"></ng-container>
+            }
+          </div>
+        } @else {
+          <div class="tree-empty-state">
+            <i class="fas fa-users"></i>
+            <p>Aucun filleul pour ce partenaire</p>
+          </div>
+        }
+      </div>
+    } @else {
+      @if (recherche) {
+        <div class="tree-empty-state">
+          <i class="fas fa-search"></i>
+          <p>Partenaire introuvable</p>
+          <span>Aucun nœud ne correspond à "{{ recherche }}"</span>
+        </div>
+      } @else {
+        <div class="reseau-loading">
+          <i class="fas fa-spinner fa-spin"></i>
+          <span>Chargement du réseau...</span>
+        </div>
+      }
+    }
+  </div>
+</div>
+
+<!-- ══════════ MODALE ÉDITION ══════════ -->
+@if (selectedPartenaire) {
+  <div class="modal-overlay" (click)="closeEdit()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <div class="modal-avatar">{{ selectedPartenaire.nom[0] }}</div>
+        <div>
+          <div class="modal-title">{{ selectedPartenaire.nom }}</div>
+          <div class="modal-subtitle">{{ selectedPartenaire.email }}</div>
+        </div>
+        <button class="modal-close" (click)="closeEdit()">✕</button>
+      </div>
+
+      @if (successMsg) {
+        <div class="alert-success"><i class="fas fa-check-circle"></i> {{ successMsg }}</div>
+      }
+      @if (errorMsg) {
+        <div class="alert-danger"><i class="fas fa-times-circle"></i> {{ errorMsg }}</div>
+      }
+
+      <div class="modal-body">
+
+        <!-- Pack -->
+        <div class="field-group">
+          <label><i class="fas fa-box-open"></i> Pack</label>
+          <select [(ngModel)]="editForm.packId" class="field-select">
+            <option [ngValue]="null">— Aucun pack —</option>
+            @for (pk of packs; track pk.id) {
+              <option [ngValue]="pk.id">{{ pk.emoji }} {{ pk.nom }} — {{ pk.prix }} DT</option>
+            }
+          </select>
+        </div>
+
+        <!-- Solde -->
+        <div class="field-group">
+          <label><i class="fas fa-wallet"></i> Solde (DT)</label>
+          <input type="number" [(ngModel)]="editForm.solde" class="field-input" min="0" step="0.01" />
+        </div>
+
+        <!-- Moyen de paiement -->
+        <div class="field-group">
+          <label><i class="fas fa-credit-card"></i> Moyen de paiement</label>
+          <div class="radio-group">
+            <label class="radio-card" [class.active]="editForm.modePaiement === 'RIB'">
+              <input type="radio" [(ngModel)]="editForm.modePaiement" value="RIB" />
+              <i class="fas fa-university"></i> RIB
+            </label>
+            <label class="radio-card" [class.active]="editForm.modePaiement === 'CARTE'">
+              <input type="radio" [(ngModel)]="editForm.modePaiement" value="CARTE" />
+              <i class="fas fa-credit-card"></i> Carte
+            </label>
+            <label class="radio-card" [class.active]="editForm.modePaiement === 'EDINAR'">
+              <input type="radio" [(ngModel)]="editForm.modePaiement" value="EDINAR" />
+              <i class="fas fa-wallet"></i> E-Dinar
+            </label>
+          </div>
+        </div>
+
+        <!-- Banque (si RIB ou CARTE) -->
+        @if (editForm.modePaiement !== 'EDINAR') {
+          <div class="field-group">
+            <label><i class="fas fa-building"></i> Banque</label>
+            <select [(ngModel)]="editForm.banque" class="field-select">
+              <option value="">— Sélectionner —</option>
+              @for (b of banques; track b) {
+                <option [value]="b">{{ b }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        <!-- Info bancaire -->
+        <div class="field-group">
+          <label><i class="fas fa-hashtag"></i> Numéro {{ editForm.modePaiement === 'EDINAR' ? 'E-Dinar' : 'de compte' }}</label>
+          <input type="text" [(ngModel)]="editForm.infoBancaire" class="field-input"
+                 [placeholder]="editForm.modePaiement === 'EDINAR' ? 'ED-XXXX-XXXX-XXXX' : 'Numéro de compte'" />
+        </div>
+
+        <!-- Statut -->
+        <div class="field-group">
+          <label><i class="fas fa-toggle-on"></i> Statut du compte</label>
+          <div class="toggle-wrap">
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="editForm.statut" />
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="toggle-label" [class.active]="editForm.statut">
+              {{ editForm.statut ? 'Actif' : 'Inactif' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Rôle -->
+        <div class="field-group">
+          <label><i class="fas fa-user-tag"></i> Rôle</label>
+          <div class="radio-group">
+            <label class="radio-card" [class.active]="editForm.role === 'PARTENAIRE'">
+              <input type="radio" [(ngModel)]="editForm.role" value="PARTENAIRE" />
+              <i class="fas fa-user"></i> Partenaire
+            </label>
+            <label class="radio-card" [class.active]="editForm.role === 'COMPTABLE'">
+              <input type="radio" [(ngModel)]="editForm.role" value="COMPTABLE" />
+              <i class="fas fa-calculator"></i> Comptable
+            </label>
+            <label class="radio-card" [class.active]="editForm.role === 'SUPERVISEUR'">
+              <input type="radio" [(ngModel)]="editForm.role" value="SUPERVISEUR" />
+              <i class="fas fa-eye"></i> Superviseur
+            </label>
+          </div>
+          @if (editForm.role !== 'PARTENAIRE') {
+            <div style="margin-top:8px; padding:8px 12px; background:#FFF7ED; border:1px solid #FBD38D;
+              border-radius:8px; font-size:12px; color:#D97706; display:flex; align-items:center; gap:6px;">
+              <i class="fas fa-exclamation-triangle"></i>
+              Ce partenaire obtiendra les droits <strong>{{ editForm.role }}</strong> et n'apparaîtra plus dans le réseau MLM.
+            </div>
+          }
+        </div>
+
+        <!-- Filleuls -->
+        <div class="field-group filleuls-section">
+          <label><i class="fas fa-users"></i> Filleuls directs</label>
+          @if (loadingFilleuls) {
+            <div class="loading-sm"><i class="fas fa-spinner fa-spin"></i> Chargement…</div>
+          } @else if (filleuls.length === 0) {
+            <div class="empty-filleuls">Aucun filleul direct</div>
+          } @else {
+            <div class="filleuls-list">
+              @for (f of filleuls; track f.userId) {
+                <div class="filleul-row">
+                  <div class="filleul-avatar">{{ f.nom[0] }}</div>
+                  <div class="filleul-info">
+                    <div class="filleul-nom">{{ f.nom }}</div>
+                    <div class="filleul-email">{{ f.email }}</div>
+                  </div>
+                  <button class="btn-remove-filleul" (click)="removeFilleul(f)" title="Retirer ce filleul">
+                    <i class="fas fa-user-minus"></i>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeEdit()">Annuler</button>
+        <button class="btn-save" (click)="save()" [disabled]="saving">
+          @if (saving) { <i class="fas fa-spinner fa-spin"></i> Sauvegarde… }
+          @else { <i class="fas fa-save"></i> Enregistrer }
+        </button>
+      </div>
+
+    </div>
+  </div>
+}

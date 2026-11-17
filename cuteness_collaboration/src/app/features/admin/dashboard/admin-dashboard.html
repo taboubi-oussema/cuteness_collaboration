@@ -1,0 +1,138 @@
+<div class="dashboard-layout" [class.sidebar-collapsed]="!sidebarOpen">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" [class.open]="sidebarOpen">
+    <div class="sb-brand" style="padding:18px 16px 12px; display:flex; align-items:center; justify-content:space-between;">
+      <img src="cute_logo.png" alt="Cuteness" class="sb-logo" />
+      <button class="sb-close-btn" (click)="sidebarOpen=false">✕</button>
+    </div>
+
+    <!-- Admin user -->
+    <div style="padding:0 12px 10px;">
+      <div class="admin-row">
+        <div class="admin-ava">{{ adminName[0] }}</div>
+        <div>
+          <div class="admin-name">{{ adminName }}</div>
+          <div class="admin-role">  Admin · En ligne</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav (click)="closeSidebarOnMobile()">
+      <div class="nav-sec">Principal</div>
+
+      <a class="nav-item" routerLink="accueil" routerLinkActive="active">
+        <span class="nav-ico">📊</span> Tableau de bord
+      </a>
+
+      <a class="nav-item" routerLink="comptes" routerLinkActive="active">
+        <span class="nav-ico">👤</span> Comptes en attente
+        @if (stats.comptesEnAttente > 0) {
+          <span class="nav-badge amber">{{ stats.comptesEnAttente }}</span>
+        }
+      </a>
+
+      <a class="nav-item" routerLink="equipe" routerLinkActive="active">
+        <span class="nav-ico">🛡️</span> Équipe
+      </a>
+
+      <a class="nav-item" routerLink="reseau" routerLinkActive="active">
+        <span class="nav-ico">🌳</span> Réseau MLM
+      </a>
+
+      <a class="nav-item" routerLink="packs" routerLinkActive="active">
+        <span class="nav-ico">📦</span> Packs
+      </a>
+
+      <a class="nav-item" routerLink="boutique" routerLinkActive="active">
+        <span class="nav-ico">🛍️</span> Boutique
+      </a>
+
+      <a class="nav-item" routerLink="commandes" routerLinkActive="active">
+        <span class="nav-ico">🚚</span> Commandes
+        @if (stats.commandesEnAttente > 0) {
+          <span class="nav-badge coral">{{ stats.commandesEnAttente }}</span>
+        }
+      </a>
+
+      <div class="nav-sec">Finance</div>
+
+      <a class="nav-item" routerLink="commissions" routerLinkActive="active">
+        <span class="nav-ico">💰</span> Commissions
+        @if (stats.pendingCommissions > 0) {
+          <span class="nav-badge coral">{{ stats.pendingCommissions }}</span>
+        }
+      </a>
+
+      <a class="nav-item" routerLink="transactions" routerLinkActive="active">
+        <span class="nav-ico">💳</span> Transactions
+        @if (stats.transactionsTotal > 0) {
+          <span class="nav-badge blue">{{ stats.transactionsTotal }}</span>
+        }
+      </a>
+
+      <a class="nav-item" routerLink="rapports" routerLinkActive="active">
+        <span class="nav-ico">📋</span> Rapports
+      </a>
+
+      <div class="nav-sec">Analytics</div>
+
+      <a class="nav-item" routerLink="bi" routerLinkActive="active">
+        <span class="nav-ico">📈</span> Analyses &amp; BI
+      </a>
+
+      <div class="nav-sec">Système</div>
+
+      <a class="nav-item" routerLink="formations" routerLinkActive="active">
+        <span class="nav-ico">🎓</span> Formations
+      </a>
+
+      <a class="nav-item" routerLink="content-manager" routerLinkActive="active">
+        <span class="nav-ico">🎨</span> Content Manager
+      </a>
+
+      <a class="nav-item" routerLink="notifications" routerLinkActive="active">
+        <span class="nav-ico">🔔</span> Notifications
+        @if (stats.notifications > 0) {
+          <span class="nav-badge blue">{{ stats.notifications }}</span>
+        }
+      </a>
+
+      <a class="nav-item" routerLink="signalements" routerLinkActive="active">
+        <span class="nav-ico">⚠️</span> Signalements
+        @if (stats.reports > 0) {
+          <span class="nav-badge amber">{{ stats.reports }}</span>
+        }
+      </a>
+
+      <a class="nav-item" routerLink="challenges" routerLinkActive="active">
+        <span class="nav-ico">🏆</span> Challenges &amp; Rewards
+      </a>
+
+      <a class="nav-item" routerLink="grade-config" routerLinkActive="active">
+        <span class="nav-ico">⚙️</span> Grades &amp; Points
+      </a>
+    </nav>
+
+    <!-- Sidebar footer -->
+    <div class="sidebar-footer">
+      <button class="btn-logout" (click)="logout()">
+        <span></span> Déconnexion
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <button class="tb-btn" (click)="toggleSidebar()" style="border:none; cursor:pointer;">☰</button>
+      <div>
+        <div class="topbar-title">Admin · Cuteness Collaboration</div>
+        <div class="topbar-date">{{ today | date:'EEEE d MMMM yyyy' }}</div>
+      </div>
+    </div>
+
+    <router-outlet></router-outlet>
+  </main>
+</div>

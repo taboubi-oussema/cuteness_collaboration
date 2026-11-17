@@ -1,0 +1,194 @@
+<div class="section-content">
+
+  @if (successMsg) {
+    <div class="error-banner" style="background:#EDFAF4; border-color:#4ECBA0; color:#1e9b6b;">
+      <span>✅ {{ successMsg }}</span>
+    </div>
+  }
+  @if (errorMsg) {
+    <div class="error-banner">
+      <span>⚠️ {{ errorMsg }}</span>
+      <button class="btn-sm" (click)="load()">Réessayer</button>
+    </div>
+  }
+  @if (isLoading) {
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Chargement des signalements...</div>
+    </div>
+  }
+
+  <!-- MODAL RÉPONDRE -->
+  @if (showRepondreModal && signalementEnReponse) {
+    <div class="modal-overlay" (click)="fermerRepondre()">
+      <div class="modal-box" (click)="$event.stopPropagation()">
+        <div class="modal-title">💬 Répondre au signalement</div>
+        <div class="modal-body">
+          <p style="font-size:13px; color:var(--text-2); margin-bottom:8px;">
+            <strong>{{ signalementEnReponse.sujet }}</strong>
+          </p>
+          <p style="font-size:12px; color:var(--text-3); margin-bottom:12px;">
+            Par : {{ signalementEnReponse.auteur }} · {{ sourceIcon(signalementEnReponse.source) }} {{ signalementEnReponse.source }}
+          </p>
+          @if (signalementEnReponse.noteEscalade) {
+            <div style="background:#f5f3ff; border-left:3px solid #7C3AED; padding:8px 12px; border-radius:0 8px 8px 0; font-size:12px; color:#7C3AED; margin-bottom:12px;">
+              🔺 <strong>Note escalade :</strong> {{ signalementEnReponse.noteEscalade }}
+            </div>
+          }
+          <label style="display:block; font-weight:700; font-size:13px; margin-bottom:6px; color:var(--text-1);">
+            Votre réponse <span style="color:#ef4444">*</span>
+          </label>
+          <textarea [(ngModel)]="reponseText" rows="4"
+            style="width:100%; border:1.5px solid var(--border); border-radius:8px; padding:10px; font-size:13px; resize:vertical; box-sizing:border-box;"
+            placeholder="Expliquez la résolution ou donnez des instructions…"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-sm" (click)="fermerRepondre()">Annuler</button>
+          <button class="btn-valider" style="background:#059669; border-color:#059669;"
+            [disabled]="!reponseText.trim() || repondreLoading" (click)="confirmerReponse()">
+            <i class="fas fa-paper-plane"></i>
+            {{ repondreLoading ? 'Envoi...' : 'Envoyer la réponse' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL ESCALADE -->
+  @if (showEscaladeForm && signalementEnEscalade) {
+    <div class="modal-overlay" (click)="annulerEscalade()">
+      <div class="modal-box" (click)="$event.stopPropagation()">
+        <div class="modal-title">🔺 Escalader à l'Administrateur</div>
+        <div class="modal-body">
+          <p>Signalement <strong>{{ signalementEnEscalade.id }}</strong> — <em>{{ signalementEnEscalade.sujet }}</em></p>
+          <label style="display:block; font-weight:700; font-size:13px; margin: 12px 0 6px; color:var(--text-1);">
+            Note d'escalade (facultative)
+          </label>
+          <textarea [(ngModel)]="noteEscalade" rows="3"
+            style="width:100%; border:1.5px solid var(--border); border-radius:8px; padding:10px; font-size:13px; resize:vertical;"
+            placeholder="Expliquez pourquoi ce problème nécessite l'intervention de l'admin…"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-sm" (click)="annulerEscalade()">Annuler</button>
+          <button class="btn-valider" style="background:#7C3AED; border-color:#7C3AED;" (click)="confirmerEscalade()">
+            <i class="fas fa-arrow-up"></i> Escalader
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading) {
+  <!-- FILTRES -->
+  <div class="section-actions" style="flex-wrap:wrap; gap:10px;">
+    <div class="filter-tabs">
+      <button [class.active]="filtreStatut === 'TOUS'" (click)="filtreStatut = 'TOUS'">
+        Tous <span class="ft-count">{{ countByStatut('TOUS') }}</span>
+      </button>
+      <button [class.active]="filtreStatut === 'ENVOYE'" (click)="filtreStatut = 'ENVOYE'">
+        📬 Reçus <span class="ft-count">{{ countByStatut('ENVOYE') }}</span>
+      </button>
+      <button [class.active]="filtreStatut === 'EN_COURS'" (click)="filtreStatut = 'EN_COURS'">
+        🔄 En cours <span class="ft-count">{{ countByStatut('EN_COURS') }}</span>
+      </button>
+      <button [class.active]="filtreStatut === 'ESCALADE'" (click)="filtreStatut = 'ESCALADE'">
+        🔺 Escaladés <span class="ft-count">{{ countByStatut('ESCALADE') }}</span>
+      </button>
+      <button [class.active]="filtreStatut === 'RESOLU'" (click)="filtreStatut = 'RESOLU'">
+        ✅ Résolus <span class="ft-count">{{ countByStatut('RESOLU') }}</span>
+      </button>
+    </div>
+
+    <div class="filter-tabs">
+      <button [class.active]="filtreSource === 'TOUS'" (click)="filtreSource = 'TOUS'">Toutes sources</button>
+      <button [class.active]="filtreSource === 'CLIENT'" (click)="filtreSource = 'CLIENT'">🤝 Clients</button>
+      <button [class.active]="filtreSource === 'COMPTABLE'" (click)="filtreSource = 'COMPTABLE'">📊 Comptables</button>
+    </div>
+  </div>
+
+  <!-- LISTE SIGNALEMENTS -->
+  <div class="signalement-list">
+    @for (s of signalementsFiltres; track s.id) {
+      <div class="signalement-item" [class.sig-escalade]="s.statut === 'ESCALADE'">
+        <div class="si-left">
+          <div class="si-sujet">
+            <span class="source-tag">{{ sourceIcon(s.source) }} {{ s.source }}</span>
+            {{ s.sujet }}
+          </div>
+          <div class="si-desc">{{ s.description }}</div>
+          @if (s.noteEscalade) {
+            <div class="si-escalade-note">
+              🔺 <strong>Note escalade :</strong> {{ s.noteEscalade }}
+            </div>
+          }
+          @if (s.reponseAdmin) {
+            <div style="margin-top:8px; font-size:12px; background:#edfaf4; border-left:3px solid #4ECBA0; padding:8px 12px; border-radius:0 8px 8px 0; color:#15803d;">
+              <strong>✅ Réponse de l'administrateur :</strong>
+              <div style="margin-top:3px;">{{ s.reponseAdmin }}</div>
+            </div>
+          }
+          @if (s.reponseSuperviseur) {
+            <div style="margin-top:8px; font-size:12px; background:#eff6ff; border-left:3px solid #3b82f6; padding:8px 12px; border-radius:0 8px 8px 0; color:#1d4ed8;">
+              <strong>💬 Votre réponse :</strong>
+              <div style="margin-top:3px;">{{ s.reponseSuperviseur }}</div>
+            </div>
+          }
+          @if (s.fileUrl) {
+            <div style="margin-top:8px;">
+              <button (click)="openFile(s.fileUrl!)"
+                style="background:none; border:none; padding:0; cursor:pointer; font-size:12px; color:#e91e8c; display:inline-flex; align-items:center; gap:5px; font-family:inherit;">
+                <i class="fas fa-paperclip"></i> Voir la pièce jointe
+              </button>
+            </div>
+          }
+          <div class="si-meta">
+            {{ s.date }} · ID : {{ s.id }} · Par : <strong>{{ s.auteur }}</strong>
+          </div>
+        </div>
+        <div class="si-right">
+          <span class="priorite-badge" [ngClass]="prioriteColor(s.priorite)">{{ s.priorite }}</span>
+          <span class="statut-badge" [ngClass]="statutColor(s.statut)">{{ s.statut }}</span>
+
+          @if (s.statut === 'ENVOYE') {
+            <button class="btn-valider" (click)="prendreEnCharge(s.id)">
+              <i class="fas fa-hand-paper"></i> Prendre en charge
+            </button>
+          }
+          @if (s.statut === 'EN_COURS') {
+            <button class="btn-valider" (click)="resoudre(s.id)">
+              <i class="fas fa-check"></i> Résoudre
+            </button>
+            <button class="btn-valider" style="background:#7C3AED; border-color:#7C3AED; margin-top:4px;"
+              (click)="ouvrirEscalade(s)">
+              <i class="fas fa-arrow-up"></i> Escalader admin
+            </button>
+          }
+          @if (s.statut === 'ENVOYE') {
+            <button class="btn-valider" style="background:#7C3AED; border-color:#7C3AED; margin-top:4px;"
+              (click)="ouvrirEscalade(s)">
+              <i class="fas fa-arrow-up"></i> Escalader admin
+            </button>
+          }
+          @if (s.statut === 'ESCALADE' || s.statut === 'EN_COURS' || s.statut === 'ENVOYE') {
+            <button class="btn-valider" style="background:#059669; border-color:#059669; margin-top:4px;"
+              (click)="ouvrirRepondre(s)">
+              <i class="fas fa-reply"></i> Répondre
+            </button>
+          }
+          @if (s.statut === 'RESOLU' && s.reponseSuperviseur) {
+            <button class="btn-sm" style="margin-top:4px;" (click)="ouvrirRepondre(s)">
+              <i class="fas fa-edit"></i> Modifier réponse
+            </button>
+          }
+        </div>
+      </div>
+    }
+    @if (signalementsFiltres.length === 0) {
+      <div class="dt-empty">
+        <i class="fas fa-inbox"></i> Aucun signalement dans cette catégorie
+      </div>
+    }
+  </div>
+  } <!-- end @if (!isLoading) -->
+</div>
+

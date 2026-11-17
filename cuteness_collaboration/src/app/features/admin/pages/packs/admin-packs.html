@@ -1,0 +1,597 @@
+<div class="section-content" style="height:auto;overflow-y:visible;">
+
+  <!-- PAGE HEADER -->
+  <div class="hs-header" style="background:#fff;border-radius:var(--radius);border:1px solid var(--border);padding:14px 18px;margin-bottom:0;">
+    <div class="hs-title">📦 Gestion des Packs</div>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span style="font-size:12px;color:var(--text-3);">{{ packs.length }} pack(s)</span>
+      <button class="btn-valider" style="font-size:12px; padding:7px 16px;" (click)="openCreateModal()">
+        <i class="fas fa-plus"></i> Nouveau pack
+      </button>
+    </div>
+  </div>
+
+  <!-- ── CREATE MODAL ── -->
+  @if (showCreateModal) {
+    <div class="modal-overlay" (click)="closeCreateModal()">
+      <div class="modal-box" (click)="$event.stopPropagation()" style="max-width:620px; max-height:85vh; overflow-y:auto;">
+
+        <div class="modal-title" style="margin-bottom:16px;">➕ Créer un nouveau pack</div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+
+          <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-2); margin-bottom:5px;">Nom (FR) *</label>
+            <input type="text" [(ngModel)]="newPack.nom"
+              style="width:100%; border:1.5px solid var(--border); border-radius:9px; padding:9px 12px; font-size:13px; box-sizing:border-box;"
+              placeholder="Ex: Gold" />
+          </div>
+
+          <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-2); margin-bottom:5px;">Nom (AR)</label>
+            <input type="text" [(ngModel)]="newPack.nomAr" dir="rtl"
+              style="width:100%; border:1.5px solid var(--border); border-radius:9px; padding:9px 12px; font-size:13px; box-sizing:border-box;" />
+          </div>
+
+          <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-2); margin-bottom:5px;">Prix (DT) *</label>
+            <input type="number" [(ngModel)]="newPack.prix" min="0"
+              style="width:100%; border:1.5px solid var(--border); border-radius:9px; padding:9px 12px; font-size:13px; box-sizing:border-box;" />
+          </div>
+
+          <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-2); margin-bottom:5px;">Niveaux MLM</label>
+            <input type="number" [(ngModel)]="newPack.niveaux" min="1"
+              style="width:100%; border:1.5px solid var(--border); border-radius:9px; padding:9px 12px; font-size:13px; box-sizing:border-box;" />
+          </div>
+
+          <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-2); margin-bottom:5px;">Commission Direct (%)</label>
+            <input type="number" [(ngModel)]="newPack.tauxCommissionDirect" min="0" max="100"
+              style="width:100%; border:1.5px solid var(--border); border-radius:9px; padding:9px 12px; font-size:13px; box-sizing:border-box;" />
+          </div>
+
+          <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-2); margin-bottom:5px;">Commission Niveau 2 (%)</label>
+            <input type="number" [(ngModel)]="newPack.tauxCommissionNiveau2" min="0" max="100"
+              style="width:100%; border:1.5px solid var(--border); border-radius:9px; padding:9px 12px; font-size:13px; box-sizing:border-box;" />
+          </div>
+
+          <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-2); margin-bottom:5px;">Commission Niveau 3 (%)</label>
+            <input type="number" [(ngModel)]="newPack.tauxCommissionNiveau3" min="0" max="100"
+              style="width:100%; border:1.5px solid var(--border); border-radius:9px; padding:9px 12px; font-size:13px; box-sizing:border-box;" />
+          </div>
+
+          <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-2); margin-bottom:5px;">Réduction boutique (%)</label>
+            <input type="number" [(ngModel)]="newPack.tauxReduction" min="0" max="100"
+              style="width:100%; border:1.5px solid var(--border); border-radius:9px; padding:9px 12px; font-size:13px; box-sizing:border-box;" />
+          </div>
+
+          <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-2); margin-bottom:5px;">Emoji</label>
+            <input type="text" [(ngModel)]="newPack.emoji"
+              style="width:100%; border:1.5px solid var(--border); border-radius:9px; padding:9px 12px; font-size:13px; box-sizing:border-box;"
+              placeholder="📦" />
+          </div>
+
+          <div style="grid-column:1/-1;">
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-2); margin-bottom:8px;">Thème / Couleur</label>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              @for (t of [
+                {key:'coral', label:'Coral',  grad:'linear-gradient(135deg,#FF6B5B,#FF9D78)'},
+                {key:'blue',  label:'Bleu',   grad:'linear-gradient(135deg,#1E6FA6,#3AAFDA)'},
+                {key:'gold',  label:'Or',     grad:'linear-gradient(135deg,#D97706,#FFD166)'},
+                {key:'mint',  label:'Menthe', grad:'linear-gradient(135deg,#059669,#4ECBA0)'},
+                {key:'pink',  label:'Rose',   grad:'linear-gradient(135deg,#DB2777,#F472B6)'}
+              ]; track t.key) {
+                <button type="button"
+                  (click)="newPack.color = t.key"
+                  [style]="'display:flex; flex-direction:column; align-items:center; gap:5px; padding:8px 12px; border-radius:10px; cursor:pointer; font-size:11px; font-weight:700; transition:all 0.15s;' +
+                    (newPack.color === t.key
+                      ? 'border:2.5px solid #1A1A2E; background:#F7F8FC;'
+                      : 'border:1.5px solid var(--border); background:#fff; color:var(--text-2);')">
+                  <div [style]="'width:36px; height:36px; border-radius:50%; background:' + t.grad +
+                    '; box-shadow:' + (newPack.color === t.key ? '0 0 0 3px rgba(0,0,0,0.15)' : 'none') + ';'">
+                  </div>
+                  {{ t.label }}
+                  @if (newPack.color === t.key) {
+                    <i class="fas fa-check" style="color:#059669; font-size:10px;"></i>
+                  }
+                </button>
+              }
+            </div>
+          </div>
+
+          <div style="grid-column:1/-1;">
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-2); margin-bottom:5px;">Description</label>
+            <textarea [(ngModel)]="newPack.description" rows="2"
+              style="width:100%; border:1.5px solid var(--border); border-radius:9px; padding:9px 12px; font-size:13px; resize:vertical; box-sizing:border-box;"
+              placeholder="Description courte du pack"></textarea>
+          </div>
+
+          <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-2); margin-bottom:5px;">Tagline (FR)</label>
+            <input type="text" [(ngModel)]="newPack.taglineFr"
+              style="width:100%; border:1.5px solid var(--border); border-radius:9px; padding:9px 12px; font-size:13px; box-sizing:border-box;"
+              placeholder="Accroche marketing en français" />
+          </div>
+
+          <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-2); margin-bottom:5px;">Tagline (AR)</label>
+            <input type="text" [(ngModel)]="newPack.taglineAr" dir="rtl"
+              style="width:100%; border:1.5px solid var(--border); border-radius:9px; padding:9px 12px; font-size:13px; box-sizing:border-box;" />
+          </div>
+
+          <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-2); margin-bottom:5px;">Caractéristiques FR (séparées par |)</label>
+            <input type="text" [(ngModel)]="newPack.featuresFr"
+              style="width:100%; border:1.5px solid var(--border); border-radius:9px; padding:9px 12px; font-size:13px; box-sizing:border-box;"
+              placeholder="Accès plateforme|Code parrainage|..." />
+          </div>
+
+          <div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--text-2); margin-bottom:5px;">Caractéristiques AR (séparées par |)</label>
+            <input type="text" [(ngModel)]="newPack.featuresAr" dir="rtl"
+              style="width:100%; border:1.5px solid var(--border); border-radius:9px; padding:9px 12px; font-size:13px; box-sizing:border-box;" />
+          </div>
+
+        </div>
+
+        @if (errorMsg) {
+          <div style="margin-top:12px; background:#FFF0F0; border:1px solid #F87171; color:#d43c3c;
+            padding:8px 12px; border-radius:8px; font-size:13px;">
+            <i class="fas fa-exclamation-triangle"></i> {{ errorMsg }}
+          </div>
+        }
+
+        <div class="modal-actions" style="margin-top:20px;">
+          <button class="btn-sm" (click)="closeCreateModal()" [disabled]="creating">Annuler</button>
+          <button class="btn-valider" [disabled]="creating || !newPack.nom?.trim()" (click)="createPack()">
+            @if (creating) {
+              <i class="fas fa-spinner fa-spin"></i> Création…
+            } @else {
+              <i class="fas fa-plus"></i> Créer le pack
+            }
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  @if (successMsg) {
+    <div class="success-banner"><i class="fas fa-check-circle"></i> {{ successMsg }}</div>
+  }
+  @if (errorMsg) {
+    <div class="error-banner">
+      <span><i class="fas fa-exclamation-triangle"></i> {{ errorMsg }}</span>
+      <button style="background:none;border:none;cursor:pointer;font-size:16px;color:inherit;" (click)="errorMsg=''">✕</button>
+    </div>
+  }
+
+  @if (isLoading) {
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <span class="loading-text">Chargement...</span>
+    </div>
+  }
+
+  <!-- ══════════════════ PACK CARDS ══════════════════ -->
+  @for (p of packs; track p.id) {
+    <div class="pack-admin-card">
+
+      <!-- ── Card header ── -->
+      <div class="pac-header" (click)="togglePack(p.id)" [style.border-left]="'4px solid ' + packColor(p.nom)">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="pac-emoji">{{ p.emoji || '📦' }}</div>
+          <div>
+            <div class="pac-name">{{ p.nom }}</div>
+            <div class="pac-sub">{{ p.prix }} DT · Niv.{{ p.niveaux }} · Direct {{ p.tauxCommissionDirect }}%</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="pac-img-count">{{ p.images.length }} photo(s)</span>
+          <span class="pac-sp-count">{{ p.sousPacks.length }} sous-pack(s)</span>
+          <button
+            style="background:#FFF0F0; color:#d43c3c; border:1.5px solid #F87171; border-radius:8px;
+              padding:5px 10px; cursor:pointer; font-size:12px; font-weight:600;
+              display:flex; align-items:center; gap:4px;"
+            [disabled]="deletingPackId === p.id"
+            (click)="deletePack(p.id, p.nom); $event.stopPropagation()"
+            title="Supprimer ce pack">
+            <i [class]="deletingPackId === p.id ? 'fas fa-spinner fa-spin' : 'fas fa-trash-alt'"></i>
+            Supprimer
+          </button>
+          <i class="fas" [class.fa-chevron-down]="openPackId !== p.id" [class.fa-chevron-up]="openPackId === p.id"
+             style="color:var(--text-3);font-size:12px;"></i>
+        </div>
+      </div>
+
+      <!-- ── Expanded body ── -->
+      @if (openPackId === p.id) {
+        <div class="pac-body">
+
+          <!-- ── BASIC INFO EDIT ── -->
+          @if (editingPack && editingPack.id === p.id) {
+            <div class="pac-section">
+              <div class="pac-section-title">✏️ Modifier les informations</div>
+              <div class="pac-form-grid">
+                <div class="sf-field">
+                  <label>Nom (FR)</label>
+                  <input class="sf-input" type="text" [(ngModel)]="editingPack.nom" />
+                </div>
+                <div class="sf-field">
+                  <label>Nom (AR) <span style="font-size:.75rem;color:#94a3b8;">اسم الباقة</span></label>
+                  <input class="sf-input" type="text" [(ngModel)]="editingPack.nomAr" placeholder="ستارتر / سيلفر / غولد" dir="rtl" />
+                </div>
+                <div class="sf-field">
+                  <label>Emoji</label>
+                  <input class="sf-input" type="text" [(ngModel)]="editingPack.emoji" />
+                </div>
+                <div class="sf-field">
+                  <label>Couleur (coral/blue/gold)</label>
+                  <input class="sf-input" type="text" [(ngModel)]="editingPack.color" />
+                </div>
+                <div class="sf-field">
+                  <label>Niveaux MLM</label>
+                  <input class="sf-input" type="number" [(ngModel)]="editingPack.niveaux" min="1" max="3" />
+                </div>
+                <div class="sf-field" style="grid-column:span 2">
+                  <label>Description</label>
+                  <input class="sf-input" type="text" [(ngModel)]="editingPack.description" />
+                </div>
+                <div class="sf-field">
+                  <label>Prix (DT)</label>
+                  <input class="sf-input" type="number" [(ngModel)]="editingPack.prix" />
+                </div>
+                <div class="sf-field">
+                  <label>Commission Direct (%)</label>
+                  <input class="sf-input" type="number" [(ngModel)]="editingPack.tauxCommissionDirect" />
+                </div>
+                <div class="sf-field">
+                  <label>Commission Niveau 2 (%)</label>
+                  <input class="sf-input" type="number" [(ngModel)]="editingPack.tauxCommissionNiveau2" />
+                </div>
+                <div class="sf-field">
+                  <label>Commission Niveau 3 (%)</label>
+                  <input class="sf-input" type="number" [(ngModel)]="editingPack.tauxCommissionNiveau3" />
+                </div>
+                <div class="sf-field">
+                  <label>Réduction boutique (%)</label>
+                  <input class="sf-input" type="number" [(ngModel)]="editingPack.tauxReduction" />
+                </div>
+                <div class="sf-field" style="grid-column:span 3">
+                  <label>Tagline (FR)</label>
+                  <input class="sf-input" type="text" [(ngModel)]="editingPack.taglineFr" placeholder="Pour commencer votre aventure MLM" />
+                </div>
+                <div class="sf-field" style="grid-column:span 3">
+                  <label>Tagline (AR)</label>
+                  <input class="sf-input" type="text" [(ngModel)]="editingPack.taglineAr" />
+                </div>
+                <div class="sf-field" style="grid-column:span 3">
+                  <label>Caractéristiques FR (séparées par |)</label>
+                  <input class="sf-input" type="text" [(ngModel)]="editingPack.featuresFr" placeholder="Accès plateforme|Code parrainage|5% commission" />
+                </div>
+                <div class="sf-field" style="grid-column:span 3">
+                  <label>Caractéristiques AR (séparées par |)</label>
+                  <input class="sf-input" type="text" [(ngModel)]="editingPack.featuresAr" />
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px;">
+                <button class="btn-refuser" (click)="cancelEdit()">Annuler</button>
+                <button class="btn-valider" (click)="savePackInfo()"><i class="fas fa-save"></i> Sauvegarder</button>
+              </div>
+            </div>
+          } @else {
+            <div class="pac-section pac-info-row">
+              <div class="pac-info-item"><span class="pac-lbl">Description</span><span>{{ p.description || '—' }}</span></div>
+              <div class="pac-info-item"><span class="pac-lbl">Tagline FR</span><span>{{ p.taglineFr || '—' }}</span></div>
+              <div class="pac-info-item"><span class="pac-lbl">Caractéristiques</span><span>{{ p.featuresFr || '—' }}</span></div>
+              <button class="btn-valider" (click)="startEdit(p)" style="margin-left:auto;">
+                <i class="fas fa-edit"></i> Modifier les infos
+              </button>
+            </div>
+          }
+
+          <!-- ── IMAGES ── -->
+          <div class="pac-section">
+            <div class="pac-section-title">🖼️ Photos du pack</div>
+            <div class="pac-images-row">
+              @for (imgUrl of p.images; track imgUrl) {
+                <div class="pac-img-thumb">
+                  <img [src]="getImageUrl(imgUrl)" alt="Photo pack" />
+                  <button class="pac-img-del" (click)="deleteImage(p.id, imgUrl)" title="Supprimer">✕</button>
+                </div>
+              }
+              <label class="pac-img-add" [class.uploading]="uploadingFor === 'pack-'+p.id">
+                @if (uploadingFor === 'pack-' + p.id) {
+                  <i class="fas fa-spinner fa-spin"></i>
+                } @else {
+                  <i class="fas fa-plus"></i>
+                  <span>Ajouter</span>
+                }
+                <input type="file" accept="image/*" style="display:none;" (change)="onImageUpload($event, p.id)" />
+              </label>
+            </div>
+          </div>
+
+          <!-- ── SOUS-PACKS ── -->
+          <div class="pac-section">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <div class="pac-section-title" style="margin:0;">📦 Sous-packs</div>
+              <button class="btn-valider" style="padding:6px 14px;font-size:12px;" (click)="openSpForm(p.id)">
+                <i class="fas fa-plus"></i> Ajouter un sous-pack
+              </button>
+            </div>
+
+            <!-- sous-pack form: ONLY shown for adding a new sous-pack -->
+            @if (spFormPackId === p.id && !spEditId) {
+              <div class="pac-sp-form">
+                <div class="pac-section-title" style="font-size:.9rem;">➕ Nouveau sous-pack</div>
+                <div class="pac-form-grid" style="grid-template-columns:1fr 1fr 80px 120px 100px;">
+                  <div class="sf-field">
+                    <label>Nom (FR)</label>
+                    <input class="sf-input" type="text" [(ngModel)]="spForm.nom" placeholder="Cosmétique" />
+                  </div>
+                  <div class="sf-field">
+                    <label>Nom (AR)</label>
+                    <input class="sf-input" type="text" [(ngModel)]="spForm.nomAr" placeholder="كوزميتيك" dir="rtl" />
+                  </div>
+                  <div class="sf-field">
+                    <label>Emoji</label>
+                    <input class="sf-input" type="text" [(ngModel)]="spForm.emoji" placeholder="💄" />
+                  </div>
+                  <div class="sf-field">
+                    <label>Thème</label>
+                    <select class="sf-input" [(ngModel)]="spForm.theme">
+                      @for (t of themeOptions; track t) {
+                        <option [value]="t">{{ t }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="sf-field">
+                    <label>Stock</label>
+                    <input class="sf-input" type="number" [(ngModel)]="spForm.stock" min="0" placeholder="0" />
+                  </div>
+                </div>
+                <div class="pac-form-grid" style="grid-template-columns:1fr 1fr;">
+                  <div class="sf-field">
+                    <label>Produits FR (séparés par |)</label>
+                    <textarea class="sf-input" rows="3" [(ngModel)]="spForm._produitsFrRaw"
+                      placeholder="Crème hydratante (50ml)|Sérum anti-âge|Masque purifiant"></textarea>
+                  </div>
+                  <div class="sf-field">
+                    <label>Produits AR (séparés par |)</label>
+                    <textarea class="sf-input" rows="3" [(ngModel)]="spForm._produitsArRaw" dir="rtl"></textarea>
+                  </div>
+                </div>
+                <div class="sf-field" style="margin-top:4px;">
+                  <label>Photo du sous-pack</label>
+                  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                    @if (spForm.imageUrl) {
+                      <div style="position:relative;display:inline-block;">
+                        <img [src]="getImageUrl(spForm.imageUrl)" alt="Aperçu"
+                             style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:2px solid var(--border);" />
+                        <button type="button" (click)="removeSpImage()"
+                                style="position:absolute;top:-7px;right:-7px;background:#e74c3c;color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;">✕</button>
+                      </div>
+                    }
+                    <label style="cursor:pointer;">
+                      <div style="border:2px dashed var(--border);border-radius:8px;padding:10px 18px;color:var(--text-3);font-size:12px;text-align:center;"
+                           [style.opacity]="uploadingFor==='sp'?'.5':'1'">
+                        @if (uploadingFor === 'sp') {
+                          <i class="fas fa-spinner fa-spin"></i> Upload...
+                        } @else {
+                          <i class="fas fa-image"></i>
+                          {{ spForm.imageUrl ? 'Changer la photo' : 'Ajouter une photo' }}
+                        }
+                      </div>
+                      <input type="file" accept="image/*" style="display:none;" (change)="onSpImageUpload($event)" [disabled]="uploadingFor==='sp'" />
+                    </label>
+                  </div>
+                </div>
+                <div class="sf-field" style="margin-top:4px;">
+                  <label>Photos supplémentaires</label>
+                  <div style="font-size:12px;color:var(--text-3);margin-top:4px;">
+                    <i class="fas fa-info-circle"></i> Créez le sous-pack d'abord, puis ajoutez des photos via Modifier.
+                  </div>
+                </div>
+                <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px;">
+                  <button class="btn-refuser" (click)="cancelSpForm()">Annuler</button>
+                  <button class="btn-valider" (click)="saveSousPack()"><i class="fas fa-save"></i> Sauvegarder</button>
+                </div>
+              </div>
+            }
+
+            <!-- sous-packs list with inline editing -->
+            @if (p.sousPacks.length) {
+              <div class="pac-sp-list">
+                @for (sp of p.sousPacks; track sp.id) {
+
+                  <!-- INLINE EDIT FORM for this specific item -->
+                  @if (spFormPackId === p.id && spEditId === (sp.id ?? null)) {
+                    <div class="pac-sp-form" style="margin:0;">
+                      <div class="pac-section-title" style="font-size:.9rem;">✏️ Modifier — {{ sp.nom }}</div>
+                      <div class="pac-form-grid" style="grid-template-columns:1fr 1fr 80px 120px 100px;">
+                        <div class="sf-field">
+                          <label>Nom (FR)</label>
+                          <input class="sf-input" type="text" [(ngModel)]="spForm.nom" placeholder="Cosmétique" />
+                        </div>
+                        <div class="sf-field">
+                          <label>Nom (AR)</label>
+                          <input class="sf-input" type="text" [(ngModel)]="spForm.nomAr" placeholder="كوزميتيك" dir="rtl" />
+                        </div>
+                        <div class="sf-field">
+                          <label>Emoji</label>
+                          <input class="sf-input" type="text" [(ngModel)]="spForm.emoji" placeholder="💄" />
+                        </div>
+                        <div class="sf-field">
+                          <label>Thème</label>
+                          <select class="sf-input" [(ngModel)]="spForm.theme">
+                            @for (t of themeOptions; track t) {
+                              <option [value]="t">{{ t }}</option>
+                            }
+                          </select>
+                        </div>
+                        <div class="sf-field">
+                          <label>Stock</label>
+                          <input class="sf-input" type="number" [(ngModel)]="spForm.stock" min="0" placeholder="0" />
+                        </div>
+                      </div>
+                      <div class="pac-form-grid" style="grid-template-columns:1fr 1fr;">
+                        <div class="sf-field">
+                          <label>Produits FR (séparés par |)</label>
+                          <textarea class="sf-input" rows="3" [(ngModel)]="spForm._produitsFrRaw"
+                            placeholder="Crème hydratante (50ml)|Sérum anti-âge|Masque purifiant"></textarea>
+                        </div>
+                        <div class="sf-field">
+                          <label>Produits AR (séparés par |)</label>
+                          <textarea class="sf-input" rows="3" [(ngModel)]="spForm._produitsArRaw" dir="rtl"></textarea>
+                        </div>
+                      </div>
+                      <div class="sf-field" style="margin-top:4px;">
+                        <label>Photo du sous-pack</label>
+                        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                          @if (spForm.imageUrl) {
+                            <div style="position:relative;display:inline-block;">
+                              <img [src]="getImageUrl(spForm.imageUrl)" alt="Aperçu"
+                                   style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:2px solid var(--border);" />
+                              <button type="button" (click)="removeSpImage()"
+                                      style="position:absolute;top:-7px;right:-7px;background:#e74c3c;color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;">✕</button>
+                            </div>
+                          }
+                          <label style="cursor:pointer;">
+                            <div style="border:2px dashed var(--border);border-radius:8px;padding:10px 18px;color:var(--text-3);font-size:12px;text-align:center;"
+                                 [style.opacity]="uploadingFor==='sp'?'.5':'1'">
+                              @if (uploadingFor === 'sp') {
+                                <i class="fas fa-spinner fa-spin"></i> Upload...
+                              } @else {
+                                <i class="fas fa-image"></i>
+                                {{ spForm.imageUrl ? 'Changer la photo' : 'Ajouter une photo' }}
+                              }
+                            </div>
+                            <input type="file" accept="image/*" style="display:none;" (change)="onSpImageUpload($event)" [disabled]="uploadingFor==='sp'" />
+                          </label>
+                        </div>
+                      </div>
+                      <!-- Photos supplémentaires galerie -->
+                      <div class="sf-field" style="margin-top:4px;">
+                        <label>Photos supplémentaires</label>
+                        <div class="pac-images-row">
+                          @for (img of spFormImages; track img) {
+                            <div class="pac-img-thumb">
+                              <img [src]="getImageUrl(img)" alt="Photo" />
+                              <button class="pac-img-del" (click)="deleteSpGalleryImage(img)" title="Supprimer">✕</button>
+                            </div>
+                          }
+                          <label class="pac-img-add" [class.uploading]="uploadingFor==='sp-gallery'">
+                            @if (uploadingFor === 'sp-gallery') {
+                              <i class="fas fa-spinner fa-spin"></i>
+                            } @else {
+                              <i class="fas fa-plus"></i>
+                              <span>Ajouter</span>
+                            }
+                            <input type="file" accept="image/*" style="display:none;" (change)="onSpGalleryUpload($event)" [disabled]="uploadingFor==='sp-gallery'" />
+                          </label>
+                        </div>
+                      </div>
+                      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px;">
+                        <button class="btn-refuser" (click)="cancelSpForm()">Annuler</button>
+                        <button class="btn-valider" (click)="saveSousPack()"><i class="fas fa-save"></i> Sauvegarder</button>
+                      </div>
+                    </div>
+
+                  } @else {
+                    <!-- Normal display mode -->
+                    <div class="pac-sp-item" [attr.data-theme]="sp.theme">
+                      <div class="psi-top">
+                        @if (sp.imageUrl) {
+                          <img [src]="getImageUrl(sp.imageUrl)" alt="{{ sp.nom }}"
+                               style="width:36px;height:36px;object-fit:cover;border-radius:6px;border:1px solid var(--border);flex-shrink:0;" />
+                        }
+                        <span class="psi-emoji">{{ sp.emoji }}</span>
+                        <span class="psi-nom">{{ sp.nom }}</span>
+                        @if (sp.nomAr) {
+                          <span style="font-size:.78rem;color:#94a3b8;font-style:italic;" dir="rtl">{{ sp.nomAr }}</span>
+                        }
+                        <span class="psi-theme-badge">{{ sp.theme }}</span>
+                        <span class="psi-theme-badge" style="background:#dcfce7;color:#15803d;">📦 {{ sp.stock }}</span>
+                        <div style="margin-left:auto;display:flex;gap:6px;">
+                          <button class="btn-valider" style="padding:4px 10px;font-size:11px;" (click)="openSpForm(p.id, sp)">
+                            <i class="fas fa-edit"></i>
+                          </button>
+                          <button class="btn-refuser" style="padding:4px 10px;font-size:11px;" (click)="deleteSousPack(p.id, sp.id!)">
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </div>
+                      </div>
+                      @if (sp.produitsFr.length) {
+                        <ul class="psi-products">
+                          @for (pr of sp.produitsFr; track pr) {
+                            <li>{{ pr }}</li>
+                          }
+                        </ul>
+                      }
+                    </div>
+                  }
+
+                }
+              </div>
+            } @else {
+              <div style="color:var(--text-3);font-size:.85rem;padding:8px 0;">Aucun sous-pack pour ce pack.</div>
+            }
+          </div>
+
+        </div>
+      }
+    </div>
+  }
+
+  @if (!isLoading && packs.length === 0) {
+    <div class="dt-empty"><i class="fas fa-inbox"></i> Aucun pack disponible</div>
+  }
+
+</div>
+
+<style>
+.pack-admin-card { background:#fff; border-radius:12px; border:1px solid var(--border); margin-top:12px; overflow:hidden; }
+.pac-header { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; cursor:pointer; transition:background .15s; }
+.pac-header:hover { background:#f8fafc; }
+.pac-emoji { font-size:1.8rem; }
+.pac-name { font-weight:700; font-size:1rem; color:#1e293b; }
+.pac-sub { font-size:.8rem; color:#64748b; margin-top:2px; }
+.pac-img-count, .pac-sp-count { font-size:.75rem; background:#f1f5f9; border-radius:20px; padding:2px 8px; color:#475569; }
+.pac-body { border-top:1px solid var(--border); }
+.pac-section { padding:16px 20px; border-bottom:1px solid #f1f5f9; }
+.pac-section:last-child { border-bottom:none; }
+.pac-section-title { font-weight:700; font-size:.9rem; color:#1e293b; margin-bottom:12px; }
+.pac-info-row { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-start; }
+.pac-info-item { display:flex; flex-direction:column; gap:2px; min-width:160px; }
+.pac-lbl { font-size:.72rem; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:.04em; }
+.pac-form-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+/* Images */
+.pac-images-row { display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; }
+.pac-img-thumb { position:relative; width:80px; height:80px; border-radius:8px; overflow:visible; }
+.pac-img-thumb img { width:80px; height:80px; object-fit:cover; border-radius:8px; border:1px solid var(--border); }
+.pac-img-del { position:absolute; top:-7px; right:-7px; background:#e74c3c; color:#fff; border:none; border-radius:50%; width:20px; height:20px; font-size:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.pac-img-add { width:80px; height:80px; border:2px dashed var(--border); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#94a3b8; font-size:.75rem; cursor:pointer; transition:border-color .2s; }
+.pac-img-add:hover { border-color:#FF6B5B; color:#FF6B5B; }
+.pac-img-add.uploading { opacity:.5; pointer-events:none; }
+/* Sous-packs */
+.pac-sp-form { background:#f8fafc; border-radius:10px; padding:16px; margin-bottom:12px; border:1px solid var(--border); }
+.pac-sp-list { display:flex; flex-direction:column; gap:8px; }
+.pac-sp-item { border-radius:10px; padding:12px 14px; border:1px solid #e2e8f0; background:#fafafa; }
+.pac-sp-item[data-theme="coral"]  { border-left:3px solid #FF6B5B; }
+.pac-sp-item[data-theme="blue"]   { border-left:3px solid #3AAFD9; }
+.pac-sp-item[data-theme="mint"]   { border-left:3px solid #00C9A7; }
+.pac-sp-item[data-theme="pink"]   { border-left:3px solid #f472b6; }
+.pac-sp-item[data-theme="gold"]   { border-left:3px solid #F59E0B; }
+.psi-top { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.psi-emoji { font-size:1.2rem; }
+.psi-nom { font-weight:700; font-size:.9rem; color:#1e293b; }
+.psi-theme-badge { font-size:.7rem; background:#e2e8f0; border-radius:20px; padding:1px 7px; color:#64748b; }
+.psi-products { margin:0; padding-left:18px; }
+.psi-products li { font-size:.82rem; color:#475569; line-height:1.6; }
+</style>

@@ -1,0 +1,118 @@
+<div class="otp-page">
+
+  <!-- ── BRAND PANEL ── -->
+  <div class="otp-brand">
+    <div class="brand-content">
+      <span id="collab">Cuteness</span>
+      <span id="mlm">Collaboration MLM</span>
+      <h1 class="brand-title">
+        Vérifiez votre<br>
+        <span class="highlight">adresse email</span>
+      </h1>
+      <p class="brand-desc">
+        Un code à 6 chiffres a été envoyé à votre adresse email.
+        Entrez-le ci-dessous pour activer votre compte.
+      </p>
+      <div class="brand-stats">
+        <div class="bs-item">
+          <div class="bs-row">
+            <span class="bs-lbl">Validité du code</span>
+            <span class="bs-val">10 minutes</span>
+          </div>
+        </div>
+        <div class="bs-item">
+          <div class="bs-row">
+            <span class="bs-lbl">Vérifiez vos spams</span>
+            <span class="bs-val">si absent</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="deco deco-1"></div>
+    <div class="deco deco-2"></div>
+  </div>
+
+  <!-- ── FORM PANEL ── -->
+  <div class="otp-form-panel">
+    <div class="otp-card">
+
+      <!-- Icon -->
+      <div class="otp-icon-wrap">
+        <i class="fa-solid fa-envelope-open-text otp-icon"></i>
+      </div>
+
+      <h2 class="otp-title">Vérification email</h2>
+
+      <p class="otp-subtitle" *ngIf="email">
+        Code envoyé à <strong>{{ email }}</strong>
+      </p>
+
+      <!-- Timer -->
+      <div class="timer-row" [class.expired]="canResend">
+        <i class="fa-regular fa-clock"></i>
+        <span *ngIf="!canResend">Code expire dans <strong>{{ timerDisplay }}</strong></span>
+        <span *ngIf="canResend">Code expiré</span>
+      </div>
+
+      <!-- Error -->
+      <div class="alert-banner danger" *ngIf="errorMessage">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        {{ errorMessage }}
+      </div>
+
+      <!-- Success -->
+      <div class="alert-banner success" *ngIf="successMessage">
+        <i class="fa-solid fa-circle-check"></i>
+        {{ successMessage }}
+      </div>
+
+      <!-- OTP digits -->
+      <div class="digit-row">
+        <input
+          *ngFor="let d of digits; let i = index; trackBy: trackByIndex"
+          #digitInput
+          class="digit-input"
+          type="text"
+          inputmode="numeric"
+          maxlength="6"
+          [value]="digits[i]"
+          (input)="onDigitInput($event, i)"
+          (keydown)="onKeyDown($event, i)"
+          [attr.aria-label]="'Chiffre ' + (i + 1)"
+          [disabled]="isLoading || !!successMessage"
+        />
+      </div>
+
+      <!-- Submit -->
+      <button
+        class="cc-btn submit-btn"
+        [disabled]="!isOtpComplete || isLoading || !!successMessage"
+        (click)="onSubmit()"
+      >
+        <span *ngIf="!isLoading">Vérifier le code</span>
+        <span *ngIf="isLoading">Vérification…</span>
+      </button>
+
+      <!-- Resend -->
+      <div class="resend-row">
+        <span>Vous n'avez pas reçu le code ?</span>
+        <button
+          class="resend-btn"
+          [disabled]="!canResend || resendLoading"
+          (click)="resendOtp()"
+        >
+          <span *ngIf="!resendLoading">Renvoyer</span>
+          <span *ngIf="resendLoading">Envoi…</span>
+        </button>
+      </div>
+
+      <div class="back-row">
+        <a routerLink="/auth/login" class="back-link">
+          <i class="fa-solid fa-arrow-left"></i> Retour à la connexion
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+</div>

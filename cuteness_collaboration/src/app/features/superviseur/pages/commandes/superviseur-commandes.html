@@ -1,0 +1,464 @@
+<div class="section-content">
+
+  <!-- TAB SWITCHER -->
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:20px;">
+    <div class="filter-tabs" style="margin-bottom:0;">
+      <button [class.active]="onglet === 'inscriptions'" (click)="onglet = 'inscriptions'">
+        📋 Demandes d'inscription
+        <span class="ft-count">{{ inscriptions.length }}</span>
+      </button>
+      <button [class.active]="onglet === 'commandes'" (click)="onglet = 'commandes'">
+        📦 Commandes produits
+        <span class="ft-count">{{ commandes.length }}</span>
+      </button>
+    </div>
+    <button class="btn-valider" style="font-size:12px; padding:7px 18px; display:flex; align-items:center; gap:6px; background:#7C3AED; border-color:#7C3AED;"
+      (click)="ouvrirCreerCommandeModal()">
+      <i class="fas fa-plus"></i> Nouvelle commande
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- MODAL: CRÉER UNE COMMANDE                          -->
+  <!-- ══════════════════════════════════════════════════ -->
+  @if (showCreerCommandeModal) {
+    <div class="modal-overlay" (click)="fermerCreerCommandeModal()">
+      <div class="modal-box" style="max-width:600px; width:95%;" (click)="$event.stopPropagation()">
+        <div class="modal-title">➕ Nouvelle commande produits</div>
+
+        @if (modalSuccess) {
+          <div style="margin:0 20px; padding:10px 14px; background:#EDFAF4; border:1px solid #4ECBA0; border-radius:8px; color:#1e9b6b; font-size:13px; font-weight:600;">
+            {{ modalSuccess }}
+          </div>
+        }
+        @if (modalError) {
+          <div style="margin:0 20px; padding:10px 14px; background:#FFF0F0; border:1px solid #F87171; border-radius:8px; color:#d43c3c; font-size:13px; font-weight:600;">
+            ⚠️ {{ modalError }}
+          </div>
+        }
+
+        <div class="modal-body" style="display:flex; flex-direction:column; gap:14px;">
+
+          <!-- Partenaire -->
+          <div>
+            <label style="display:block; font-weight:700; font-size:13px; margin-bottom:5px;">
+              Partenaire <span style="color:#ef4444">*</span>
+            </label>
+            <select [(ngModel)]="nouvelleCommande.partenaireEmail"
+              style="width:100%; padding:9px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:13px;">
+              <option value="">-- Sélectionner un partenaire --</option>
+              @for (p of partenaires; track p.id) {
+                <option [value]="p.email">{{ p.nom }} — {{ p.region }} ({{ p.email }})</option>
+              }
+            </select>
+          </div>
+
+          <!-- Adresse -->
+          <div>
+            <label style="display:block; font-weight:700; font-size:13px; margin-bottom:5px;">
+              Adresse de livraison <span style="color:#ef4444">*</span>
+            </label>
+            <input type="text" [(ngModel)]="nouvelleCommande.adresse"
+              placeholder="Ex: 12 Rue de la Liberté, Tunis"
+              style="width:100%; padding:9px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:13px; box-sizing:border-box;" />
+          </div>
+
+          <!-- Mode paiement + Option remise -->
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div>
+              <label style="display:block; font-weight:700; font-size:13px; margin-bottom:5px;">Mode de paiement</label>
+              <select [(ngModel)]="nouvelleCommande.modePaiement"
+                style="width:100%; padding:9px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:13px;">
+                <option value="CARTE">Carte</option>
+                <option value="EN_LIGNE">En ligne</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block; font-weight:700; font-size:13px; margin-bottom:5px;">Option remise</label>
+              <select [(ngModel)]="nouvelleCommande.optionRemise"
+                style="width:100%; padding:9px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:13px;">
+                <option value="IMMEDIATE">Immédiate</option>
+                <option value="REMBOURSEMENT">Remboursement</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Lignes produits -->
+          <div>
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+              <label style="font-weight:700; font-size:13px;">Produits <span style="color:#ef4444">*</span></label>
+              <button class="btn-sm" (click)="ajouterLigne()" style="font-size:11px;">
+                <i class="fas fa-plus"></i> Ajouter
+              </button>
+            </div>
+            @for (ligne of nouvelleCommande.lignes; track $index) {
+              <div style="display:grid; grid-template-columns:1fr 80px auto; gap:8px; margin-bottom:8px; align-items:center;">
+                <select [(ngModel)]="ligne.produitId" (ngModelChange)="onProduitChange(ligne, $event)"
+                  style="padding:8px 10px; border:1.5px solid var(--border); border-radius:8px; font-size:12px;">
+                  <option [ngValue]="null">-- Produit --</option>
+                  @for (p of produits; track p.id) {
+                    <option [ngValue]="p.id">{{ p.nom }} — {{ p.prix | number:'1.2-2' }} DT (stock: {{ p.stock }})</option>
+                  }
+                </select>
+                <input type="number" [(ngModel)]="ligne.quantite" min="1"
+                  style="padding:8px 10px; border:1.5px solid var(--border); border-radius:8px; font-size:12px; text-align:center;" />
+                <button class="btn-sm btn-danger" (click)="retirerLigne($index)" style="font-size:11px;" [disabled]="nouvelleCommande.lignes.length === 1">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            }
+          </div>
+
+          <!-- Montant estimé -->
+          <div style="background:#F9F7F5; border-radius:8px; padding:10px 14px; font-size:13px; display:flex; justify-content:space-between;">
+            <span style="color:#555570;">Montant estimé (frais livraison 9 DT inclus)</span>
+            <strong style="color:#1A1A2E;">{{ montantEstime | number:'1.2-2' }} DT</strong>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-sm" (click)="fermerCreerCommandeModal()">Annuler</button>
+          <button class="btn-valider" [disabled]="creerLoading" (click)="soumettreNouvelleCommande()">
+            <i class="fas fa-check"></i> {{ creerLoading ? 'Création...' : 'Créer la commande' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- TAB INSCRIPTIONS                                   -->
+  <!-- ══════════════════════════════════════════════════ -->
+  @if (onglet === 'inscriptions') {
+
+    @if (inscSuccess) {
+      <div class="error-banner" style="background:#EDFAF4; border-color:#4ECBA0; color:#1e9b6b;">
+        <span>✅ {{ inscSuccess }}</span>
+      </div>
+    }
+    @if (inscError) {
+      <div class="error-banner">
+        <span>⚠️ {{ inscError }}</span>
+        <button class="btn-sm" (click)="loadInscriptions()">Réessayer</button>
+      </div>
+    }
+
+    @if (inscLoading) {
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Chargement des demandes...</div>
+      </div>
+    } @else if (inscriptions.length === 0) {
+      <div class="dt-empty">
+        <i class="fas fa-inbox"></i> Aucune demande d'inscription en cours
+      </div>
+    } @else {
+      <div class="insc-grid">
+        @for (d of inscriptions; track d.id) {
+          <div [class]="inscCardClass(d)">
+            <div class="insc-header">
+              <div>
+                <div class="insc-name">{{ d.nomClient }}</div>
+                <div class="insc-email">{{ d.emailClient }}</div>
+              </div>
+              <span class="insc-badge" [ngClass]="inscBadgeClass(d.statut)">
+                @if (d.statut === 'NOUVELLE')  { Nouvelle }
+                @if (d.statut === 'EN_COURS')  { En cours }
+                @if (d.statut === 'TRAITEE')   { Traitée }
+              </span>
+            </div>
+
+            <div class="insc-rows">
+              <div class="insc-row">
+                <span class="ir-lbl">Pack</span>
+                <span class="ir-val">{{ d.nomPack }} — {{ d.prixPack | number }} DT</span>
+              </div>
+              <div class="insc-row">
+                <span class="ir-lbl">Parrain</span>
+                <span class="ir-val">{{ d.nomParrain }}</span>
+              </div>
+              <div class="insc-row">
+                <span class="ir-lbl">Région</span>
+                <span class="ir-val">{{ d.region || '—' }}</span>
+              </div>
+              <div class="insc-row">
+                <span class="ir-lbl">Téléphone</span>
+                <span class="ir-val">{{ d.telephone || '—' }}</span>
+              </div>
+              <div class="insc-row">
+                <span class="ir-lbl">Paiement</span>
+                <span class="ir-val">{{ d.modePaiement || '—' }}</span>
+              </div>
+              <div class="insc-row">
+                <span class="ir-lbl">Date</span>
+                <span class="ir-val">{{ d.dateCreation }}</span>
+              </div>
+              @if (d.nomSuperviseur && d.statut !== 'NOUVELLE') {
+                <div class="insc-row">
+                  <span class="ir-lbl">Prise par</span>
+                  <span class="ir-val" style="color:#7C3AED;">{{ d.nomSuperviseur }}</span>
+                </div>
+              }
+            </div>
+
+            <div class="insc-actions">
+              @if (d.statut === 'NOUVELLE') {
+                <button class="btn-prendre" (click)="prendreEnChargeInsc(d.id)">
+                  <i class="fas fa-hand-pointer"></i> Prendre en charge
+                </button>
+              }
+              @if (d.statut === 'EN_COURS' && d.nomSuperviseur === 'Vous') {
+                <button class="btn-traiter" (click)="marquerTraitee(d.id)">
+                  <i class="fas fa-check-double"></i> Marquer traitée
+                </button>
+              }
+              @if (d.statut === 'EN_COURS' && d.nomSuperviseur !== 'Vous') {
+                <span class="insc-taken-by">
+                  <i class="fas fa-lock"></i> Prise en charge par {{ d.nomSuperviseur }}
+                </span>
+              }
+              @if (d.statut === 'TRAITEE') {
+                <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-start;">
+                  @if (d.navexRef) {
+                    <span style="font-size:11px; color:#059669; font-weight:700;">
+                      <i class="fas fa-shipping-fast"></i> Navex : {{ d.navexRef }}
+                    </span>
+                  } @else {
+                    <button class="btn-valider" style="font-size:11px; padding:5px 12px; background:#3AAFDA; border-color:#3AAFDA;"
+                      (click)="creerColisNavex(d)">
+                      <i class="fas fa-box"></i> Créer livraison Navex
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- TAB COMMANDES PRODUITS                             -->
+  <!-- ══════════════════════════════════════════════════ -->
+  @if (onglet === 'commandes') {
+
+    @if (successMsg) {
+      <div class="error-banner" style="background:#EDFAF4; border-color:#4ECBA0; color:#1e9b6b;">
+        <span>✅ {{ successMsg }}</span>
+      </div>
+    }
+    @if (errorMsg) {
+      <div class="error-banner">
+        <span>⚠️ {{ errorMsg }}</span>
+        <button class="btn-sm" (click)="loadCommandes()">
+          <i class="fas fa-redo"></i> Réessayer
+        </button>
+      </div>
+    }
+
+    <!-- Modal confirmation statut générique -->
+    @if (confirmAction) {
+      <div class="modal-overlay" (click)="annulerConfirmation()">
+        <div class="modal-box" (click)="$event.stopPropagation()">
+          <div class="modal-title">⚠️ Confirmer le changement</div>
+          <div class="modal-body">
+            Voulez-vous passer la commande <strong>#{{ confirmAction.id }}</strong>
+            au statut <strong>{{ statutLabel(confirmAction.statut) }}</strong> ?
+          </div>
+          <div class="modal-actions">
+            <button class="btn-sm btn-danger" (click)="annulerConfirmation()">Annuler</button>
+            <button class="btn-valider" (click)="confirmerChangement()">
+              <i class="fas fa-check"></i> Confirmer
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+
+    <div class="section-actions">
+      <div class="filter-tabs">
+        <button [class.active]="filtreStatut === 'TOUS'" (click)="filtreStatut = 'TOUS'">
+          Toutes <span class="ft-count">{{ countByStatut('TOUS') }}</span>
+        </button>
+        <button [class.active]="filtreStatut === 'EN_ATTENTE'" (click)="filtreStatut = 'EN_ATTENTE'">
+          ⏳ En attente <span class="ft-count">{{ countByStatut('EN_ATTENTE') }}</span>
+        </button>
+        <button [class.active]="filtreStatut === 'EN_PREPARATION'" (click)="filtreStatut = 'EN_PREPARATION'">
+          🔧 En préparation <span class="ft-count">{{ countByStatut('EN_PREPARATION') }}</span>
+        </button>
+        <button [class.active]="filtreStatut === 'LIVREE'" (click)="filtreStatut = 'LIVREE'">
+          ✅ Livrées <span class="ft-count">{{ countByStatut('LIVREE') }}</span>
+        </button>
+        <button [class.active]="filtreStatut === 'ANNULEE'" (click)="filtreStatut = 'ANNULEE'">
+          ❌ Annulées <span class="ft-count">{{ countByStatut('ANNULEE') }}</span>
+        </button>
+        <button [class.active]="filtreStatut === 'RETOURNEE'" (click)="filtreStatut = 'RETOURNEE'">
+          🔄 Retournées <span class="ft-count">{{ countByStatut('RETOURNEE') }}</span>
+        </button>
+      </div>
+      <div class="search-bar">
+        <i class="fas fa-search"></i>
+        <input type="text" [(ngModel)]="recherche" placeholder="Rechercher commande…" />
+      </div>
+    </div>
+
+    @if (isLoading) {
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Chargement des commandes...</div>
+      </div>
+    } @else {
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#ID</th><th>Partenaire</th><th>Pack</th><th>Région</th>
+              <th>Montant</th><th>Paiement</th><th>Statut</th><th>Date</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of commandesFiltrees; track c.id) {
+              <tr [class.row-selected]="commandeSelectionnee?.id === c.id">
+                <td data-label="#ID"><strong>#{{ c.id }}</strong></td>
+                <td data-label="Partenaire">
+                  <div class="p-name">
+                    <div class="p-ava" style="background:#F3F0FF; color:#7C3AED;">{{ c.partenaire[0] }}</div>
+                    <div>
+                      <div class="p-nm">{{ c.partenaire }}</div>
+                      <div class="p-sub">{{ c.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td data-label="Pack">
+                  <div class="p-nm">{{ c.pack }}</div>
+                  @if (c.souspack) { <div class="p-sub">{{ c.souspack }}</div> }
+                </td>
+                <td class="td-soft" data-label="Région">{{ c.region }}</td>
+                <td data-label="Montant"><strong>{{ c.montant | number }} DT</strong></td>
+                <td class="td-soft" data-label="Paiement">{{ c.modePaiement }}</td>
+                <td data-label="Statut"><span class="badge" [ngClass]="statutClass(c.statut)">{{ statutLabel(c.statut) }}</span></td>
+                <td class="td-soft" data-label="Date">{{ c.date }}</td>
+                <td data-label="">
+                  <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                    <button class="btn-sm" (click)="voirDetail(c)"><i class="fas fa-eye"></i></button>
+
+                    @if (c.statut === 'EN_ATTENTE') {
+                      <button class="btn-valider" style="font-size:11px; padding:5px 12px;"
+                        (click)="prendreEnCharge(c.id)">
+                        <i class="fas fa-hand-pointer"></i> Prendre en charge
+                      </button>
+                    }
+
+                    @if (c.statut === 'EN_PREPARATION' && !c.navexRef) {
+                      <button class="btn-valider" style="font-size:11px; padding:5px 12px; background:#3AAFDA; border-color:#3AAFDA;"
+                        [disabled]="navexLoadingId === c.id"
+                        (click)="creerColisNavexCommande(c)">
+                        <i class="fas fa-box"></i>
+                        {{ navexLoadingId === c.id ? 'Création...' : 'Créer livraison Navex' }}
+                      </button>
+                    }
+
+                    @if (c.navexRef) {
+                      <span style="font-size:11px; color:#059669; font-weight:700; display:flex; align-items:center; gap:5px;">
+                        <i class="fas fa-shipping-fast"></i> {{ c.navexRef }}
+                      </span>
+                      <a [href]="navexTrackingUrl(c.navexRef)" target="_blank"
+                        class="btn-sm" style="font-size:11px; text-decoration:none; background:#f0fdf4; color:#059669; border-color:#bbf7d0;">
+                        <i class="fas fa-external-link-alt"></i> Suivi
+                      </a>
+                    }
+
+                    @if (c.confirmationComptableRequise) {
+                      <span style="font-size:10px; background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; padding:3px 7px; border-radius:10px; font-weight:700;">
+                        ⏳ Att. comptable
+                      </span>
+                    }
+
+                    @if (c.statut === 'EN_ATTENTE' || c.statut === 'EN_PREPARATION') {
+                      <button class="btn-sm btn-danger" style="font-size:11px;"
+                        (click)="changerStatut(c.id, 'ANNULEE')">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    }
+                    @if (c.statut === 'EN_PREPARATION' || c.statut === 'LIVREE') {
+                      <button class="btn-sm" style="font-size:11px; background:#FFF0F0; color:#d43c3c; border-color:#F87171;"
+                        (click)="changerStatut(c.id, 'RETOURNEE')">
+                        <i class="fas fa-undo-alt"></i>
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+              @if (commandeSelectionnee?.id === c.id) {
+                <tr class="detail-row">
+                  <td colspan="9">
+                    <div class="commande-detail">
+                      <div class="cd-section">
+                        <div class="cd-label">👤 Partenaire</div>
+                        <div class="cd-val">{{ c.partenaire }} — {{ c.email }}</div>
+                      </div>
+                      <div class="cd-section">
+                        <div class="cd-label">📞 Téléphone</div>
+                        <div class="cd-val">{{ c.telephone || '—' }}</div>
+                      </div>
+                      <div class="cd-section">
+                        <div class="cd-label">📍 Adresse de livraison</div>
+                        <div class="cd-val">{{ c.adresse || '—' }}</div>
+                      </div>
+                      @if (c.navexRef) {
+                        <div class="cd-section">
+                          <div class="cd-label">🚚 Suivi Navex</div>
+                          <div class="cd-val" style="display:flex; align-items:center; gap:10px;">
+                            <span style="font-weight:700; color:#059669;">{{ c.navexRef }}</span>
+                            @if (c.navexStatut) {
+                              <span style="font-size:11px; background:#f0fdf4; color:#059669; border:1px solid #bbf7d0; padding:2px 8px; border-radius:10px;">{{ c.navexStatut }}</span>
+                            }
+                            <a [href]="navexTrackingUrl(c.navexRef)" target="_blank"
+                              style="font-size:11px; color:#3AAFDA;">Voir sur Navex ↗</a>
+                          </div>
+                        </div>
+                      }
+                      <div class="cd-section">
+                        <div class="cd-label">💳 Paiement</div>
+                        <div class="cd-val">{{ c.modePaiement }}</div>
+                      </div>
+                      @if (c.optionRemise) {
+                        <div class="cd-section">
+                          <div class="cd-label">🏷️ Remise</div>
+                          <div class="cd-val">
+                            @if (c.optionRemise === 'IMMEDIATE') { Immédiate }
+                            @else { Remboursement après livraison {{ c.remboursementApprouve ? '✅ Approuvé' : '⏳ En attente' }} }
+                          </div>
+                        </div>
+                      }
+                      @if (c.lignes && c.lignes.length > 0) {
+                        <div class="cd-section cd-full">
+                          <div class="cd-label">📦 Produits commandés</div>
+                          <div class="cd-lignes">
+                            @for (l of c.lignes; track l.id) {
+                              <div class="cd-ligne">
+                                <span class="cd-ligne-nom">{{ l.nomProduit }}</span>
+                                <span class="cd-ligne-qty">× {{ l.quantite }}</span>
+                                <span class="cd-ligne-prix">{{ l.sousTotal | number:'1.2-2' }} DT</span>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (commandesFiltrees.length === 0) {
+        <div class="dt-empty"><i class="fas fa-inbox"></i> Aucune commande trouvée</div>
+      }
+    }
+  }
+
+</div>

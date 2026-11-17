@@ -1,0 +1,88 @@
+<div class="section-content" *ngIf="biData">
+  <!-- Revenus hebdomadaires -->
+  <div class="bi-card">
+    <div class="bi-title"><i class="fas fa-chart-bar"></i> Revenus semaine par semaine</div>
+    <div class="bi-chart-bars">
+      <div class="bcb-wrap" *ngFor="let r of biData.revenusHebdo">
+        <div class="bcb-bar-container">
+          <div class="bcb-value">{{ r.montant }}</div>
+          <div class="bcb-bar" [style.height.%]="(r.montant / maxRevenu) * 100"></div>
+        </div>
+        <div class="bcb-label">{{ r.semaine }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bi-row">
+    <!-- Répartition packs -->
+    <div class="bi-card bi-card-half">
+      <div class="bi-title"><i class="fas fa-chart-pie"></i> Répartition des packs</div>
+      <div class="bi-packs">
+        <div class="bp-item" *ngFor="let p of biData.repartitionPacks">
+          <div class="bp-header">
+            <span class="bp-name">{{ p.pack }}</span>
+            <span class="bp-count">{{ p.count }} partenaires ({{ p.pourcentage }}%)</span>
+          </div>
+          <div class="bp-track">
+            <div class="bp-fill" [style.width.%]="p.pourcentage" [style.background]="p.color"></div>
+          </div>
+        </div>
+      </div>
+      <div class="donut-wrap">
+        <div class="donut" [style.background]="donutGradient">
+          <div class="donut-hole">
+            <div class="dh-val">{{ totalPartenaires }}</div>
+            <div class="dh-lbl">Total</div>
+          </div>
+        </div>
+        <div class="donut-legend">
+          <div class="dl-item" *ngFor="let p of biData.repartitionPacks">
+            <div class="dl-dot" [style.background]="p.color"></div>
+            <span>{{ p.pack }} {{ p.pourcentage }}%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top partenaires -->
+    <div class="bi-card bi-card-half">
+      <div class="bi-title"><i class="fas fa-trophy"></i> Top partenaires par gains</div>
+      <div class="bi-top">
+        <div class="bt-item" *ngFor="let p of biData.topPartenaires; let i = index">
+          <div class="bt-rank" [ngClass]="i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-n'">
+            {{ i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1 }}
+          </div>
+          <div class="bt-info">
+            <div class="bt-nom">{{ p.nom }}</div>
+            <div class="bt-bar-wrap">
+              <div class="bt-bar" [style.width.%]="(p.gains / maxTopGain) * 100"></div>
+            </div>
+          </div>
+          <div class="bt-gains">{{ p.gains }} DT</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Commissions stats -->
+  <div class="bi-card">
+    <div class="bi-title"><i class="fas fa-chart-line"></i> Commissions validées vs refusées</div>
+    <div class="bi-comm-stats">
+      <div class="bcs-row" *ngFor="let s of biData.commissionsStats">
+        <div class="bcs-label">{{ s.semaine }}</div>
+        <div class="bcs-bars">
+          <div class="bcs-bar-wrap">
+            <div class="bcs-bar bcs-validee"
+              [style.width.%]="(s.validees / (s.validees + s.refusees || 1)) * 100"></div>
+            <span class="bcs-num bcs-num-v">{{ s.validees }} validées</span>
+          </div>
+          <div class="bcs-bar-wrap" *ngIf="s.refusees > 0">
+            <div class="bcs-bar bcs-refusee"
+              [style.width.%]="(s.refusees / (s.validees + s.refusees)) * 100"></div>
+            <span class="bcs-num bcs-num-r">{{ s.refusees }} refusées</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

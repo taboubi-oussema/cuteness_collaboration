@@ -1,0 +1,179 @@
+<div class="section-content">
+
+  <!-- ── HEADER ── -->
+  <div class="hs-header" style="background:var(--white); border-radius:var(--radius); border:1px solid var(--border); padding:14px 18px; margin-bottom:0;">
+    <div class="hs-title">🎓 Gestion des Formations</div>
+    <button class="btn-valider" (click)="openAdd()">+ Ajouter une formation</button>
+  </div>
+
+  @if (successMsg) {
+    <div class="success-banner"><i class="fas fa-check-circle"></i> {{ successMsg }}</div>
+  }
+  @if (errorMsg) {
+    <div class="error-banner">
+      <span><i class="fas fa-exclamation-triangle"></i> {{ errorMsg }}</span>
+      <button style="background:none;border:none;cursor:pointer;font-size:16px;color:inherit;" (click)="errorMsg=''">✕</button>
+    </div>
+  }
+
+  @if (isLoading) {
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <span class="loading-text">Chargement...</span>
+    </div>
+  }
+
+  <!-- ── FORM ── -->
+  @if (showForm) {
+    <div class="home-section">
+      <div class="hs-header">
+        <div class="hs-title">{{ editMode ? '✏️ Modifier la formation' : '➕ Nouvelle formation' }}</div>
+        <button class="btn-refuser" (click)="showForm = false">✕ Fermer</button>
+      </div>
+
+      <div class="signalement-form" style="border:none; border-radius:0;">
+
+        <div style="display:grid; grid-template-columns:2fr 1fr; gap:16px;">
+          <div class="sf-field">
+            <label>Titre de la formation</label>
+            <input class="sf-input" type="text" [(ngModel)]="formData.titre" placeholder="ex: Maîtriser le MLM" />
+          </div>
+          <div class="sf-field">
+            <label>Accès requis</label>
+            <select class="sf-input" [(ngModel)]="formData.accesRequis">
+              @for (opt of ACCES_OPTIONS; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="sf-field">
+          <label>Description</label>
+          <textarea class="sf-input" [(ngModel)]="formData.description" rows="3"
+                    placeholder="Décrivez le contenu et les objectifs..."
+                    style="resize:vertical;"></textarea>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
+          <div class="sf-field">
+            <label>Durée</label>
+            <input class="sf-input" type="text" [(ngModel)]="formData.duree" placeholder="ex: 45 min" />
+          </div>
+          <div class="sf-field">
+            <label>Niveau</label>
+            <select class="sf-input" [(ngModel)]="formData.niveau">
+              @for (n of NIVEAU_OPTIONS; track n) {
+                <option [value]="n">{{ n }}</option>
+              }
+            </select>
+          </div>
+          <div class="sf-field">
+            <label>Ordre d'affichage</label>
+            <input class="sf-input" type="number" [(ngModel)]="formData.ordre" min="0" />
+          </div>
+        </div>
+
+        <div class="sf-field">
+          <label>Lien vidéo / URL</label>
+          <input class="sf-input" type="url" [(ngModel)]="formData.videoUrl" placeholder="https://..." />
+        </div>
+
+        <div class="sf-field">
+          <label>Image de couverture</label>
+          <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+            @if (imagePreview) {
+              <div style="position:relative; display:inline-block;">
+                <img [src]="imagePreview" alt="Aperçu"
+                     style="width:90px; height:90px; object-fit:cover; border-radius:10px; border:2px solid var(--border);" />
+                <button type="button" (click)="removeImage()"
+                        style="position:absolute; top:-8px; right:-8px; background:#e74c3c; color:#fff; border:none; border-radius:50%; width:22px; height:22px; cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center;">✕</button>
+              </div>
+            }
+            <label style="cursor:pointer;">
+              <div style="border:2px dashed var(--border); border-radius:10px; padding:14px 24px; color:var(--text-3); font-size:13px; text-align:center;"
+                   [style.opacity]="uploadingImage ? '.5' : '1'">
+                @if (uploadingImage) {
+                  <i class="fas fa-spinner fa-spin"></i> Upload...
+                } @else {
+                  <i class="fas fa-cloud-upload-alt"></i> {{ imagePreview ? "Changer" : "Choisir une image" }}
+                }
+              </div>
+              <input type="file" accept="image/*" style="display:none;" (change)="onFileChange($event)" [disabled]="uploadingImage" />
+            </label>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+          <button class="btn-refuser" (click)="showForm = false">Annuler</button>
+          <button class="btn-valider" (click)="save()" [disabled]="uploadingImage">
+            <i class="fas fa-save"></i> {{ editMode ? 'Sauvegarder' : 'Créer la formation' }}
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- ── TABLE ── -->
+  @if (!isLoading) {
+    <div class="home-section">
+      <div class="hs-header">
+        <div class="hs-title"><i class="fas fa-list"></i> Liste des formations</div>
+        <span style="font-size:12px; color:var(--text-3);">{{ formations.length }} formation(s)</span>
+      </div>
+
+      <div class="data-table">
+        <div class="dt-head" style="grid-template-columns: 56px 2.5fr 1.5fr 1fr 1fr 1fr 1.5fr;">
+          <div>Image</div>
+          <div>Titre</div>
+          <div>Accès</div>
+          <div>Niveau</div>
+          <div>Durée</div>
+          <div>Ordre</div>
+          <div>Actions</div>
+        </div>
+
+        @for (f of formations; track f.id) {
+          <div class="dt-row" style="grid-template-columns: 56px 2.5fr 1.5fr 1fr 1fr 1fr 1.5fr;">
+            <div>
+              @if (f.imageUrl) {
+                <img [src]="getImageUrl(f.imageUrl)" [alt]="f.titre"
+                     style="width:40px; height:40px; object-fit:cover; border-radius:8px; border:1px solid var(--border);" />
+              } @else {
+                <div style="width:40px; height:40px; border-radius:8px; background:var(--bg); border:1px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--text-3); font-size:18px;">
+                  <i class="fas fa-graduation-cap"></i>
+                </div>
+              }
+            </div>
+            <div>
+              <div style="font-weight:700; color:var(--text-1);">{{ f.titre }}</div>
+              <div style="font-size:11.5px; color:var(--text-3); margin-top:2px;">{{ f.description | slice:0:60 }}{{ (f.description || '').length > 60 ? '…' : '' }}</div>
+            </div>
+            <div>
+              <span class="statut-badge"
+                    [style.background]="accesColor(f.accesRequis) + '18'"
+                    [style.color]="accesColor(f.accesRequis)">
+                {{ accesLabel(f.accesRequis) }}
+              </span>
+            </div>
+            <div><span class="niveau-badge">{{ f.niveau }}</span></div>
+            <div style="font-size:13px; color:var(--text-2);">{{ f.duree }}</div>
+            <div style="font-size:13px; color:var(--text-3);">{{ f.ordre }}</div>
+            <div class="dt-actions">
+              <button class="btn-valider" (click)="openEdit(f)"><i class="fas fa-edit"></i> Modifier</button>
+              <button class="btn-refuser" (click)="delete(f.id)"><i class="fas fa-trash"></i> Supprimer</button>
+            </div>
+          </div>
+        }
+
+        @if (formations.length === 0) {
+          <div class="dt-empty">
+            <i class="fas fa-graduation-cap"></i> Aucune formation disponible
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+</div>

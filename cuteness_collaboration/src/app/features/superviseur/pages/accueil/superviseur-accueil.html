@@ -1,0 +1,183 @@
+<div class="content section-content">
+
+  @if (isLoading) {
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Chargement...</div>
+    </div>
+  }
+
+  @if (errorMsg) {
+    <div class="error-banner">
+      <span>⚠️ {{ errorMsg }}</span>
+      <button class="btn-sm" (click)="loadDashboard()">Réessayer</button>
+    </div>
+  }
+
+  @if (!isLoading) {
+    <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+      <button class="btn-sm" (click)="loadDashboard()" style="display:flex; align-items:center; gap:6px;">
+        <i class="fas fa-sync-alt"></i> Actualiser
+      </button>
+    </div>
+
+    <!-- BANNER -->
+    <div class="banner" style="background:linear-gradient(135deg,#7C3AED 0%,#A78BFA 60%,#C4B5FD 100%);">
+      <div class="banner-left">
+        <div class="banner-greeting">
+          Bonjour, Superviseur 👋
+          <span class="banner-dot" style="background:#C4B5FD;"></span>
+        </div>
+        <div class="banner-sub">
+          {{ stats.commandesEnAttente }} commandes en attente · {{ stats.signalements }} signalement(s) à traiter · {{ stats.newThisMonth }} nouveaux partenaires ce mois
+        </div>
+      </div>
+      <div class="banner-stats">
+        <div class="bstat">
+          <div class="bstat-val">{{ stats.partenaires }}</div>
+          <div class="bstat-lbl">Partenaires</div>
+        </div>
+        <div class="bstat">
+          <div class="bstat-val">{{ stats.commandesEnAttente }}</div>
+          <div class="bstat-lbl">En attente</div>
+        </div>
+        <div class="bstat">
+          <div class="bstat-val">{{ stats.commandesLivrees }}</div>
+          <div class="bstat-lbl">Livrées</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="kpi-grid">
+      @for (k of kpiCards; track $index) {
+        <div class="kpi">
+          <div class="kpi-top">
+            <div class="kpi-ico" [style.background]="k.iconBg">{{ k.icon }}</div>
+            <div class="kpi-badge" style="background:#F3F0FF; color:#7C3AED;">{{ k.trend }}</div>
+          </div>
+          <div class="kpi-val">{{ k.value }}</div>
+          <div class="kpi-lbl">{{ k.label }}</div>
+          <div class="kpi-bar-bg">
+            <div class="kpi-bar-fill" [style.width.%]="k.pct" [style.background]="k.color"></div>
+          </div>
+          <div class="kpi-meta">
+            <span>{{ k.pct }}%</span><span>{{ k.target }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- COMMANDES URGENTES + TÂCHES DU JOUR -->
+    <div class="g3" style="margin-bottom:18px;">
+
+      <!-- Commandes urgentes -->
+      <div class="card">
+        <div class="cpd" style="padding-bottom:8px; display:flex; align-items:center; justify-content:space-between;">
+          <div>
+            <div class="card-title">📦 Commandes urgentes</div>
+            <div class="card-sub">En attente et en préparation</div>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          @if (recentCommandes.length > 0) {
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th><th>Partenaire</th><th>Pack</th>
+                  <th>Montant</th><th>Statut</th><th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (c of recentCommandes; track c.id) {
+                  <tr>
+                    <td><strong>#{{ c.id }}</strong></td>
+                    <td>
+                      <div class="p-name">
+                        <div class="p-ava" style="background:#F3F0FF; color:#7C3AED;">{{ c.partenaire[0] }}</div>
+                        <div class="p-nm">{{ c.partenaire }}</div>
+                      </div>
+                    </td>
+                    <td class="td-soft">{{ c.pack }}</td>
+                    <td><strong>{{ c.montant | number }} DT</strong></td>
+                    <td><span class="badge" [ngClass]="statutColor(c.statut)">{{ c.statut }}</span></td>
+                    <td class="td-soft">{{ c.date }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <div class="dt-empty">
+              <i class="fas fa-check-circle" style="color:#4ECBA0;"></i>
+              Aucune commande urgente — tout est à jour !
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Tâches du jour -->
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div class="card">
+          <div class="cpd" style="padding-bottom:10px;">
+            <div class="card-title">✅ Tâches du jour</div>
+            <div class="card-sub">Checklist superviseur</div>
+          </div>
+          <div style="padding:0 16px 14px; display:flex; flex-direction:column; gap:8px;">
+            @for (t of tachesJour; track $index; let i = $index) {
+              <div class="tache-item" [class.done]="t.done" (click)="toggleTache(i)">
+                <div class="tache-ico">{{ t.done ? '✅' : t.icon }}</div>
+                <div class="tache-txt">{{ t.text }}</div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Résumé statuts -->
+        <div class="card">
+          <div class="cpd" style="padding-bottom:10px;">
+            <div class="card-title">📊 Statuts commandes</div>
+            <div class="card-sub">Vue globale</div>
+          </div>
+          <div style="padding:0 16px 14px; display:flex; flex-direction:column; gap:10px;">
+            <div class="prog">
+              <div class="prog-h">
+                <span class="prog-name">⏳ En attente</span>
+                <span class="prog-num">{{ stats.commandesEnAttente }}</span>
+              </div>
+              <div class="prog-bg">
+                <div class="prog-fill"
+                  [style.width.%]="stats.commandesEnAttente > 20 ? 100 : stats.commandesEnAttente * 5"
+                  style="background:#FF6B5B;"></div>
+              </div>
+            </div>
+            <div class="prog">
+              <div class="prog-h">
+                <span class="prog-name">🔧 En préparation</span>
+                <span class="prog-num">{{ stats.commandesEnPreparation }}</span>
+              </div>
+              <div class="prog-bg">
+                <div class="prog-fill"
+                  [style.width.%]="stats.commandesEnPreparation > 20 ? 100 : stats.commandesEnPreparation * 5"
+                  style="background:#3AAFDA;"></div>
+              </div>
+            </div>
+            <div class="prog">
+              <div class="prog-h">
+                <span class="prog-name">✅ Livrées</span>
+                <span class="prog-num">{{ stats.commandesLivrees }}</span>
+              </div>
+              <div class="prog-bg">
+                <div class="prog-fill" [style.width.%]="kpiCards[2].pct" style="background:#4ECBA0;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      <span class="brand-name">Cuteness Collaboration</span> 
+    </div>
+  }
+</div>
+

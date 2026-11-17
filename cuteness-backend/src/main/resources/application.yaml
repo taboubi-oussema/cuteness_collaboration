@@ -1,0 +1,56 @@
+spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+      enabled: true
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/cuteness_db
+    username: root
+    password: ''
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-test-query: SELECT 1
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: amalcuteness2002@gmail.com
+    password: xojo eojo syjy fkua   # ← Générer un App Password dans Google Account
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+server:
+  port: 8081
+
+jwt:
+  secret: cuteness_secret_key_must_be_at_least_32_chars_long
+  expiration: 86400000
+
+navex:
+  token-etat: "cutenesstn-etat-21UU803NBAOM6LY9AAD9Q35A7RM2WQMF"
+  base-url: "https://app.navex.tn/api"
+  tracking-url: "https://app.navex.tn/expediteur/suivi.php?code="
+
+gemini:
+  api-key: "AIzaSyAbwcpsELPrcSxgWxSt8eu_KBLSK14kraI"

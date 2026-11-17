@@ -1,0 +1,312 @@
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a routerLink="/" class="nav-brand">
+    <img src="cute_logo.png" alt="Cuteness" class="nav-logo-img" />
+  </a>
+  <div class="nav-links">
+    <a routerLink="/">Accueil</a>
+    <a routerLink="/packs" class="active">Packs</a>
+    <a routerLink="/auth/login">Se connecter</a>
+  </div>
+  <div class="nav-actions">
+    <a class="btn-ghost" routerLink="/auth/login">Se connecter</a>
+    <a class="btn-primary" routerLink="/auth/register">
+      <i class="fas fa-user-plus"></i> Rejoindre
+    </a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="packs-hero">
+  <div class="ph-deco ph-d1"></div>
+  <div class="ph-deco ph-d2"></div>
+  <div class="ph-inner">
+    <div class="section-tag">Nos Packs</div>
+    <h1 class="ph-title">Choisissez votre pack<br><span class="accent">et lancez-vous</span></h1>
+    <p class="ph-desc">Chaque pack débloque un niveau MLM et des taux de commission différents. Cliquez sur un pack pour voir tous les détails et choisir votre contenu.</p>
+  </div>
+</section>
+
+<!-- PACK CARDS -->
+<section class="packs-list">
+  <div class="packs-grid">
+
+    <ng-container *ngFor="let p of packs; let i = index">
+      <div class="pack-card"
+        [class.active]="selectedPack === p.id"
+        [class.featured-card]="i === 1"
+        (click)="openPack(p.id)">
+
+        <div class="featured-badge" *ngIf="i === 1">⭐ Populaire</div>
+
+        <div class="pc-header" [ngClass]="'pc-' + p.color">
+          <div class="pc-emoji">{{ p.emoji }}</div>
+          <div class="pc-name">{{ p.name }}</div>
+          <div class="pc-name-ar">{{ p.nameAr }}</div>
+          <div class="pc-price">{{ p.price }} <span>DT</span></div>
+          <div class="pc-tag">
+            {{ p.levels }} niveau{{ p.levels > 1 ? 'x' : '' }} MLM · {{ p.commission }}% commission
+          </div>
+        </div>
+
+        <div class="pc-body">
+          <ul class="pc-features">
+            <li *ngFor="let f of p.features.slice(0, 6)">
+              <i class="fas fa-check"></i> {{ f }}
+            </li>
+          </ul>
+          <div class="pc-subpacks-preview">
+            <span class="sp-preview" *ngFor="let sp of p.subPacks">{{ sp.emoji }} {{ sp.name }}</span>
+          </div>
+          <div class="pc-cta">
+            <span class="pc-open-btn">Voir les détails <i class="fas fa-chevron-down"></i></span>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+  </div>
+</section>
+
+<!-- PACK DETAIL -->
+<section class="pack-detail" id="pack-detail" *ngIf="activePack">
+  <div class="pd-inner">
+
+    <!-- HEADER -->
+    <div class="pd-header" [ngClass]="'pd-' + activePack.color">
+      <button class="pd-close" (click)="closePack()"><i class="fas fa-times"></i></button>
+      <div class="pd-emoji">{{ activePack.emoji }}</div>
+      <div class="pd-name-fr">Pack {{ activePack.name }}</div>
+      <div class="pd-name-ar">باقة {{ activePack.nameAr }}</div>
+      <div class="pd-price-big">{{ activePack.price }} DT</div>
+      <div class="pd-levels-badge">
+        <i class="fas fa-layer-group"></i> {{ activePack.levels }} niveau{{ activePack.levels > 1 ? 'x' : '' }} MLM
+        &nbsp;·&nbsp;
+        <i class="fas fa-percent"></i> {{ activePack.commission }}% commission directe
+      </div>
+    </div>
+
+    <!-- LANG TABS -->
+    <div class="lang-tabs">
+      <button class="lang-tab" [class.active]="lang === 'fr'" (click)="lang = 'fr'">
+        🇫🇷 Français
+      </button>
+      <button class="lang-tab" [class.active]="lang === 'ar'" (click)="lang = 'ar'">
+        🇹🇳 العربية
+      </button>
+    </div>
+
+    <!-- CONTENT FR -->
+    <div *ngIf="lang === 'fr'" class="pd-content">
+
+      <div class="pd-tagline">{{ activePack.tagline }}</div>
+
+      <!-- Commission Table -->
+      <div class="pd-section">
+        <h3 class="pd-section-title"><i class="fas fa-table"></i> Tableau des commissions MLM</h3>
+        <div class="mlm-table">
+          <div class="mlm-row mlm-head">
+            <div>Niveau</div><div>Description</div><div>Taux</div>
+          </div>
+          <div class="mlm-row" *ngFor="let row of activePack.mlmTable">
+            <div class="mlm-lvl">N{{ row.level }}</div>
+            <div>{{ row.labelFr }}</div>
+            <div class="mlm-rate">{{ row.rate }}</div>
+          </div>
+        </div>
+        <div class="mlm-note">
+          <i class="fas fa-info-circle"></i>
+          Les commissions sont calculées automatiquement après chaque livraison validée.
+        </div>
+      </div>
+
+      <!-- Avantages -->
+      <div class="pd-section">
+        <h3 class="pd-section-title"><i class="fas fa-gift"></i> Avantages exclusifs</h3>
+        <div class="adv-grid">
+          <div class="adv-card" *ngFor="let adv of activePack.advantagesFr">
+            <div class="adv-icon"><i [class]="adv.icon"></i></div>
+            <div class="adv-title">{{ adv.title }}</div>
+            <div class="adv-desc">{{ adv.desc }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Features -->
+      <div class="pd-section">
+        <h3 class="pd-section-title"><i class="fas fa-list-check"></i> Ce qui est inclus</h3>
+        <div class="features-list">
+          <div class="feat-item" *ngFor="let f of activePack.features">
+            <i class="fas fa-check-circle"></i> {{ f }}
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SOUS-PACKS ══ -->
+      <div class="pd-section">
+        <h3 class="pd-section-title">
+          <i class="fas fa-boxes-stacked"></i>
+          Choisissez votre contenu — 4 options au même prix
+        </h3>
+        <p class="subpacks-intro">
+          Tous les sous-packs sont au même prix de <strong>{{ activePack.price }} DT</strong>.
+          La différence réside dans les produits inclus. Cliquez pour voir le détail.
+        </p>
+
+        <div class="subpacks-grid">
+          <div class="subpack-card"
+            *ngFor="let sp of activePack.subPacks"
+            [class.active]="selectedSubPack === sp.id"
+            (click)="openSubPack(sp.id)">
+
+            <div class="sp-header" [ngClass]="'sp-' + sp.theme">
+              <span class="sp-emoji">{{ sp.emoji }}</span>
+              <div class="sp-name">{{ sp.name }}</div>
+              <div class="sp-price">{{ activePack.price }} DT</div>
+            </div>
+
+            <!-- Produits (visible si sélectionné) -->
+            <div class="sp-body" *ngIf="selectedSubPack === sp.id">
+              <div class="sp-products-title">
+                <i class="fas fa-box-open"></i> Contenu du pack
+              </div>
+              <ul class="sp-products">
+                <li *ngFor="let p of sp.products">
+                  <i class="fas fa-check-circle"></i> {{ p }}
+                </li>
+              </ul>
+              <button class="btn-choose-sub" (click)="choosePack(activePack.id, sp.id); $event.stopPropagation()">
+                <i class="fas fa-rocket"></i>
+                Choisir {{ sp.name }} — {{ activePack.price }} DT
+              </button>
+            </div>
+
+            <div class="sp-footer" *ngIf="selectedSubPack !== sp.id">
+              <span>{{ sp.products.length }} produits inclus</span>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CONTENT AR -->
+    <div *ngIf="lang === 'ar'" class="pd-content rtl" dir="rtl">
+
+      <div class="pd-tagline">{{ activePack.taglineAr }}</div>
+
+      <!-- Commission AR -->
+      <div class="pd-section">
+        <h3 class="pd-section-title"><i class="fas fa-table"></i> جدول عمولات التسويق الشبكي</h3>
+        <div class="mlm-table">
+          <div class="mlm-row mlm-head">
+            <div>المستوى</div><div>الوصف</div><div>النسبة</div>
+          </div>
+          <div class="mlm-row" *ngFor="let row of activePack.mlmTable">
+            <div class="mlm-lvl">م{{ row.level }}</div>
+            <div>{{ row.labelAr }}</div>
+            <div class="mlm-rate">{{ row.rate }}</div>
+          </div>
+        </div>
+        <div class="mlm-note">
+          <i class="fas fa-info-circle"></i>
+          تُحسب العمولات تلقائياً بعد كل تسليم مؤكد.
+        </div>
+      </div>
+
+      <!-- Avantages AR -->
+      <div class="pd-section">
+        <h3 class="pd-section-title"><i class="fas fa-gift"></i> المزايا الحصرية</h3>
+        <div class="adv-grid">
+          <div class="adv-card" *ngFor="let adv of activePack.advantagesAr">
+            <div class="adv-icon"><i [class]="adv.icon"></i></div>
+            <div class="adv-title">{{ adv.title }}</div>
+            <div class="adv-desc">{{ adv.desc }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Features AR -->
+      <div class="pd-section">
+        <h3 class="pd-section-title"><i class="fas fa-list-check"></i> ما يتضمنه الباقة</h3>
+        <div class="features-list">
+          <div class="feat-item" *ngFor="let f of activePack.featuresAr">
+            <i class="fas fa-check-circle"></i> {{ f }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Sous-packs AR -->
+      <div class="pd-section">
+        <h3 class="pd-section-title">
+          <i class="fas fa-boxes-stacked"></i>
+          اختر محتوى باقتك — 4 خيارات بنفس السعر
+        </h3>
+        <p class="subpacks-intro">
+          جميع الباقات الفرعية بنفس السعر <strong>{{ activePack.price }} دت</strong>.
+          الفرق يكمن في المنتجات المضمّنة.
+        </p>
+
+        <div class="subpacks-grid">
+          <div class="subpack-card"
+            *ngFor="let sp of activePack.subPacks"
+            [class.active]="selectedSubPack === sp.id"
+            (click)="openSubPack(sp.id)">
+
+            <div class="sp-header" [ngClass]="'sp-' + sp.theme">
+              <span class="sp-emoji">{{ sp.emoji }}</span>
+              <div class="sp-name">{{ sp.nameAr }}</div>
+              <div class="sp-price">{{ activePack.price }} دت</div>
+            </div>
+
+            <div class="sp-body" *ngIf="selectedSubPack === sp.id">
+              <div class="sp-products-title">
+                <i class="fas fa-box-open"></i> محتوى الباقة
+              </div>
+              <ul class="sp-products">
+                <li *ngFor="let p of sp.productsAr">
+                  <i class="fas fa-check-circle"></i> {{ p }}
+                </li>
+              </ul>
+              <button class="btn-choose-sub" (click)="choosePack(activePack.id, sp.id); $event.stopPropagation()">
+                <i class="fas fa-rocket"></i>
+                اختر {{ sp.nameAr }} — {{ activePack.price }} دت
+              </button>
+            </div>
+
+            <div class="sp-footer" *ngIf="selectedSubPack !== sp.id">
+              <span>{{ sp.productsAr.length }} منتجات مضمّنة</span>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CTA FOOTER -->
+    <div class="pd-footer">
+      <button class="btn-choose" (click)="choosePack(activePack.id)">
+        <i class="fas fa-rocket"></i>
+        Choisir le Pack {{ activePack.name }} — {{ activePack.price }} DT
+      </button>
+      <div class="pd-footer-note">
+        <i class="fas fa-shield-halved"></i>
+        Paiement unique · Activation immédiate · Sans engagement
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- CTA BAS -->
+<section class="bottom-cta" *ngIf="!selectedPack">
+  <div class="bcta-inner">
+    <h2>Vous ne savez pas quel pack choisir ?</h2>
+    <p>Contactez-nous et nous vous orienterons vers le pack idéal.</p>
+    <a href="mailto:contact@cuteness.tn" class="btn-contact">
+      <i class="fas fa-envelope"></i> Nous contacter
+    </a>
+  </div>
+</section>

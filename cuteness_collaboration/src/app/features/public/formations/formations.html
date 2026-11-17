@@ -1,0 +1,151 @@
+<div class="formations-page">
+
+  <!-- ── NAVBAR ── -->
+  <nav class="f-navbar">
+    <a routerLink="/" class="f-brand">
+      <img src="cute_logo.png" alt="Cuteness" class="f-logo" />
+    </a>
+    <div class="f-nav-links">
+      <a routerLink="/">Accueil</a>
+      <a routerLink="/packs">Packs</a>
+      <a routerLink="/formations" class="active">Formations</a>
+    </div>
+    <div class="f-nav-actions">
+      @if (isAuthenticated) {
+        <a routerLink="/partner/dashboard" class="btn-ghost">Mon espace</a>
+      } @else {
+        <a routerLink="/auth/login" class="btn-ghost">Se connecter</a>
+        <a routerLink="/packs" class="btn-primary">Rejoindre</a>
+      }
+    </div>
+  </nav>
+
+  <!-- ── HERO ── -->
+  <div class="f-hero">
+    <div class="f-hero-content">
+      <div class="f-hero-badge">🎓 Centre de formation Cuteness</div>
+      <h1 class="f-hero-title">Développez vos compétences,<br><span class="accent">boostez vos revenus</span></h1>
+      <p class="f-hero-desc">Des formations exclusives pour maîtriser le MLM, les produits beauté et maximiser vos commissions.</p>
+    </div>
+  </div>
+
+  <!-- ── FILTERS ── -->
+  <div class="f-filters">
+    <div class="f-search">
+      <i class="fas fa-search"></i>
+      <input type="text" [(ngModel)]="recherche" placeholder="Rechercher une formation..." />
+    </div>
+    <div class="f-filter-pills">
+      <button class="f-pill" [class.active]="filtreNiveau === 'TOUS'" (click)="filtreNiveau = 'TOUS'">Tous niveaux</button>
+      @for (n of niveaux; track n) {
+        <button class="f-pill" [class.active]="filtreNiveau === n" (click)="filtreNiveau = n"
+                [style.--pill-color]="niveauColor(n)">
+          {{ n }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- ── LOADING ── -->
+  @if (isLoading) {
+    <div class="f-loading">
+      <div class="f-spinner"></div>
+      <p>Chargement des formations…</p>
+    </div>
+  }
+
+  <!-- ── GRID ── -->
+  @if (!isLoading) {
+    <div class="f-grid">
+
+      @for (f of filtered; track f.id) {
+        <div class="f-card" [class.f-card-locked]="!hasAccess(f)">
+
+          <!-- Image -->
+          <div class="f-card-img">
+            @if (f.imageUrl) {
+              <img [src]="getImageUrl(f.imageUrl)" [alt]="f.titre"
+                   onerror="this.style.display='none'" />
+            }
+            @if (!f.imageUrl) {
+              <div class="f-card-img-placeholder">
+                <i class="fas fa-graduation-cap"></i>
+              </div>
+            }
+            <!-- Niveau badge -->
+            @if (f.niveau) {
+              <div class="f-niveau-badge" [style.background]="niveauColor(f.niveau)">
+                {{ f.niveau }}
+              </div>
+            }
+            <!-- Lock overlay -->
+            @if (!hasAccess(f)) {
+              <div class="f-lock-overlay">
+                <i class="fas fa-lock"></i>
+                <span>Accès requis</span>
+              </div>
+            }
+          </div>
+
+          <!-- Body -->
+          <div class="f-card-body">
+            <div class="f-card-acces"
+                 [style.color]="accesBadge(f.accesRequis).color"
+                 [style.background]="accesBadge(f.accesRequis).color + '15'">
+              {{ accesBadge(f.accesRequis).label }}
+            </div>
+            <div class="f-card-title">{{ f.titre }}</div>
+            <div class="f-card-desc">{{ f.description }}</div>
+
+            <div class="f-card-meta">
+              @if (f.duree) {
+                <span><i class="fas fa-clock"></i> {{ f.duree }}</span>
+              }
+              @if (f.niveau) {
+                <span [style.color]="niveauColor(f.niveau)">
+                  <i class="fas fa-signal"></i> {{ f.niveau }}
+                </span>
+              }
+            </div>
+
+            @if (hasAccess(f)) {
+              @if (f.videoUrl) {
+                <a [href]="f.videoUrl" target="_blank" class="f-card-btn">
+                  <i class="fas fa-play"></i> Commencer
+                </a>
+              } @else {
+                <button class="f-card-btn f-card-btn-disabled" disabled>
+                  <i class="fas fa-clock"></i> Bientôt disponible
+                </button>
+              }
+            } @else {
+              <a routerLink="/packs" class="f-card-btn f-card-btn-upgrade">
+                <i class="fas fa-arrow-up"></i> Upgrader mon pack
+              </a>
+            }
+          </div>
+        </div>
+      }
+
+      @if (filtered.length === 0) {
+        <div class="f-empty">
+          <i class="fas fa-search"></i>
+          <p>Aucune formation trouvée</p>
+        </div>
+      }
+
+    </div>
+  }
+
+  <!-- ── FOOTER CTA ── -->
+  @if (!isAuthenticated) {
+    <div class="f-cta">
+      <div class="f-cta-content">
+        <h2>Accédez à toutes les formations</h2>
+        <p>Rejoignez Cuteness et débloquez des formations exclusives selon votre pack</p>
+        <a routerLink="/packs" class="btn-primary">Choisir un pack <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </div>
+  }
+
+</div>

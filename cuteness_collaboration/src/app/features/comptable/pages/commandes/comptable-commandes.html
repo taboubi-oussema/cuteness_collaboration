@@ -1,0 +1,477 @@
+<div class="section-content">
+
+  <!-- Header -->
+  <div class="welcome-banner">
+    <div class="wb-left">
+      <div class="wb-title">📦 Gestion des Commandes</div>
+      <div class="wb-sub">
+        Suivi, confirmations Navex et remboursements
+        @if (lastRefresh) {
+          · <span style="color:#8A92B2; font-size:11px;">Mis à jour : {{ lastRefresh | date:'HH:mm:ss' }}</span>
+        }
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <button class="btn-valider" style="font-size:12px; padding:6px 14px;"
+        [style.background]="autoRefresh ? '#EDFAF4' : ''"
+        [style.color]="autoRefresh ? '#059669' : ''"
+        [style.border-color]="autoRefresh ? '#4ECBA0' : ''"
+        (click)="toggleAutoRefresh()">
+        <i class="fas" [class.fa-pause]="autoRefresh" [class.fa-sync-alt]="!autoRefresh"></i>
+        {{ autoRefresh ? 'Auto 30s' : 'Auto-refresh' }}
+      </button>
+      <button class="btn-valider" style="font-size:12px; padding:7px 16px;" (click)="loadAll()">
+        <i class="fas fa-sync-alt"></i> Actualiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  @if (successMsg) {
+    <div class="success-banner" style="background:#EDFAF4; border-color:#4ECBA0; color:#1e9b6b; margin-bottom:12px;">
+      <i class="fas fa-check-circle"></i> {{ successMsg }}
+    </div>
+  }
+  @if (errorMsg) {
+    <div class="success-banner" style="background:#FFF0F0; border-color:#F87171; color:#d43c3c; margin-bottom:12px;">
+      <i class="fas fa-exclamation-triangle"></i> {{ errorMsg }}
+    </div>
+  }
+
+  <!-- Type tabs: Produits / Packs -->
+  <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
+    <button class="tab-btn" [class.active]="typeCommande === 'produits'"
+      (click)="typeCommande = 'produits'">
+      <i class="fas fa-shopping-bag"></i> Commandes Produits
+      <span class="tab-count">{{ allCommandes.length }}</span>
+    </button>
+    <button class="tab-btn" [class.active]="typeCommande === 'packs'"
+      (click)="typeCommande = 'packs'">
+      <i class="fas fa-box-open"></i> Commandes Packs
+      <span class="tab-count">{{ inscriptions.length }}</span>
+    </button>
+  </div>
+
+  <!-- Sub-tabs (produits only) -->
+  @if (typeCommande === 'produits') {
+    <div style="display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;">
+      <button class="tab-btn" [class.active]="activeTab === 'toutes'" (click)="activeTab = 'toutes'">
+        <i class="fas fa-list"></i> Toutes les commandes
+        <span class="tab-count">{{ allCommandes.length }}</span>
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'navex'" (click)="activeTab = 'navex'">
+        <i class="fas fa-shipping-fast"></i> Confirmations Navex
+        @if (navexCount > 0) { <span class="tab-count tab-count-alert">{{ navexCount }}</span> }
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'remboursements'" (click)="activeTab = 'remboursements'">
+        <i class="fas fa-undo"></i> Remboursements
+        @if (rembCount > 0) { <span class="tab-count tab-count-alert">{{ rembCount }}</span> }
+      </button>
+    </div>
+  }
+
+  <!-- ══════════════ PRODUITS ══════════════ -->
+  @if (typeCommande === 'produits') {
+
+  <!-- ══════════════ TAB: TOUTES ══════════════ -->
+  @if (activeTab === 'toutes') {
+
+    <!-- Filters -->
+    <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; align-items:center;">
+      <input class="search-input" type="text" [(ngModel)]="searchTerm"
+        placeholder="🔍 Rechercher par nom, ID, région…" style="flex:1; min-width:200px;" />
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        @for (s of statuts; track s) {
+          <button class="filter-chip" [class.active]="filtreStatut === s" (click)="filtreStatut = s">
+            {{ s === 'TOUS' ? 'Tous' : s.replace('_', ' ') }}
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (isLoading) {
+      <div class="dt-empty"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
+    } @else if (filteredCommandes.length === 0) {
+      <div class="dt-empty"><i class="fas fa-inbox"></i> Aucune commande trouvée.</div>
+    } @else {
+      <div class="cmd-list">
+        @for (c of filteredCommandes; track c.id) {
+          <div class="cmd-card">
+            <div class="cmd-header" (click)="toggleExpand(c.id)" style="cursor:pointer;">
+              <div class="cmd-left">
+                <div class="cmd-id">#{{ c.id }}</div>
+                <div class="cmd-info">
+                  <div class="cmd-name">{{ c.nomPartenaire }}</div>
+                  <div class="cmd-meta">
+                    {{ c.regionPartenaire }}
+                    @if (c.navexRef) { · <i class="fas fa-shipping-fast" style="color:#3AAFDA;"></i> {{ c.navexRef }} }
+                  </div>
+                </div>
+              </div>
+              <div class="cmd-right">
+                <span class="statut-badge" [ngClass]="statutClass(c.statut)">{{ c.statut.replace('_', ' ') }}</span>
+                <div class="cmd-amount">{{ c.montantTotal | number:'1.2-2' }} DT</div>
+                <div class="cmd-date">{{ c.dateCommande | date:'dd/MM/yyyy' }}</div>
+                @if (c.navexRef) {
+                  <a [href]="navexTrackingUrl(c.navexRef)" target="_blank"
+                    (click)="$event.stopPropagation()"
+                    style="font-size:10px; background:#EFF9FF; color:#3AAFDA; border:1px solid #BAE6FD;
+                      padding:2px 8px; border-radius:10px; font-weight:700; text-decoration:none;
+                      display:flex; align-items:center; gap:4px;">
+                    <i class="fas fa-shipping-fast"></i> {{ c.navexRef }}
+                  </a>
+                }
+                @if (c.confirmationComptableRequise) {
+                  <span style="font-size:10px; background:#FFF7ED; color:#D97706; border:1px solid #FBD38D;
+                    padding:2px 8px; border-radius:10px; font-weight:700;">
+                    ⏳ À confirmer
+                  </span>
+                }
+                <button
+                  style="background:#FFF0F0; color:#d43c3c; border:1px solid #F87171; border-radius:7px;
+                    padding:4px 9px; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:4px;"
+                  [disabled]="deletingId === c.id"
+                  [style.opacity]="deletingId === c.id ? '0.5' : '1'"
+                  (click)="supprimerCommande(c.id); $event.stopPropagation()"
+                  title="Supprimer cette commande">
+                  <i [class]="deletingId === c.id ? 'fas fa-spinner fa-spin' : 'fas fa-trash-alt'"></i>
+                </button>
+                <i class="fas" [class.fa-chevron-down]="expandedId !== c.id" [class.fa-chevron-up]="expandedId === c.id"
+                  style="color:#9090A8; font-size:12px;"></i>
+              </div>
+            </div>
+
+            @if (expandedId === c.id) {
+              <div class="cmd-detail">
+                <div class="cmd-detail-grid">
+                  <div>
+                    <div class="det-lbl">Email</div>
+                    <div class="det-val">{{ c.emailPartenaire }}</div>
+                  </div>
+                  <div>
+                    <div class="det-lbl">Téléphone</div>
+                    <div class="det-val">{{ c.telephonePartenaire }}</div>
+                  </div>
+                  <div>
+                    <div class="det-lbl">Adresse</div>
+                    <div class="det-val">{{ c.adresse }}</div>
+                  </div>
+                  <div>
+                    <div class="det-lbl">Mode paiement</div>
+                    <div class="det-val">{{ c.modePaiement }}</div>
+                  </div>
+                  <div>
+                    <div class="det-lbl">Montant original</div>
+                    <div class="det-val">{{ c.montantOriginal | number:'1.2-2' }} DT</div>
+                  </div>
+                  <div>
+                    <div class="det-lbl">Réduction ({{ c.tauxReduction }}%)</div>
+                    <div class="det-val">- {{ c.montantReduction | number:'1.2-2' }} DT</div>
+                  </div>
+                  <div>
+                    <div class="det-lbl">Frais livraison</div>
+                    <div class="det-val">{{ c.fraisLivraison | number:'1.2-2' }} DT</div>
+                  </div>
+                  <div>
+                    <div class="det-lbl">Total TTC</div>
+                    <div class="det-val" style="font-weight:800; color:#1A1A2E;">{{ c.montantTotal | number:'1.2-2' }} DT</div>
+                  </div>
+                  @if (c.navexRef) {
+                    <div>
+                      <div class="det-lbl">Référence Navex</div>
+                      <div class="det-val">
+                        <a [href]="navexTrackingUrl(c.navexRef)" target="_blank"
+                          style="color:#3AAFDA; text-decoration:none; font-weight:600;">
+                          {{ c.navexRef }} <i class="fas fa-external-link-alt" style="font-size:10px;"></i>
+                        </a>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="det-lbl">Statut Navex</div>
+                      <div class="det-val">{{ c.navexStatut || '—' }}</div>
+                    </div>
+                  }
+                  @if (c.optionRemise === 'REMBOURSEMENT') {
+                    <div>
+                      <div class="det-lbl">Remboursement</div>
+                      <div class="det-val">
+                        @if (c.remboursementApprouve) {
+                          <span style="color:#059669; font-weight:700;">✅ Approuvé</span>
+                        } @else {
+                          <span style="color:#D97706; font-weight:700;">⏳ En attente</span>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+
+                @if (c.lignes && c.lignes.length > 0) {
+                  <div style="margin-top:12px;">
+                    <div class="det-lbl" style="margin-bottom:6px;">Lignes de commande</div>
+                    <table style="width:100%; border-collapse:collapse; font-size:12.5px;">
+                      <thead>
+                        <tr style="background:#F9F7F5;">
+                          <th style="padding:6px 10px; text-align:left; font-weight:700; color:#555570;">Produit</th>
+                          <th style="padding:6px 10px; text-align:center; font-weight:700; color:#555570;">Qté</th>
+                          <th style="padding:6px 10px; text-align:right; font-weight:700; color:#555570;">Prix unit.</th>
+                          <th style="padding:6px 10px; text-align:right; font-weight:700; color:#555570;">Sous-total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (l of c.lignes; track l.id) {
+                          <tr style="border-top:1px solid #EAEAEF;">
+                            <td style="padding:6px 10px;">{{ l.nomProduit }}</td>
+                            <td style="padding:6px 10px; text-align:center;">{{ l.quantite }}</td>
+                            <td style="padding:6px 10px; text-align:right;">{{ l.prixUnitaire | number:'1.2-2' }} DT</td>
+                            <td style="padding:6px 10px; text-align:right; font-weight:600;">{{ l.sousTotal | number:'1.2-2' }} DT</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                }
+
+                <!-- Actions -->
+                <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+                  @if (c.confirmationComptableRequise) {
+                    @if (c.navexRef) {
+                      <a [href]="navexTrackingUrl(c.navexRef)" target="_blank" class="btn-valider"
+                        style="font-size:11px; padding:5px 12px; background:#3AAFDA; border-color:#3AAFDA;
+                          text-decoration:none; display:flex; align-items:center; gap:4px;">
+                        <i class="fas fa-external-link-alt"></i> Consulter Navex
+                      </a>
+                    }
+                    <button class="btn-valider" style="font-size:11px; padding:5px 12px;"
+                      (click)="confirmerCommande(c.id)">
+                      <i class="fas fa-check"></i>
+                      {{ c.typeConfirmation === 'RETOUR' ? 'Confirmer retour' : 'Confirmer livraison' }}
+                    </button>
+                  }
+                  @if ((c.statut === 'EN_ATTENTE' || c.statut === 'EN_PREPARATION') && !c.confirmationComptableRequise) {
+                    <button class="btn-marquer-livre"
+                      (click)="marquerLivre(c); $event.stopPropagation()">
+                      <i class="fas fa-check-double"></i>
+                      Marquer livré
+                      @if (c.optionRemise === 'REMBOURSEMENT') {
+                        <span class="btn-remb-badge">+ rembourser</span>
+                      }
+                    </button>
+                  }
+                  @if (c.statut === 'LIVREE' && c.optionRemise === 'REMBOURSEMENT' && !c.remboursementApprouve) {
+                    <button class="btn-valider" style="font-size:11px; padding:5px 12px; background:#8B5CF6; border-color:#8B5CF6;"
+                      (click)="approuverRemboursement(c.id)">
+                      <i class="fas fa-undo"></i> Approuver remboursement
+                    </button>
+                  }
+                  @if (c.statut !== 'RETOURNEE' && c.statut !== 'ANNULEE') {
+                    <button style="font-size:11px; padding:5px 12px; background:#FFF0F0; color:#d43c3c;
+                      border:1px solid #F87171; border-radius:8px; cursor:pointer; font-weight:600;
+                      display:flex; align-items:center; gap:5px;"
+                      (click)="marquerRetour(c.id); $event.stopPropagation()">
+                      <i class="fas fa-undo-alt"></i> Commande en retour
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- ══════════════ TAB: NAVEX ══════════════ -->
+  @if (activeTab === 'navex') {
+    @if (commandesAConfirmer.length === 0) {
+      <div class="dt-empty">
+        <i class="fas fa-check-circle" style="color:#4ECBA0;"></i>
+        Aucune confirmation Navex en attente — tout est à jour !
+      </div>
+    } @else {
+      <div class="mini-list">
+        @for (c of commandesAConfirmer; track c.id) {
+          <div class="mini-item">
+            <div class="mi-left">
+              <div class="mi-name">
+                Commande #{{ c.id }} — {{ c.nomPartenaire }}
+                @if (c.typeConfirmation === 'RETOUR') {
+                  <span style="margin-left:8px; font-size:11px; background:#FFF0F0; color:#d43c3c;
+                    border:1px solid #F87171; padding:2px 8px; border-radius:10px; font-weight:700;">
+                    🔄 RETOUR
+                  </span>
+                } @else {
+                  <span style="margin-left:8px; font-size:11px; background:#EDFAF4; color:#059669;
+                    border:1px solid #4ECBA0; padding:2px 8px; border-radius:10px; font-weight:700;">
+                    ✅ LIVRAISON
+                  </span>
+                }
+              </div>
+              <div class="mi-meta">
+                {{ c.regionPartenaire }} · {{ c.montantTotal | number:'1.2-2' }} DT
+                @if (c.navexStatut) { · Navex : <strong>{{ c.navexStatut }}</strong> }
+              </div>
+            </div>
+            <div class="mi-right" style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+              <div class="mi-amount">{{ c.montantTotal | number:'1.2-2' }} DT</div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
+                @if (c.navexRef) {
+                  <a [href]="navexTrackingUrl(c.navexRef)" target="_blank" class="btn-valider"
+                    style="font-size:11px; padding:5px 10px; background:#3AAFDA; border-color:#3AAFDA;
+                      text-decoration:none; display:flex; align-items:center; gap:4px;">
+                    <i class="fas fa-external-link-alt"></i> Consulter Navex
+                  </a>
+                }
+                <button class="btn-valider" style="font-size:11px; padding:5px 10px;"
+                  (click)="confirmerCommande(c.id)">
+                  <i class="fas fa-check"></i>
+                  {{ c.typeConfirmation === 'RETOUR' ? 'Confirmer retour' : 'Confirmer livraison' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- ══════════════ TAB: REMBOURSEMENTS ══════════════ -->
+  @if (activeTab === 'remboursements') {
+    @if (remboursementsAApprouver.length === 0) {
+      <div class="dt-empty">
+        <i class="fas fa-check-circle" style="color:#4ECBA0;"></i>
+        Aucun remboursement en attente.
+      </div>
+    } @else {
+      <div class="mini-list">
+        @for (c of remboursementsAApprouver; track c.id) {
+          <div class="mini-item">
+            <div class="mi-left">
+              <div class="mi-name">Commande #{{ c.id }} — {{ c.nomPartenaire }}</div>
+              <div class="mi-meta">
+                {{ c.regionPartenaire }} · Livrée · Remboursement {{ c.tauxReduction }}% sur
+                {{ c.montantOriginal | number:'1.2-2' }} DT
+              </div>
+            </div>
+            <div class="mi-right" style="display:flex; align-items:center; gap:10px;">
+              <div class="mi-amount">{{ (c.montantOriginal * c.tauxReduction / 100) | number:'1.2-2' }} DT</div>
+              <button class="btn-valider" style="font-size:11px; padding:5px 12px; background:#8B5CF6; border-color:#8B5CF6;"
+                (click)="approuverRemboursement(c.id)">
+                <i class="fas fa-check"></i> Approuver
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+
+  } <!-- end produits -->
+
+  <!-- ══════════════ PACKS ══════════════ -->
+  @if (typeCommande === 'packs') {
+
+    <!-- Filtres -->
+    <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; align-items:center;">
+      <input class="search-input" type="text" [(ngModel)]="searchPack"
+        placeholder="🔍 Rechercher par nom, ID, pack, région…" style="flex:1; min-width:200px;" />
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        @for (s of statutsPack; track s) {
+          <button class="filter-chip" [class.active]="filtreStatutPack === s" (click)="filtreStatutPack = s">
+            {{ s === 'TOUS' ? 'Tous' : s }}
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (filteredInscriptions.length === 0) {
+      <div class="dt-empty"><i class="fas fa-inbox"></i> Aucune commande de pack trouvée.</div>
+    } @else {
+      <div class="cmd-list">
+        @for (i of filteredInscriptions; track i.id) {
+          <div class="cmd-card">
+            <div class="cmd-header" (click)="expandedInscId = expandedInscId === i.id ? null : i.id" style="cursor:pointer;">
+              <div class="cmd-left">
+                <div class="cmd-id">#{{ i.id }}</div>
+                <div class="cmd-info">
+                  <div class="cmd-name">{{ i.nomClient }}</div>
+                  <div class="cmd-meta">
+                    {{ i.region }} · Pack <strong>{{ i.nomPack }}</strong>
+                    @if (i.nomParrain) { · Parrain : {{ i.nomParrain }} }
+                  </div>
+                </div>
+              </div>
+              <div class="cmd-right">
+                <span class="statut-badge" [ngClass]="inscStatutClass(i.statut)">{{ i.statut }}</span>
+                <div class="cmd-amount">{{ i.prixPack | number:'1.2-2' }} DT</div>
+                <div class="cmd-date">{{ i.dateCreation | date:'dd/MM/yyyy' }}</div>
+                <i class="fas" [class.fa-chevron-down]="expandedInscId !== i.id"
+                  [class.fa-chevron-up]="expandedInscId === i.id" style="color:#9090A8; font-size:12px;"></i>
+              </div>
+            </div>
+
+            @if (expandedInscId === i.id) {
+              <div class="cmd-detail">
+                <div class="cmd-detail-grid">
+                  <div>
+                    <div class="det-lbl">Email</div>
+                    <div class="det-val">{{ i.emailClient }}</div>
+                  </div>
+                  <div>
+                    <div class="det-lbl">Téléphone</div>
+                    <div class="det-val">{{ i.telephone }}</div>
+                  </div>
+                  <div>
+                    <div class="det-lbl">Région</div>
+                    <div class="det-val">{{ i.region }}</div>
+                  </div>
+                  <div>
+                    <div class="det-lbl">Mode paiement</div>
+                    <div class="det-val">{{ i.modePaiement }}</div>
+                  </div>
+                  <div>
+                    <div class="det-lbl">Pack choisi</div>
+                    <div class="det-val" style="font-weight:700;">📦 {{ i.nomPack }}</div>
+                  </div>
+                  <div>
+                    <div class="det-lbl">Prix pack</div>
+                    <div class="det-val" style="font-weight:800; color:#1A1A2E;">{{ i.prixPack | number:'1.2-2' }} DT</div>
+                  </div>
+                  <div>
+                    <div class="det-lbl">Parrain</div>
+                    <div class="det-val">{{ i.nomParrain || '—' }}</div>
+                  </div>
+                  <div>
+                    <div class="det-lbl">Superviseur</div>
+                    <div class="det-val">{{ i.nomSuperviseur || '—' }}</div>
+                  </div>
+                  @if (i.navexRef) {
+                    <div>
+                      <div class="det-lbl">Référence Navex</div>
+                      <div class="det-val">
+                        <a [href]="'https://app.navex.tn/expediteur/suivi.php?code=' + i.navexRef"
+                          target="_blank" style="color:#3AAFDA; text-decoration:none; font-weight:600;">
+                          {{ i.navexRef }} <i class="fas fa-external-link-alt" style="font-size:10px;"></i>
+                        </a>
+                      </div>
+                    </div>
+                  }
+                </div>
+
+                @if (i.statut === 'TRAITEE') {
+                  <div style="display:flex; gap:8px; margin-top:12px;">
+                    <button class="btn-marquer-livre"
+                      (click)="marquerInscriptionLivree(i.id); $event.stopPropagation()">
+                      <i class="fas fa-check-double"></i> Marquer livré
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+  } <!-- end packs -->
+
+</div>
