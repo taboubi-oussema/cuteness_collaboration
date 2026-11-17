@@ -38,13 +38,28 @@ public class AuthService {
     private final DemandeInscriptionService      demandeInscriptionService;
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final int MIN_PASSWORD_LENGTH = 8;
+
+    @org.springframework.beans.factory.annotation.Value("${app.frontend-url:http://localhost:4200}")
+    private String frontendUrl;
+
+    @org.springframework.beans.factory.annotation.Value("${spring.mail.username}")
+    private String mailFrom;
+
+    private static void checkPasswordStrength(String password) {
+        if (password == null || password.length() < MIN_PASSWORD_LENGTH) {
+            throw new RuntimeException("Le mot de passe doit contenir au moins "
+                    + MIN_PASSWORD_LENGTH + " caractères");
+        }
+    }
 
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Email introuvable"));
+        User user = userRepository.findByEmail(request.getEmail()).orElse(null);
 
-        if (!passwordEncoder.matches(request.getMotDePasse(), user.getMotDePasse()))
-            throw new RuntimeException("Mot de passe incorrect");
+        if (user == null
+                || request.getMotDePasse() == null
+                || !passwordEncoder.matches(request.getMotDePasse(), user.getMotDePasse()))
+            throw new RuntimeException("Email ou mot de passe incorrect");
 
         if (!Boolean.TRUE.equals(user.getEmailVerified()))
             throw new RuntimeException("Veuillez vérifier votre adresse email avant de vous connecter.");
@@ -61,6 +76,8 @@ public class AuthService {
 
     @Transactional
     public String register(RegisterRequest request) {
+
+        checkPasswordStrength(request.getMotDePasse());
 
         if (userRepository.existsByEmail(request.getEmail()))
             throw new RuntimeException("Email déjà utilisé");
@@ -188,7 +205,7 @@ public class AuthService {
 
     private void sendOtpEmail(String to, String otp) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("amalcuteness2002@gmail.com");
+        message.setFrom(mailFrom);
         message.setTo(to);
         message.setSubject("Cuteness Collaboration — Vérification de votre email");
         message.setText(
@@ -214,8 +231,12 @@ public class AuthService {
 
     @Transactional
     public String requestPasswordReset(String email) {
-        userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Email introuvable"));
+        final String genericAnswer =
+                "Si un compte existe pour cette adresse, un lien de réinitialisation vient d'être envoyé.";
+
+        if (email == null || userRepository.findByEmail(email).isEmpty()) {
+            return genericAnswer;   // same answer whether or not the account exists
+        }
 
         tokenRepository.deleteByEmail(email);
 
@@ -223,15 +244,15 @@ public class AuthService {
         PasswordResetToken resetToken = new PasswordResetToken(token, email);
         tokenRepository.save(resetToken);
 
-        String resetLink = "http://localhost:4200/auth/reset-password?token=" + token;
+        String resetLink = frontendUrl + "/auth/reset-password?token=" + token;
         sendResetEmail(email, resetLink);
 
-        return "Un lien de réinitialisation a été envoyé à " + email;
+        return genericAnswer;
     }
 
     private void sendResetEmail(String to, String link) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("taboubioussema78@gmail.com");
+        message.setFrom(mailFrom);
         message.setTo(to);
         message.setSubject("Cuteness Collaboration — Réinitialiser votre mot de passe");
         message.setText(
@@ -248,6 +269,7 @@ public class AuthService {
 
     @Transactional
     public String changePassword(ChangePasswordRequest request) {
+        checkPasswordStrength(request.getNouveauMotDePasse());
         if (!request.getNouveauMotDePasse()
                 .equals(request.getConfirmation())) {
             throw new RuntimeException("Les mots de passe ne correspondent pas");

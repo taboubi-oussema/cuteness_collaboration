@@ -20,6 +20,12 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", msg, "message", msg));
     }
 
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<Map<String, String>> handleTooManyRequests(TooManyRequestsException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(Map.of("error", ex.getMessage(), "message", ex.getMessage()));
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, String>> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -43,6 +49,6 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of(
                         "error", "Internal server error",
-                        "message", ex.getMessage()));
+                        "message", "Une erreur interne est survenue. Veuillez réessayer plus tard."));
     }
 }

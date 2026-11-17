@@ -126,7 +126,9 @@ public class ChatService {
             String jsonBody = objectMapper.writeValueAsString(requestBody);
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(GEMINI_URL + "?key=" + apiKey))
+                    .uri(URI.create(GEMINI_URL))
+                    // API key in a header (not in the URL) so it never ends up in logs or error messages
+                    .header("x-goog-api-key", apiKey)
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
