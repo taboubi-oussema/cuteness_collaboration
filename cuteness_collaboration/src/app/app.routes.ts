@@ -142,6 +142,8 @@ export const routes: Routes = [
 
   {
     path: 'superviseur',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: [Role.SUPERVISEUR, Role.ADMIN] },
     loadComponent: () =>
       import('./features/superviseur/dashboard/superviseur-dashboard')
         .then(m => m.SuperviseurDashboardComponent),

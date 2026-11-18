@@ -7,7 +7,6 @@ import { RouterLink, ActivatedRoute, Router }          from '@angular/router';
 import { takeUntilDestroyed }                          from '@angular/core/rxjs-interop';
 import { HttpErrorResponse }                           from '@angular/common/http';
 import { AuthService }                                 from '../../../core/services/auth.service';
-import { environment }                                 from '../../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -25,8 +24,6 @@ export class LoginComponent implements OnInit {
   private readonly _route       = inject(ActivatedRoute);
   private readonly _destroyRef  = inject(DestroyRef);
   private readonly _cdr         = inject(ChangeDetectorRef);
-
-  readonly isProduction = environment.production;
 
   form: FormGroup = this._fb.group({
     email:      ['', [Validators.required, Validators.email]],
@@ -52,7 +49,13 @@ export class LoginComponent implements OnInit {
 
     this._route.queryParams
       .pipe(takeUntilDestroyed(this._destroyRef))
-      .subscribe(p => this.sessionExpired = p['reason'] === 'session-expired');
+      .subscribe(p => {
+        this.sessionExpired = p['reason'] === 'session-expired';
+        const returnUrl = typeof p['returnUrl'] === 'string' ? p['returnUrl'] : '';
+        // #region agent log
+        fetch('http://127.0.0.1:7888/ingest/673d7c49-1923-46e3-a3c2-3ff94659600c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d91175'},body:JSON.stringify({sessionId:'d91175',location:'login.ts:55',message:'login opened with returnUrl',data:{returnUrlPrefix:returnUrl.slice(0,48),external:returnUrl.startsWith('http')||returnUrl.startsWith('//')},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
+      });
   }
 
   onSubmit(): void {
@@ -69,8 +72,12 @@ export class LoginComponent implements OnInit {
           this.isLoading = false;
           this._cdr.markForCheck();
           const returnUrl = this._route.snapshot.queryParams['returnUrl'] as string | undefined;
-          returnUrl
-            ? this._router.navigateByUrl(returnUrl)
+          const safeReturn = !!returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//') && !returnUrl.includes('\\');
+          // #region agent log
+          fetch('http://127.0.0.1:7888/ingest/673d7c49-1923-46e3-a3c2-3ff94659600c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d91175'},body:JSON.stringify({sessionId:'d91175',location:'login.ts:71',message:'login returnUrl',data:{hasReturnUrl:!!returnUrl,safeReturn,returnUrlPrefix:returnUrl ? returnUrl.slice(0, 32) : null},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
+          // #endregion
+          safeReturn
+            ? this._router.navigateByUrl(returnUrl as string)
             : this._authService.redirectByRole();
         },
         error: (err: HttpErrorResponse) => {
@@ -79,10 +86,6 @@ export class LoginComponent implements OnInit {
           this._cdr.markForCheck();
         },
       });
-  }
-
-  fillDemo(email: string, pass: string): void {
-    this.form.patchValue({ email, motDePasse: pass });
   }
 
   togglePassword(): void { this.showPassword = !this.showPassword; }

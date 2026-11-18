@@ -98,7 +98,7 @@ export class AuthService {
   }
 
   getRole(): Role | null {
-    return this._currentUserSubject.value?.role ?? null;
+    return this.roleFromToken(this.getToken());
   }
 
   hasRole(role: Role): boolean {
@@ -133,7 +133,33 @@ export class AuthService {
   private loadUser(): User | null {
     if (!isPlatformBrowser(this._platformId)) return null;
     const stored = localStorage.getItem(USER_KEY);
-    return stored ? (JSON.parse(stored) as User) : null;
+    if (!stored) return null;
+    const tokenRole = this.roleFromToken(this.getToken());
+    if (!tokenRole) {
+      localStorage.removeItem(USER_KEY);
+      return null;
+    }
+    try {
+      const user = JSON.parse(stored) as User;
+      if (user.role !== tokenRole) {
+        user.role = tokenRole;
+        localStorage.setItem(USER_KEY, JSON.stringify(user));
+      }
+      return user;
+    } catch {
+      localStorage.removeItem(USER_KEY);
+      return null;
+    }
+  }
+
+  private roleFromToken(token: string | null): Role | null {
+    if (!token) return null;
+    try {
+      const role = this.decodeToken(token).role;
+      return (Object.values(Role) as string[]).includes(role) ? role : null;
+    } catch {
+      return null;
+    }
   }
 
   private setCookie(name: string, value: string, maxAgeDays?: number): void {
@@ -160,7 +186,7 @@ export class AuthService {
       id:           res.id            ?? payload.userId,
       nom:          res.nom           ?? payload.nom,
       email:        res.email         ?? payload.sub,
-      role:         (res.role         ?? payload.role) as Role,
+      role:         (payload.role     ?? res.role) as Role,
       solde:        res.solde         ?? 0,
       niveau:       res.niveau        ?? 0,
       actif:        true,

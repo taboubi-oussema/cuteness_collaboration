@@ -33,6 +33,9 @@ export class SuperviseurDashboardComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const user = this.authService.getCurrentUser();
+    // #region agent log
+    fetch('http://127.0.0.1:7888/ingest/673d7c49-1923-46e3-a3c2-3ff94659600c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d91175'},body:JSON.stringify({sessionId:'d91175',location:'superviseur-dashboard.ts:35',message:'superviseur shell opened',data:{authenticated:this.authService.isAuthenticated(),storedRole:user?.role ?? null,hasToken:!!this.authService.getToken()},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     if (user) this.superviseurName = user.nom;
     this.loadStats();
     this.loadNotifCount();
